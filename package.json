@@ -1,0 +1,51 @@
+{
+  "name": "startup-auth-flow",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "next": "14.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-hook-form": "^7.47.0",
+    "@hookform/resolvers": "^3.3.2",
+    "zod": "^3.22.4",
+    "@supabase/supabase-js": "^2.38.0",
+    "axios": "^1.6.0",
+    "framer-motion": "^10.16.4",
+    "@radix-ui/react-toast": "^1.1.5",
+    "@radix-ui/react-slot": "^1.0.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0",
+    "zustand": "^4.4.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "@types/node": "^20.8.7",
+    "@types/react": "^18.2.31",
+    "@types/react-dom": "^18.2.14",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "eslint": "^8.52.0",
+    "eslint-config-next": "14.0.0",
+    "@playwright/test": "^1.40.0",
+    "vitest": "^0.34.6",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@storybook/nextjs": "^7.5.3",
+    "@storybook/react": "^7.5.3",
+    "@storybook/addon-essentials": "^7.5.3",
+    "@axe-core/playwright": "^4.8.2"
+  }
+}
