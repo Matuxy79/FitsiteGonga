@@ -10,42 +10,61 @@
     "test": "vitest",
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "format": "prettier --write .",
+    "type-check": "dotenv-cli -e .env.local -- tsc -p tsconfig.json --noEmit",
+    "analyze": "cross-env ANALYZE=true next build",
+    "prepare": "husky install"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.3.2",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-toast": "^1.1.5",
+    "@supabase/supabase-js": "^2.38.0",
+    "@vitejs/plugin-react": "^4.6.0",
+    "axios": "^1.6.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "framer-motion": "^10.16.4",
     "next": "14.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.47.0",
-    "@hookform/resolvers": "^3.3.2",
-    "zod": "^3.22.4",
-    "@supabase/supabase-js": "^2.38.0",
-    "axios": "^1.6.0",
-    "framer-motion": "^10.16.4",
-    "@radix-ui/react-toast": "^1.1.5",
-    "@radix-ui/react-slot": "^1.0.2",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
     "tailwind-merge": "^2.0.0",
+    "zod": "^3.22.4",
     "zustand": "^4.4.6"
   },
   "devDependencies": {
-    "typescript": "^5.2.2",
+    "@axe-core/playwright": "^4.8.2",
+    "@next/bundle-analyzer": "^14.0.0",
+    "@playwright/test": "^1.40.0",
+    "@storybook/addon-essentials": "^7.5.3",
+    "@storybook/nextjs": "^7.5.3",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^13.4.0",
     "@types/node": "^20.8.7",
     "@types/react": "^18.2.31",
     "@types/react-dom": "^18.2.14",
     "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^7.3.0",
     "eslint": "^8.52.0",
     "eslint-config-next": "14.0.0",
-    "@playwright/test": "^1.40.0",
-    "vitest": "^0.34.6",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/jest-dom": "^6.1.4",
-    "@storybook/nextjs": "^7.5.3",
-    "@storybook/react": "^7.5.3",
-    "@storybook/addon-essentials": "^7.5.3",
-    "@axe-core/playwright": "^4.8.2"
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "postcss": "^8.4.31",
+    "prettier": "^3.1.1",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --max-warnings 0",
+      "prettier --check"
+    ],
+    "*.{json,css,md}": [
+      "prettier --check"
+    ]
   }
 }
