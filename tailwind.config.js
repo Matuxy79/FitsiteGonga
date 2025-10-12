@@ -7,6 +7,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        // Discord-inspired colors
+        'discord-darkest': '#1e1f22',
+        'discord-darker': '#202225', 
+        'discord-dark': '#2f3136',
+        'discord-medium': '#36393f',
+        'discord-light': '#dcddde',
+        'discord-muted': '#72767d',
+        'discord-accent': '#5865f2',
+        'discord-success': '#3ba55c',
+        'discord-warning': '#faa61a',
+        'discord-error': '#ed4245',
+      },
       animation: {
         'fade-in': 'fadeIn 0.25s ease-in-out',
         'slide-in': 'slideIn 0.25s ease-in-out',
