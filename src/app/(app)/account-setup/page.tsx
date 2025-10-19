@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { accountSetupSchema, type AccountSetupFormValues } from '@/schema/account-setup';
 import { kgToLb, lbToKg, cmToIn, inToCm } from '@/lib/units';
 import { calcBMI, calcBMR, ageFromBirthdate } from '@/lib/fitness-calculations';
+import { getMovementOptions, getFormulaOptions } from '@/lib/strength';
 import type { Gender, UnitSystem } from '@/types/profile';
 
 type Step = 1 | 2 | 3;
@@ -70,8 +71,13 @@ export default function AccountSetupPage() {
       'resting_hr',
       'activity_level',
     ];
+    const step3Fields: (keyof AccountSetupFormValues)[] = [
+      'favorite_movements',
+      'training_frequency',
+      'one_rm_formula',
+    ];
 
-    const fieldsToValidate = step === 1 ? step1Fields : step2Fields;
+    const fieldsToValidate = step === 1 ? step1Fields : step === 2 ? step2Fields : step3Fields;
     const isValid = await trigger(fieldsToValidate, { shouldFocus: true });
 
     if (isValid && step < 3) {
@@ -105,6 +111,13 @@ export default function AccountSetupPage() {
       const heightCm = unitSystem === 'imperial' ? inToCm(values.height) : values.height;
       const weightKg = unitSystem === 'imperial' ? lbToKg(values.weight) : values.weight;
 
+      // Prepare training preferences
+      const trainingPrefs = {
+        favorite_movements: values.favorite_movements || [],
+        training_frequency: values.training_frequency || undefined,
+        one_rm_formula: values.one_rm_formula || 'epley',
+      };
+
       // Upsert profile
       const { error: profileError } = await supabase.from('profiles').upsert(
         {
@@ -114,7 +127,8 @@ export default function AccountSetupPage() {
           birthdate: values.birthdate,
           gender: values.gender,
           unit_system: values.unit_system,
-          activity_level: values.activity_level || null,
+          role: 'client', // Default role
+          training_prefs: trainingPrefs,
         },
         { onConflict: 'id' }
       );
@@ -163,11 +177,11 @@ export default function AccountSetupPage() {
     }
   };
 
-  const stepTitles = ['Profile', 'Metrics', 'Goals'];
+  const stepTitles = ['Profile', 'Metrics', 'Training'];
   const stepDescriptions = [
     'Tell us about yourself',
     'Your fitness measurements',
-    'Set your goals (optional)',
+    'Training preferences',
   ];
 
   return (
@@ -443,13 +457,72 @@ export default function AccountSetupPage() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <h2 className="text-lg font-semibold text-gray-900">Goals (Optional)</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Training Preferences</h2>
                   <p className="text-gray-600">
-                    This step is optional. You can set your fitness goals later in your profile
-                    settings.
+                    Tell us about your training preferences. You can change these later.
                   </p>
-                  <div className="rounded-lg bg-gray-50 p-6 text-center">
-                    <p className="text-gray-500">Goal setting coming soon!</p>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Favorite Movements (optional)
+                    </label>
+                    <div className="space-y-2">
+                      {getMovementOptions().map(movement => (
+                        <div key={movement.value} className="flex items-center">
+                          <input
+                            id={`movement-${movement.value}`}
+                            type="checkbox"
+                            value={movement.value}
+                            {...register('favorite_movements')}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label
+                            htmlFor={`movement-${movement.value}`}
+                            className="ml-2 text-sm text-gray-700 cursor-pointer"
+                          >
+                            {movement.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Training Frequency (days per week)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="7"
+                      {...register('training_frequency', { valueAsNumber: true })}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="3"
+                    />
+                    {errors.training_frequency && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.training_frequency.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      1RM Formula Preference
+                    </label>
+                    <select
+                      {...register('one_rm_formula')}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      {getFormulaOptions().map(formula => (
+                        <option key={formula.value} value={formula.value}>
+                          {formula.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Used to calculate estimated one-rep max from your sets
+                    </p>
                   </div>
                 </motion.div>
               )}

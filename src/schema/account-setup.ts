@@ -59,6 +59,16 @@ export const accountSetupSchema = z.object({
     .optional(),
 
   activity_level: z.enum(['sedentary', 'light', 'moderate', 'active', 'athlete']).optional(),
+
+  // Training preferences
+  favorite_movements: z.array(z.string()).optional(),
+  training_frequency: z
+    .number()
+    .int('Training frequency must be a whole number')
+    .min(1, 'Training frequency must be at least 1 day per week')
+    .max(7, 'Training frequency cannot exceed 7 days per week')
+    .optional(),
+  one_rm_formula: z.enum(['epley', 'brzycki', 'lombardi', 'oconner']).optional(),
 });
 
 export type AccountSetupFormValues = z.infer<typeof accountSetupSchema>;
@@ -79,5 +89,12 @@ export const metricsStepSchema = accountSetupSchema.pick({
   activity_level: true,
 });
 
+export const trainingStepSchema = accountSetupSchema.pick({
+  favorite_movements: true,
+  training_frequency: true,
+  one_rm_formula: true,
+});
+
 export type ProfileStepValues = z.infer<typeof profileStepSchema>;
 export type MetricsStepValues = z.infer<typeof metricsStepSchema>;
+export type TrainingStepValues = z.infer<typeof trainingStepSchema>;

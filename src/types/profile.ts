@@ -1,23 +1,14 @@
 // Profile and fitness-related types for FitsiteGonga
 
+import { Profile as TrainingProfile, TrainingPreferences } from './training';
+
 export type Gender = 'male' | 'female' | 'nonbinary' | 'prefer_not';
 export type UnitSystem = 'metric' | 'imperial';
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'athlete';
 export type Season = 'reset' | 'build' | 'challenge';
 
-export interface Profile {
-  id: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  gender: Gender | null;
-  birthdate: string | null; // ISO date string
-  unit_system: UnitSystem;
-  activity_level: ActivityLevel | null;
-  season: Season;
-  created_at: string;
-  updated_at: string;
-}
+// Re-export the Profile from training.ts as the main Profile type
+export type Profile = TrainingProfile;
 
 export interface FitnessMetrics {
   id: string;
@@ -64,6 +55,10 @@ export interface AccountSetupFormValues {
   weight: number;
   resting_hr?: number;
   activity_level?: ActivityLevel;
+  // Training preferences
+  favorite_movements?: string[];
+  training_frequency?: number;
+  one_rm_formula?: string;
 }
 
 export interface ProfileCompletionStatus {
