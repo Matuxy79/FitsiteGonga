@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 import { parseAuthError } from '@/lib/auth/auth-utils';
 import { AUTH_MESSAGES } from '@/lib/auth/auth-constants';
+import { getPostAuthRedirect } from '@/lib/auth/profile-redirect';
 
 interface LoginCardProps {
   onSuccess: () => void;
@@ -47,14 +48,25 @@ export function LoginCard({ onSuccess, onSwitchToSignup }: LoginCardProps) {
 
       if (authData?.user) {
         setFormState('success');
+
+        // Check profile completion and redirect accordingly
+        const redirectPath = await getPostAuthRedirect();
+
         toast({
           title: AUTH_MESSAGES.LOGIN_SUCCESS,
-          description: 'Redirecting to dashboard...',
+          description:
+            redirectPath === '/account-setup'
+              ? 'Please complete your profile setup...'
+              : 'Redirecting to dashboard...',
           variant: 'success',
         });
 
         setTimeout(() => {
-          onSuccess();
+          if (redirectPath === '/account-setup') {
+            window.location.href = '/account-setup';
+          } else {
+            onSuccess();
+          }
         }, 500);
       }
     } catch (error) {

@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 import { parseAuthError, getEmailRedirectUrl, generateDisplayName } from '@/lib/auth/auth-utils';
 import { AUTH_MESSAGES } from '@/lib/auth/auth-constants';
+import { getPostAuthRedirect } from '@/lib/auth/profile-redirect';
 import { VerifyEmailDialog } from './VerifyEmailDialog';
 
 interface SignupCardProps {
@@ -67,14 +68,25 @@ export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
       // Handle immediate success (email verification disabled)
       if (authData?.user && authData.session) {
         setFormState('success');
+
+        // Check profile completion and redirect accordingly
+        const redirectPath = await getPostAuthRedirect();
+
         toast({
           title: AUTH_MESSAGES.SIGNUP_SUCCESS,
-          description: 'Welcome to FitsiteGonga!',
+          description:
+            redirectPath === '/account-setup'
+              ? 'Welcome! Please complete your profile setup...'
+              : 'Welcome to FitsiteGonga!',
           variant: 'success',
         });
 
         setTimeout(() => {
-          onSuccess();
+          if (redirectPath === '/account-setup') {
+            window.location.href = '/account-setup';
+          } else {
+            onSuccess();
+          }
         }, 1000);
       }
     } catch (error) {
