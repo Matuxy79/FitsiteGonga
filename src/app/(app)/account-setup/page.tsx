@@ -56,7 +56,24 @@ export default function AccountSetupPage() {
   })();
 
   const handleNext = async () => {
-    const isValid = await trigger();
+    // Validate only fields for the current step
+    const step1Fields: (keyof AccountSetupFormValues)[] = [
+      'display_name',
+      'bio',
+      'birthdate',
+      'gender',
+      'unit_system',
+    ];
+    const step2Fields: (keyof AccountSetupFormValues)[] = [
+      'height',
+      'weight',
+      'resting_hr',
+      'activity_level',
+    ];
+
+    const fieldsToValidate = step === 1 ? step1Fields : step2Fields;
+    const isValid = await trigger(fieldsToValidate, { shouldFocus: true });
+
     if (isValid && step < 3) {
       setStep(prev => (prev + 1) as Step);
     }
@@ -132,8 +149,8 @@ export default function AccountSetupPage() {
         variant: 'success',
       });
 
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // The guard in (app)/layout.tsx will automatically redirect to dashboard
+      // once it detects the profile is complete
     } catch (error) {
       console.error('Account setup error:', error);
       toast({
@@ -276,29 +293,44 @@ export default function AccountSetupPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <span className="block text-sm font-medium text-gray-700 mb-3">
                       Unit System
-                    </label>
-                    <div className="flex space-x-4">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          value="metric"
-                          {...register('unit_system')}
-                          className="mr-2"
-                        />
-                        Metric (kg, cm)
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          value="imperial"
-                          {...register('unit_system')}
-                          className="mr-2"
-                        />
-                        Imperial (lbs, in)
-                      </label>
-                    </div>
+                    </span>
+                    <fieldset className="mt-2">
+                      <legend className="sr-only">Unit System</legend>
+                      <div className="flex gap-6">
+                        <div className="flex items-center gap-2">
+                          <input
+                            id="unit-metric"
+                            type="radio"
+                            value="metric"
+                            {...register('unit_system')}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor="unit-metric"
+                            className="text-sm text-gray-700 cursor-pointer"
+                          >
+                            Metric (kg / cm)
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            id="unit-imperial"
+                            type="radio"
+                            value="imperial"
+                            {...register('unit_system')}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor="unit-imperial"
+                            className="text-sm text-gray-700 cursor-pointer"
+                          >
+                            Imperial (lb / in)
+                          </label>
+                        </div>
+                      </div>
+                    </fieldset>
                   </div>
                 </motion.div>
               )}
