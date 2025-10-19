@@ -1,80 +1,81 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'framer-motion'
-import { loginSchema, type LoginDTO } from '@/schema/auth'
-import { FormField } from '@/components/ui/FormField'
-import { useToast } from '@/hooks/useToast'
-import { supabase } from '@/lib/supabase'
-import { generateErrorRef } from '@/lib/utils'
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { motion } from 'framer-motion';
+import { loginSchema, type LoginDTO } from '@/schema/auth';
+import { FormField } from '@/components/ui/FormField';
+import { useToast } from '@/hooks/useToast';
+import { supabase } from '@/lib/supabase';
+import { parseAuthError } from '@/lib/auth/auth-utils';
+import { AUTH_MESSAGES } from '@/lib/auth/auth-constants';
 
 interface LoginCardProps {
-  onSuccess: () => void
-  onSwitchToSignup: () => void
+  onSuccess: () => void;
+  onSwitchToSignup: () => void;
 }
 
-type FormState = 'idle' | 'validating' | 'loading' | 'success' | 'error'
+type FormState = 'idle' | 'validating' | 'loading' | 'success' | 'error';
 
 export function LoginCard({ onSuccess, onSwitchToSignup }: LoginCardProps) {
-  const [formState, setFormState] = useState<FormState>('idle')
-  const { toast } = useToast()
-  
+  const [formState, setFormState] = useState<FormState>('idle');
+  const { toast } = useToast();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-    trigger
+    trigger,
   } = useForm<LoginDTO>({
     resolver: zodResolver(loginSchema),
-    mode: 'onChange'
-  })
+    mode: 'onChange',
+  });
 
   const onSubmit = async (data: LoginDTO) => {
     try {
-      setFormState('loading')
-      
+      setFormState('loading');
+
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
-      })
+      });
 
       if (error) {
-        throw error
+        throw error;
       }
 
       if (authData?.user) {
-        setFormState('success')
+        setFormState('success');
         toast({
-          title: 'Login successful',
+          title: AUTH_MESSAGES.LOGIN_SUCCESS,
           description: 'Redirecting to dashboard...',
-          variant: 'success'
-        })
-        
+          variant: 'success',
+        });
+
         setTimeout(() => {
-          onSuccess()
-        }, 500)
+          onSuccess();
+        }, 500);
       }
     } catch (error) {
-      setFormState('error')
-      const errorRef = generateErrorRef()
-      
+      setFormState('error');
+      const authError = parseAuthError(error);
+
       toast({
         title: 'Login failed',
-        description: `Something went wrong (REF-${errorRef})`,
-        variant: 'destructive'
-      })
-      
-      console.error('Login error:', error, `REF-${errorRef}`)
+        description: authError.message,
+        variant: 'destructive',
+      });
+
+      console.error('Login error:', error);
     }
-  }
+  };
 
   const handleBlur = async (field: keyof LoginDTO) => {
-    setFormState('validating')
-    await trigger(field)
-    setFormState('idle')
-  }
+    setFormState('validating');
+    await trigger(field);
+    setFormState('idle');
+  };
 
   return (
     <motion.div
@@ -125,9 +126,9 @@ export function LoginCard({ onSuccess, onSwitchToSignup }: LoginCardProps) {
           onClick={onSwitchToSignup}
           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
         >
-          Don't have an account? Sign up
+          Don&apos;t have an account? Sign up
         </button>
       </div>
     </motion.div>
-  )
+  );
 }

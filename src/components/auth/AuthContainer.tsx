@@ -1,31 +1,31 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { AnimatePresence } from 'framer-motion'
-import { LoginCard } from './LoginCard'
-import { SignupCard } from './SignupCard'
-import { ToastProvider } from './ui/Toast'
-import { useToast } from '@/hooks/useToast'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AnimatePresence } from 'framer-motion';
+import { LoginCard } from './LoginCard';
+import { SignupCard } from './SignupCard';
+import { ToastProvider } from '@/components/ui/Toast';
+import { useToast } from '@/hooks/useToast';
 
-type AuthMode = 'login' | 'signup'
+type AuthMode = 'login' | 'signup';
 
 export function AuthContainer() {
-  const [authMode, setAuthMode] = useState<AuthMode>('login')
-  const { toasts, dismiss } = useToast()
-  const router = useRouter()
+  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const { toasts, dismiss } = useToast();
+  const router = useRouter();
 
   const handleAuthSuccess = () => {
-    router.push('/dashboard')
-  }
+    router.push('/dashboard');
+  };
 
   const switchToSignup = () => {
-    setAuthMode('signup')
-  }
+    setAuthMode('signup');
+  };
 
   const switchToLogin = () => {
-    setAuthMode('login')
-  }
+    setAuthMode('login');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -48,5 +48,5 @@ export function AuthContainer() {
       </div>
       <ToastProvider toasts={toasts} onDismiss={dismiss} />
     </div>
-  )
+  );
 }
