@@ -1,78 +1,51 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useProfileComplete } from '@/hooks/useProfileComplete';
 
-interface AppLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function AppLayout({ children }: AppLayoutProps) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const path = usePathname();
   const { isComplete, isLoading, error } = useProfileComplete();
-  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Don't redirect if we're already on account-setup or if still loading
-    if (pathname === '/account-setup' || isLoading) {
+    if (isLoading) return;
+
+    // Only apply guard logic for protected routes
+    // The (app) route group contains protected routes, so we need to guard them
+
+    // If profile is not complete and we're not on account-setup, redirect to account-setup
+    if (!isComplete && path !== '/account-setup') {
+      router.push('/account-setup');
       return;
     }
 
-    // If there's an error, don't redirect (let user see the error)
-    if (error) {
-      console.error('Profile completion check error:', error);
+    // If profile is complete and we're on account-setup, redirect to dashboard (root of app group)
+    if (isComplete && path === '/account-setup') {
+      router.push('/');
       return;
     }
-
-    // If profile is not complete, redirect to account-setup
-    if (!isComplete && !isRedirecting) {
-      setIsRedirecting(true);
-      router.replace('/account-setup');
-    }
-  }, [isComplete, isLoading, error, pathname, router, isRedirecting]);
+  }, [isComplete, isLoading, path, router]);
 
   // Show loading state while checking profile completion
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading...</h2>
-          <p className="text-gray-600">Setting up your account</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // Show error state if there's an error
-  if (error) {
+  // Show error state if there's an authentication error
+  if (error && error === 'User not authenticated') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Don't render children if redirecting
-  if (isRedirecting) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Redirecting...</h2>
-          <p className="text-gray-600">Please complete your profile setup</p>
+          <p className="text-red-600">Please sign in to continue.</p>
         </div>
       </div>
     );
