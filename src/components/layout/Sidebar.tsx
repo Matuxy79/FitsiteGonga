@@ -9,10 +9,11 @@ interface SidebarProps {
 }
 
 const navigationItems = [
-  { id: 'dashboard', name: 'Dashboard', icon: '🏠', href: '/' },
-  { id: 'workouts', name: 'Workouts', icon: '💪', href: '/workouts' },
-  { id: 'metrics', name: 'Metrics', icon: '📊', href: '/metrics' },
-  { id: 'goals', name: 'Goals', icon: '🎯', href: '/metrics' },
+  { id: 'dashboard', name: 'Dashboard', icon: '🏠', href: '/app' },
+  { id: 'challenges', name: 'Challenges', icon: '🏆', href: '/app/challenges' },
+  { id: 'workouts', name: 'Workouts', icon: '💪', href: '/app/workouts' },
+  { id: 'metrics', name: 'Metrics', icon: '📊', href: '/app/metrics' },
+  { id: 'goals', name: 'Goals', icon: '🎯', href: '/app/goals' },
 ];
 
 export function Sidebar({ userRole = 'client' }: SidebarProps) {

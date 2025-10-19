@@ -55,15 +55,15 @@ export function LoginCard({ onSuccess, onSwitchToSignup }: LoginCardProps) {
         toast({
           title: AUTH_MESSAGES.LOGIN_SUCCESS,
           description:
-            redirectPath === '/account-setup'
+            redirectPath === '/app/account-setup'
               ? 'Please complete your profile setup...'
               : 'Redirecting to dashboard...',
           variant: 'success',
         });
 
         setTimeout(() => {
-          if (redirectPath === '/account-setup') {
-            window.location.href = '/account-setup';
+          if (redirectPath === '/app/account-setup') {
+            window.location.href = '/app/account-setup';
           } else {
             onSuccess();
           }

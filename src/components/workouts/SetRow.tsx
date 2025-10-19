@@ -27,24 +27,24 @@ export function SetRow({ set, onUpdate, onRemove }: SetRowProps) {
   const handleWeightChange = (value: string) => {
     setWeight(value);
     const numValue = parseFloat(value) || 0;
-    onUpdate({ weight_kg: numValue || null });
+    onUpdate({ weight_kg: numValue || undefined });
   };
 
   const handleRepsChange = (value: string) => {
     setReps(value);
     const numValue = parseInt(value) || 0;
-    onUpdate({ reps: numValue || null });
+    onUpdate({ reps: numValue || undefined });
   };
 
   const handleRpeChange = (value: string) => {
     setRpe(value);
     const numValue = parseFloat(value) || 0;
-    onUpdate({ rpe: numValue || null });
+    onUpdate({ rpe: numValue || undefined });
   };
 
   const handleNotesChange = (value: string) => {
     setNotes(value);
-    onUpdate({ notes: value || null });
+    onUpdate({ notes: value || undefined });
   };
 
   return (

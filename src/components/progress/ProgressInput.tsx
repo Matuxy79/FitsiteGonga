@@ -1,116 +1,114 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import type { Challenge } from '@/types/fitness'
+import { useState } from 'react';
 
 interface ProgressInputProps {
-  challenge: Challenge
-  onLogProgress: (value: number, notes?: string) => void
-  disabled?: boolean
+  challengeId: string;
+  onSubmit: (data: ProgressData) => void;
 }
 
-export function ProgressInput({ challenge, onLogProgress, disabled = false }: ProgressInputProps) {
-  const [value, setValue] = useState('')
-  const [notes, setNotes] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+interface ProgressData {
+  challenge_id: string;
+  value: number;
+  unit: string;
+  notes?: string;
+  photo_url?: string;
+}
+
+export function ProgressInput({ challengeId, onSubmit }: ProgressInputProps) {
+  const [value, setValue] = useState('');
+  const [unit, setUnit] = useState('reps');
+  const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!value || isNaN(Number(value)) || Number(value) <= 0) {
-      return
+    e.preventDefault();
+
+    if (!value || parseFloat(value) <= 0) {
+      alert('Please enter a valid value');
+      return;
     }
 
-    setIsSubmitting(true)
-    
+    setIsSubmitting(true);
+
     try {
-      await onLogProgress(Number(value), notes || undefined)
-      setValue('')
-      setNotes('')
-    } catch (error) {
-      console.error('Failed to log progress:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+      await onSubmit({
+        challenge_id: challengeId,
+        value: parseFloat(value),
+        unit,
+        notes: notes.trim() || undefined,
+      });
 
-  const quickValues = challenge.type === 'duration' 
-    ? [15, 30, 45, 60, 90] 
-    : challenge.type === 'distance'
-    ? [1, 2, 3, 5, 10]
-    : [5, 10, 15, 20, 25]
+      // Reset form
+      setValue('');
+      setNotes('');
+    } catch (error) {
+      console.error('Error submitting progress:', error);
+      alert('Failed to submit progress. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="bg-discord-darker rounded-lg border border-discord-dark p-4">
+    <div className="bg-white rounded-lg shadow p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Log Progress</h3>
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Progress Input */}
-        <div>
-          <label className="block text-sm font-medium text-white mb-2">
-            Log Progress ({challenge.goal_unit})
-          </label>
-          <div className="flex space-x-2">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
             <input
               type="number"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder={`Enter ${challenge.goal_unit}...`}
-              disabled={disabled || isSubmitting}
-              className="flex-1 bg-discord-dark border border-discord-medium rounded px-3 py-2 text-discord-light placeholder-discord-muted focus:outline-none focus:border-discord-accent disabled:opacity-50 disabled:cursor-not-allowed"
-              min="0"
               step="0.1"
+              required
+              value={value}
+              onChange={e => setValue(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter amount"
             />
-            <button
-              type="submit"
-              disabled={disabled || isSubmitting || !value || Number(value) <= 0}
-              className="bg-discord-accent hover:bg-discord-accent/80 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded font-medium transition-colors"
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+            <select
+              value={unit}
+              onChange={e => setUnit(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {isSubmitting ? 'Logging...' : 'Log Progress'}
-            </button>
+              <option value="reps">reps</option>
+              <option value="minutes">minutes</option>
+              <option value="seconds">seconds</option>
+              <option value="miles">miles</option>
+              <option value="km">km</option>
+              <option value="lbs">lbs</option>
+              <option value="kg">kg</option>
+              <option value="sets">sets</option>
+              <option value="servings">servings</option>
+            </select>
           </div>
         </div>
 
-        {/* Quick Values */}
         <div>
-          <label className="block text-sm font-medium text-white mb-2">
-            Quick Values
-          </label>
-          <div className="flex space-x-2">
-            {quickValues.map((quickValue) => (
-              <button
-                key={quickValue}
-                type="button"
-                onClick={() => setValue(quickValue.toString())}
-                disabled={disabled || isSubmitting}
-                className="bg-discord-medium hover:bg-discord-medium/80 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-sm transition-colors"
-              >
-                {quickValue}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label className="block text-sm font-medium text-white mb-2">
-            Notes (Optional)
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
           <textarea
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="How did it feel? Any notes about your workout..."
-            disabled={disabled || isSubmitting}
-            rows={2}
-            className="w-full bg-discord-dark border border-discord-medium rounded px-3 py-2 text-discord-light placeholder-discord-muted focus:outline-none focus:border-discord-accent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+            onChange={e => setNotes(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={3}
+            placeholder="How did it go? Any notes about your progress..."
           />
         </div>
 
-        {/* Progress Stats */}
-        <div className="flex items-center justify-between text-sm text-discord-muted">
-          <span>Challenge: {challenge.name}</span>
-          <span>Target: {challenge.goal_value} {challenge.goal_unit}</span>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Logging...' : 'Log Progress'}
+          </button>
         </div>
       </form>
     </div>
-  )
+  );
 }

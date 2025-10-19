@@ -10,7 +10,7 @@ export async function getPostAuthRedirect(): Promise<string> {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return '/';
+      return '/login';
     }
 
     // Check if profile has required fields
@@ -21,13 +21,13 @@ export async function getPostAuthRedirect(): Promise<string> {
       .maybeSingle();
 
     if (!profile || !profile.display_name || !profile.birthdate || !profile.unit_system) {
-      return '/account-setup';
+      return '/app/account-setup';
     }
 
-    return '/dashboard';
+    return '/app';
   } catch (error) {
     console.error('Profile redirect check error:', error);
     // On error, redirect to account-setup to be safe
-    return '/account-setup';
+    return '/app/account-setup';
   }
 }

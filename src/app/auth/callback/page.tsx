@@ -56,7 +56,7 @@ function AuthCallbackContent() {
           });
 
           setTimeout(() => {
-            router.replace('/dashboard');
+            router.replace('/');
           }, EMAIL_VERIFICATION.REDIRECT_DELAY);
         }
       } catch (error) {

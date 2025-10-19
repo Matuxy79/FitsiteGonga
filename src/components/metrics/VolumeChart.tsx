@@ -17,24 +17,18 @@ export function VolumeChart() {
       try {
         setIsLoading(true);
 
-        // For now, we'll generate mock data
-        // In a real implementation, this would fetch from the API
-        const mockData: VolumeData[] = [];
-        const days = timeRange === 'week' ? 7 : 30;
+        const response = await fetch(`/api/volume?range=${timeRange}`);
 
-        for (let i = days - 1; i >= 0; i--) {
-          const date = new Date();
-          date.setDate(date.getDate() - i);
-
-          mockData.push({
-            date: date.toISOString().split('T')[0],
-            volume: Math.floor(Math.random() * 5000) + 1000, // Random volume between 1000-6000 kg
-          });
+        if (!response.ok) {
+          throw new Error('Failed to fetch volume data');
         }
 
-        setVolumeData(mockData);
+        const result = await response.json();
+        setVolumeData(result.data || []);
       } catch (error) {
         console.error('Error fetching volume data:', error);
+        // Keep empty array on error - will show empty state
+        setVolumeData([]);
       } finally {
         setIsLoading(false);
       }
@@ -51,6 +45,38 @@ export function VolumeChart() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (volumeData.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="mx-auto h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+          <svg
+            className="h-8 w-8 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No training data yet</h3>
+        <p className="text-gray-600 mb-4">
+          Complete some workouts to see your training volume over time
+        </p>
+        <button
+          onClick={() => (window.location.href = '/workouts')}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+        >
+          Start Your First Workout
+        </button>
       </div>
     );
   }

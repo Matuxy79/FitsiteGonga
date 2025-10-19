@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import type { ProgressEntryProps } from '@/types/fitness';
 
 export function ProgressEntry({
@@ -60,7 +61,13 @@ export function ProgressEntry({
 
         {log.photo_url && (
           <div className="mb-3">
-            <img src={log.photo_url} alt="Progress photo" className="max-w-xs rounded-lg" />
+            <Image
+              src={log.photo_url}
+              alt="Progress photo"
+              width={300}
+              height={200}
+              className="max-w-xs rounded-lg"
+            />
           </div>
         )}
 
