@@ -163,8 +163,8 @@ export default function AccountSetupPage() {
         variant: 'success',
       });
 
-      // The guard in (app)/layout.tsx will automatically redirect to dashboard
-      // once it detects the profile is complete
+      // Redirect to dashboard after successful setup
+      router.push('/');
     } catch (error) {
       console.error('Account setup error:', error);
       toast({
