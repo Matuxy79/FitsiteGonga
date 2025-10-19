@@ -8,6 +8,92 @@ import { getEmailRedirectUrl } from '@/lib/auth/auth-utils';
 import { EMAIL_VERIFICATION, AUTH_MESSAGES } from '@/lib/auth/auth-constants';
 import { parseAuthError } from '@/lib/auth/auth-utils';
 
+interface EmailProviderButtonProps {
+  email: string;
+}
+
+function EmailProviderButton({ email }: EmailProviderButtonProps) {
+  const getEmailProvider = (email: string) => {
+    const domain = email.split('@')[1]?.toLowerCase();
+
+    if (!domain) return null;
+
+    // Common email providers and their webmail URLs
+    const providers: Record<string, { name: string; url: string; icon: string }> = {
+      'gmail.com': {
+        name: 'Gmail',
+        url: 'https://mail.google.com',
+        icon: '📧',
+      },
+      'outlook.com': {
+        name: 'Outlook',
+        url: 'https://outlook.live.com',
+        icon: '📧',
+      },
+      'hotmail.com': {
+        name: 'Outlook',
+        url: 'https://outlook.live.com',
+        icon: '📧',
+      },
+      'yahoo.com': {
+        name: 'Yahoo Mail',
+        url: 'https://mail.yahoo.com',
+        icon: '📧',
+      },
+      'icloud.com': {
+        name: 'iCloud Mail',
+        url: 'https://www.icloud.com/mail',
+        icon: '📧',
+      },
+      'protonmail.com': {
+        name: 'ProtonMail',
+        url: 'https://mail.protonmail.com',
+        icon: '📧',
+      },
+      'aol.com': {
+        name: 'AOL Mail',
+        url: 'https://mail.aol.com',
+        icon: '📧',
+      },
+    };
+
+    return providers[domain] || null;
+  };
+
+  const provider = getEmailProvider(email);
+
+  if (!provider) {
+    return (
+      <p>Click the link in your email to confirm your account, then return here to sign in.</p>
+    );
+  }
+
+  const handleOpenEmail = () => {
+    window.open(provider.url, '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <div className="space-y-2">
+      <p>Click the link in your email to confirm your account, then return here to sign in.</p>
+      <button
+        onClick={handleOpenEmail}
+        className="inline-flex items-center space-x-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-medium transition-colors border border-blue-200"
+      >
+        <span>{provider.icon}</span>
+        <span>Open {provider.name}</span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 interface VerifyEmailDialogProps {
   email: string;
   onClose: () => void;
@@ -112,9 +198,9 @@ export function VerifyEmailDialog({ email, onClose }: VerifyEmailDialogProps) {
               <span className="font-medium text-gray-900">{email}</span>.
             </p>
 
-            <p className="text-sm text-gray-500 mb-6">
-              Click the link in your email to confirm your account, then return here to sign in.
-            </p>
+            <div className="text-sm text-gray-500 mb-6">
+              <EmailProviderButton email={email} />
+            </div>
 
             <div className="space-y-3">
               <button
