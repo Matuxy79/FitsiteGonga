@@ -47,7 +47,7 @@ export function ExerciseCard({ sessionExercise, onRemove }: ExerciseCardProps) {
   const getBestSet = () => {
     return sessionExercise.exercise_sets?.reduce(
       (best, set) => {
-        if (set.est_1rm_kg && (!best || set.est_1rm_kg > best.est_1rm_kg)) {
+        if (set.est_1rm_kg && (!best || (best.est_1rm_kg && set.est_1rm_kg > best.est_1rm_kg))) {
           return set;
         }
         return best;

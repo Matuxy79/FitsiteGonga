@@ -9,10 +9,13 @@ interface SidebarProps {
 }
 
 const navigationItems = [
-  { id: 'dashboard', name: 'Dashboard', icon: '🏠', href: '/' },
-  { id: 'workouts', name: 'Workouts', icon: '💪', href: '/workouts' },
-  { id: 'metrics', name: 'Metrics', icon: '📊', href: '/metrics' },
-  { id: 'goals', name: 'Goals', icon: '🎯', href: '/metrics' },
+  { id: 'energy', name: 'Energy Mode', icon: '⚡', href: '/app/energy' },
+  { id: 'split', name: 'Split Planner', icon: '📋', href: '/app/split-planner' },
+  { id: 'lifts', name: 'Lifts & Goals', icon: '🏋️', href: '/app/lifts' },
+  { id: 'logger', name: 'Quick Logger', icon: '✍️', href: '/app/logger' },
+  { id: 'chat', name: 'Chat', icon: '💬', href: '/app/chat' },
+  { id: 'calculators', name: 'Calculators', icon: '🧮', href: '/app/calculators' },
+  { id: 'instagram', name: 'Highlights', icon: '📸', href: '/app/highlights' },
 ];
 
 export function Sidebar({ userRole = 'client' }: SidebarProps) {
@@ -24,7 +27,7 @@ export function Sidebar({ userRole = 'client' }: SidebarProps) {
   };
 
   return (
-    <div className="w-60 bg-discord-darker flex flex-col">
+    <div className="h-screen w-60 fixed left-0 top-0 bg-discord-darker flex flex-col z-10">
       {/* Server/Group Header */}
       <div className="h-12 px-4 flex items-center border-b border-discord-dark">
         <div className="flex items-center space-x-2">

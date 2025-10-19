@@ -1,45 +1,53 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ProgressFeed } from '../progress/ProgressFeed'
-import { ProgressInput } from '../progress/ProgressInput'
-import { ChallengeCard } from './ChallengeCard'
-import type { Challenge, ProgressLog, User } from '@/types/fitness'
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ProgressFeed } from '../progress/ProgressFeed';
+import { ProgressInput } from '../progress/ProgressInput';
+import { ChallengeCard } from './ChallengeCard';
+import type { Challenge, ProgressLog } from '@/types/fitness';
+import type { Profile } from '@/types/training';
 
 interface ChallengeChannelProps {
-  challenge?: Challenge
-  userProgress?: ProgressLog[]
-  userGoal?: number
-  onLogProgress?: (value: number, notes?: string) => void
-  canEdit?: boolean
-  currentUser?: User
+  challenge?: Challenge;
+  userProgress?: ProgressLog[];
+  userGoal?: number;
+  onLogProgress?: (data: {
+    challenge_id: string;
+    value: number;
+    unit: string;
+    notes?: string;
+  }) => void;
+  canEdit?: boolean;
+  currentUser?: { id: string; display_name: string; avatar_url?: string };
 }
 
-export function ChallengeChannel({ 
+export function ChallengeChannel({
   challenge,
   userProgress = [],
   userGoal = 100,
   onLogProgress = () => {},
   canEdit = false,
-  currentUser
+  currentUser,
 }: ChallengeChannelProps) {
-  const [activeTab, setActiveTab] = useState<'progress' | 'details'>('progress')
-  
+  const [activeTab, setActiveTab] = useState<'progress' | 'details'>('progress');
+
   if (!challenge) {
     return (
       <div className="flex-1 flex items-center justify-center bg-discord-dark">
         <div className="text-center">
           <div className="text-6xl mb-4">💪</div>
           <h2 className="text-xl font-semibold text-white mb-2">Welcome to FitsiteGonga</h2>
-          <p className="text-discord-muted">Select a challenge from the sidebar to get started with your fitness journey!</p>
+          <p className="text-discord-muted">
+            Select a challenge from the sidebar to get started with your fitness journey!
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
-  const currentProgress = userProgress.reduce((sum, log) => sum + log.value, 0)
-  const progressPercentage = userGoal > 0 ? (currentProgress / userGoal) * 100 : 0
+  const currentProgress = userProgress.reduce((sum, log) => sum + log.value, 0);
+  const progressPercentage = userGoal > 0 ? (currentProgress / userGoal) * 100 : 0;
 
   return (
     <div className="flex-1 flex flex-col bg-discord-dark">
@@ -59,7 +67,7 @@ export function ChallengeChannel({
                 {challenge.participants.length} participants
               </span>
             </div>
-            
+
             {challenge.description && (
               <p className="text-discord-light mb-4">{challenge.description}</p>
             )}
@@ -77,7 +85,7 @@ export function ChallengeChannel({
                   className="h-full bg-gradient-to-r from-discord-accent to-discord-success rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(progressPercentage, 100)}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
                 />
               </div>
               <div className="text-right mt-1">
@@ -128,20 +136,20 @@ export function ChallengeChannel({
             >
               {/* Progress Input */}
               <div className="p-4 border-b border-discord-darker">
-                <ProgressInput
-                  challenge={challenge}
-                  onLogProgress={onLogProgress}
-                  disabled={!canEdit}
-                />
+                <ProgressInput challengeId={challenge.id} onSubmit={onLogProgress} />
               </div>
-              
+
               {/* Progress Feed */}
               <div className="flex-1 overflow-y-auto">
                 <ProgressFeed
-                  logs={userProgress}
-                  onReact={() => {}}
-                  onComment={() => {}}
-                  currentUserId={currentUser?.id || ''}
+                  challengeId={challenge?.id}
+                  entries={userProgress || []}
+                  onReact={(entryId, reaction) => {
+                    console.log('React to entry:', entryId, reaction);
+                  }}
+                  onComment={(entryId, comment) => {
+                    console.log('Comment on entry:', entryId, comment);
+                  }}
                 />
               </div>
             </motion.div>
@@ -156,14 +164,18 @@ export function ChallengeChannel({
             >
               <ChallengeCard
                 challenge={challenge}
-                userProgress={currentProgress}
-                userGoal={userGoal}
-                onJoin={() => {}}
-                onLeave={() => {}}
-                isActive={true}
-                canEdit={canEdit}
+                isJoined={false}
+                onJoin={() => {
+                  console.log('Join challenge');
+                }}
+                onLeave={() => {
+                  console.log('Leave challenge');
+                }}
+                onViewDetails={() => {
+                  console.log('View challenge details');
+                }}
               />
-              
+
               {/* Additional Challenge Info */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-discord-darker rounded-lg p-4">
@@ -171,16 +183,25 @@ export function ChallengeChannel({
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-discord-muted">Start Date:</span>
-                      <span className="text-white">{new Date(challenge.start_date).toLocaleDateString()}</span>
+                      <span className="text-white">
+                        {new Date(challenge.start_date).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-discord-muted">End Date:</span>
-                      <span className="text-white">{new Date(challenge.end_date).toLocaleDateString()}</span>
+                      <span className="text-white">
+                        {new Date(challenge.end_date).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-discord-muted">Duration:</span>
                       <span className="text-white">
-                        {Math.ceil((new Date(challenge.end_date).getTime() - new Date(challenge.start_date).getTime()) / (1000 * 60 * 60 * 24))} days
+                        {Math.ceil(
+                          (new Date(challenge.end_date).getTime() -
+                            new Date(challenge.start_date).getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        )}{' '}
+                        days
                       </span>
                     </div>
                   </div>
@@ -191,7 +212,9 @@ export function ChallengeChannel({
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-discord-muted">Target:</span>
-                      <span className="text-white">{challenge.goal_value} {challenge.goal_unit}</span>
+                      <span className="text-white">
+                        {challenge.goal_value} {challenge.goal_unit}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-discord-muted">Type:</span>
@@ -209,5 +232,5 @@ export function ChallengeChannel({
         </AnimatePresence>
       </div>
     </div>
-  )
+  );
 }

@@ -75,15 +75,15 @@ export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
         toast({
           title: AUTH_MESSAGES.SIGNUP_SUCCESS,
           description:
-            redirectPath === '/account-setup'
+            redirectPath === '/app/account-setup'
               ? 'Welcome! Please complete your profile setup...'
               : 'Welcome to FitsiteGonga!',
           variant: 'success',
         });
 
         setTimeout(() => {
-          if (redirectPath === '/account-setup') {
-            window.location.href = '/account-setup';
+          if (redirectPath === '/app/account-setup') {
+            window.location.href = '/app/account-setup';
           } else {
             onSuccess();
           }

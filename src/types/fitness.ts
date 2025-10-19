@@ -1,16 +1,7 @@
 // TypeScript types for FitsiteGonga fitness platform
 
-export interface User {
-  id: string;
-  email: string;
-  display_name: string;
-  avatar_url?: string;
-  role: 'client' | 'trainer' | 'admin';
-  fitness_level: 'beginner' | 'intermediate' | 'advanced';
-  goals: string[];
-  created_at: string;
-  updated_at: string;
-}
+// User interface removed - using Profile from training.ts instead
+// This avoids conflicts between the old users table and new profiles table
 
 export interface Challenge {
   id: string;
@@ -65,7 +56,7 @@ export interface ProgressLog {
   photo_url?: string;
   logged_at: string;
   created_at: string;
-  user?: User; // Populated via join
+  user?: { id: string; display_name: string; avatar_url?: string }; // Populated via join from profiles
   challenge?: Challenge; // Populated via join
 }
 
@@ -111,7 +102,7 @@ export interface ChallengeCardProps {
 
 export interface ProgressEntryProps {
   log: ProgressLog;
-  user: User;
+  user: { id: string; display_name: string; avatar_url?: string };
   onReact: (reaction: string) => void;
   onComment: (comment: string) => void;
   canEdit: boolean;
@@ -135,7 +126,7 @@ export interface SidebarProps {
   selectedCategory: string;
   onCategorySelect: (category: string) => void;
   challenges: Challenge[];
-  userRole: User['role'];
+  userRole: 'client' | 'trainer' | 'admin';
 }
 
 export interface ChallengeChannelProps {
@@ -242,7 +233,7 @@ export interface ProgressComment {
   user_id: string;
   content: string;
   created_at: string;
-  user?: User;
+  user?: { id: string; display_name: string; avatar_url?: string };
 }
 
 export interface UserStats {
