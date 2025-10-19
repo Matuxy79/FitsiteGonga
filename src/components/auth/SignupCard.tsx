@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { signupSchema, type SignupDTO } from '@/schema/auth';
 import { FormField } from '@/components/ui/FormField';
 import { useToast } from '@/hooks/useToast';
-import { useEmailVerification } from '@/hooks/useEmailVerification';
+// Removed useEmailVerification import - now using local state
 import { supabase } from '@/lib/supabase';
 import { parseAuthError, getEmailRedirectUrl, generateDisplayName } from '@/lib/auth/auth-utils';
 import { AUTH_MESSAGES } from '@/lib/auth/auth-constants';
@@ -22,8 +22,11 @@ type FormState = 'idle' | 'validating' | 'loading' | 'success' | 'error';
 
 export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
   const [formState, setFormState] = useState<FormState>('idle');
+  const [verifying, setVerifying] = useState<{ open: boolean; email: string }>({
+    open: false,
+    email: '',
+  });
   const { toast } = useToast();
-  const { openVerification } = useEmailVerification();
 
   const {
     register,
@@ -56,7 +59,7 @@ export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
 
       // Handle email verification required
       if (authData?.user && !authData.session) {
-        openVerification(data.email);
+        setVerifying({ open: true, email: data.email });
         setFormState('idle');
         return;
       }
@@ -95,6 +98,7 @@ export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
   };
 
   const handleVerificationComplete = () => {
+    setVerifying({ open: false, email: '' });
     onSwitchToLogin();
   };
 
@@ -163,7 +167,9 @@ export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
         </div>
       </motion.div>
 
-      <VerifyEmailDialog onClose={handleVerificationComplete} />
+      {verifying.open && (
+        <VerifyEmailDialog email={verifying.email} onClose={handleVerificationComplete} />
+      )}
     </>
   );
 }

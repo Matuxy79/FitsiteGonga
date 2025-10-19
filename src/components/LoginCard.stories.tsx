@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { LoginCard } from './LoginCard'
+import type { Meta, StoryObj } from '@storybook/react';
+import { LoginCard } from './auth/LoginCard';
 
 const meta: Meta<typeof LoginCard> = {
   title: 'Components/LoginCard',
@@ -8,17 +8,17 @@ const meta: Meta<typeof LoginCard> = {
     layout: 'centered',
   },
   tags: ['autodocs'],
-}
+};
 
-export default meta
-type Story = StoryObj<typeof meta>
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
     onSuccess: () => console.log('Login successful'),
     onSwitchToSignup: () => console.log('Switch to signup'),
   },
-}
+};
 
 export const Mobile: Story = {
   args: {
@@ -30,4 +30,4 @@ export const Mobile: Story = {
       defaultViewport: 'mobile1',
     },
   },
-}
+};

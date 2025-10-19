@@ -1,16 +1,75 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEmailVerification } from '@/hooks/useEmailVerification';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/useToast';
+import { getEmailRedirectUrl } from '@/lib/auth/auth-utils';
+import { EMAIL_VERIFICATION, AUTH_MESSAGES } from '@/lib/auth/auth-constants';
+import { parseAuthError } from '@/lib/auth/auth-utils';
 
 interface VerifyEmailDialogProps {
+  email: string;
   onClose: () => void;
 }
 
-export function VerifyEmailDialog({ onClose }: VerifyEmailDialogProps) {
-  const { isOpen, email, resending, cooldown, resendEmail } = useEmailVerification();
+export function VerifyEmailDialog({ email, onClose }: VerifyEmailDialogProps) {
+  const { toast } = useToast();
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
-  if (!isOpen) return null;
+  const resendEmail = async () => {
+    if (resending || cooldown > 0) return;
+
+    setResending(true);
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: getEmailRedirectUrl(),
+        },
+      });
+
+      if (error) {
+        const authError = parseAuthError(error);
+        toast({
+          title: 'Could not resend email',
+          description: authError.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: AUTH_MESSAGES.EMAIL_RESEND_SUCCESS,
+        description: `We've re-sent a verification link to ${email}`,
+        variant: 'success',
+      });
+
+      setCooldown(EMAIL_VERIFICATION.RESEND_COOLDOWN);
+    } catch (error) {
+      const authError = parseAuthError(error);
+      toast({
+        title: 'Error',
+        description: authError.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setResending(false);
+    }
+  };
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => {
+        setCooldown(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   return (
     <AnimatePresence>

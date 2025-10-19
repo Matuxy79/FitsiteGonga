@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import type { ProgressEntryProps } from '@/types/fitness'
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import type { ProgressEntryProps } from '@/types/fitness';
 
 export function ProgressEntry({
   log,
@@ -10,23 +10,23 @@ export function ProgressEntry({
   onReact,
   onComment,
   canEdit,
-  reactions = []
+  reactions = [],
 }: ProgressEntryProps) {
-  const [showReactions, setShowReactions] = useState(false)
-  const [showComments, setShowComments] = useState(false)
+  const [showReactions, setShowReactions] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime())) / (1000 * 60)
-    
-    if (diffInMinutes < 1) return 'Just now'
-    if (diffInMinutes < 60) return `${Math.floor(diffInMinutes)}m ago`
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
-    return date.toLocaleDateString()
-  }
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInMinutes = Math.floor(now.getTime() - date.getTime()) / (1000 * 60);
 
-  const commonReactions = ['👍', '💪', '🔥', '🎉', '👏']
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${Math.floor(diffInMinutes)}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return date.toLocaleDateString();
+  };
+
+  const commonReactions = ['👍', '💪', '🔥', '🎉', '👏'];
 
   return (
     <div className="bg-discord-darker rounded-lg p-4 border border-discord-dark hover:border-discord-medium transition-colors">
@@ -56,17 +56,11 @@ export function ProgressEntry({
           <span className="text-discord-muted">progress logged</span>
         </div>
 
-        {log.notes && (
-          <p className="text-discord-light mb-3">{log.notes}</p>
-        )}
+        {log.notes && <p className="text-discord-light mb-3">{log.notes}</p>}
 
         {log.photo_url && (
           <div className="mb-3">
-            <img 
-              src={log.photo_url} 
-              alt="Progress photo"
-              className="max-w-xs rounded-lg"
-            />
+            <img src={log.photo_url} alt="Progress photo" className="max-w-xs rounded-lg" />
           </div>
         )}
 
@@ -76,12 +70,12 @@ export function ProgressEntry({
             <div className="flex items-center space-x-1">
               {reactions.map((reaction, index) => (
                 <span key={index} className="text-lg">
-                  {reaction}
+                  {reaction.reaction}
                 </span>
               ))}
             </div>
           )}
-          
+
           <button
             onClick={() => setShowReactions(!showReactions)}
             className="text-discord-muted hover:text-discord-light text-sm transition-colors"
@@ -98,7 +92,7 @@ export function ProgressEntry({
           >
             💬 Comment
           </button>
-          
+
           {canEdit && (
             <button className="text-discord-muted hover:text-discord-light transition-colors">
               ✏️ Edit
@@ -113,12 +107,12 @@ export function ProgressEntry({
             animate={{ opacity: 1, scale: 1 }}
             className="mt-2 flex space-x-1"
           >
-            {commonReactions.map((reaction) => (
+            {commonReactions.map(reaction => (
               <button
                 key={reaction}
                 onClick={() => {
-                  onReact(reaction)
-                  setShowReactions(false)
+                  onReact(reaction);
+                  setShowReactions(false);
                 }}
                 className="text-2xl hover:scale-110 transition-transform p-1"
               >
@@ -155,5 +149,5 @@ export function ProgressEntry({
         )}
       </div>
     </div>
-  )
+  );
 }

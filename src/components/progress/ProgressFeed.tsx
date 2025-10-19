@@ -1,15 +1,10 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { ProgressEntry } from './ProgressEntry'
-import type { ProgressFeedProps } from '@/types/fitness'
+import { motion } from 'framer-motion';
+import { ProgressEntry } from './ProgressEntry';
+import type { ProgressFeedProps } from '@/types/fitness';
 
-export function ProgressFeed({
-  logs,
-  onReact,
-  onComment,
-  currentUserId
-}: ProgressFeedProps) {
+export function ProgressFeed({ logs, onReact, onComment, currentUserId }: ProgressFeedProps) {
   if (logs.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -19,7 +14,7 @@ export function ProgressFeed({
           <p className="text-discord-muted">Start logging your progress to see it appear here!</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -34,13 +29,13 @@ export function ProgressFeed({
           <ProgressEntry
             log={log}
             user={log.user!}
-            onReact={onReact}
-            onComment={onComment}
+            onReact={reaction => onReact(log.id, reaction)}
+            onComment={comment => onComment(log.id, comment)}
             canEdit={log.user_id === currentUserId}
             reactions={[]}
           />
         </motion.div>
       ))}
     </div>
-  )
+  );
 }

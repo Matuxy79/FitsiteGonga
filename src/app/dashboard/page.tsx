@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import { AppLayout } from '@/components/layout/AppLayout'
-import { ChallengeChannel } from '@/components/challenges/ChallengeChannel'
-import type { User, Challenge, ProgressLog, UserAchievement } from '@/types/fitness'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { ChallengeChannel } from '@/components/challenges/ChallengeChannel';
+import type { User, Challenge, ProgressLog, UserAchievement } from '@/types/fitness';
 
 // Mock data for demonstration
 const mockChallenges: Challenge[] = [
@@ -22,7 +22,7 @@ const mockChallenges: Challenge[] = [
     created_by: 'trainer-1',
     is_active: true,
     participants: ['user-1', 'user-2', 'user-3'],
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   },
   {
     id: '2',
@@ -37,7 +37,7 @@ const mockChallenges: Challenge[] = [
     created_by: 'trainer-1',
     is_active: true,
     participants: ['user-1', 'user-2'],
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   },
   {
     id: '3',
@@ -52,9 +52,9 @@ const mockChallenges: Challenge[] = [
     created_by: 'trainer-1',
     is_active: true,
     participants: ['user-1'],
-    created_at: new Date().toISOString()
-  }
-]
+    created_at: new Date().toISOString(),
+  },
+];
 
 const mockProgressLogs: ProgressLog[] = [
   {
@@ -74,8 +74,8 @@ const mockProgressLogs: ProgressLog[] = [
       fitness_level: 'intermediate',
       goals: ['strength', 'endurance'],
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
+      updated_at: new Date().toISOString(),
+    },
   },
   {
     id: '2',
@@ -94,10 +94,10 @@ const mockProgressLogs: ProgressLog[] = [
       fitness_level: 'advanced',
       goals: ['cardio', 'strength'],
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  }
-]
+      updated_at: new Date().toISOString(),
+    },
+  },
+];
 
 const mockAchievements: UserAchievement[] = [
   {
@@ -114,8 +114,8 @@ const mockAchievements: UserAchievement[] = [
       tier: 'bronze',
       category: 'workout',
       criteria: { workout_count: 1 },
-      created_at: new Date().toISOString()
-    }
+      created_at: new Date().toISOString(),
+    },
   },
   {
     id: '2',
@@ -131,62 +131,70 @@ const mockAchievements: UserAchievement[] = [
       tier: 'bronze',
       category: 'workout',
       criteria: { workout_count: 5 },
-      created_at: new Date().toISOString()
-    }
-  }
-]
+      created_at: new Date().toISOString(),
+    },
+  },
+];
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(mockChallenges[0])
-  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(mockChallenges[0]);
+  const router = useRouter();
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
       if (!authUser) {
-        router.push('/')
-        return
+        router.push('/');
+        return;
       }
-      
+
       // Create user object from auth user
       const userObj: User = {
         id: authUser.id,
         email: authUser.email || '',
-        display_name: authUser.user_metadata?.display_name || authUser.email?.split('@')[0] || 'User',
+        display_name:
+          authUser.user_metadata?.display_name || authUser.email?.split('@')[0] || 'User',
         avatar_url: authUser.user_metadata?.avatar_url,
         role: 'client',
         fitness_level: 'beginner',
         goals: [],
         created_at: authUser.created_at,
-        updated_at: authUser.updated_at || authUser.created_at
-      }
-      
-      setUser(userObj)
-      setLoading(false)
-    }
+        updated_at: authUser.updated_at || authUser.created_at,
+      };
 
-    getUser()
-  }, [router])
+      setUser(userObj);
+      setLoading(false);
+    };
+
+    getUser();
+  }, [router]);
 
   const handleLogProgress = async (value: number, notes?: string) => {
-    if (!selectedChallenge || !user) return
+    if (!selectedChallenge || !user) return;
 
     // In a real app, this would call the API
-    console.log('Logging progress:', { value, notes, challenge: selectedChallenge.id, user: user.id })
-    
+    console.log('Logging progress:', {
+      value,
+      notes,
+      challenge: selectedChallenge.id,
+      user: user.id,
+    });
+
     // For demo, we'll just show a success message
-    alert(`Progress logged: ${value} ${selectedChallenge.goal_unit}`)
-  }
+    alert(`Progress logged: ${value} ${selectedChallenge.goal_unit}`);
+  };
 
   const handleChallengeSelect = (challengeId: string) => {
-    const challenge = mockChallenges.find(c => c.id === challengeId)
+    const challenge = mockChallenges.find(c => c.id === challengeId);
     if (challenge) {
-      setSelectedChallenge(challenge)
+      setSelectedChallenge(challenge);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -196,19 +204,19 @@ export default function Dashboard() {
           <p className="text-discord-light">Loading your fitness dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
-    return null
+    return null;
   }
 
   // Get progress for selected challenge
-  const challengeProgress = selectedChallenge 
+  const challengeProgress = selectedChallenge
     ? mockProgressLogs.filter(log => log.challenge_id === selectedChallenge.id)
-    : []
+    : [];
 
-  const userProgress = challengeProgress.reduce((sum, log) => sum + log.value, 0)
+  const userProgress = challengeProgress.reduce((sum, log) => sum + log.value, 0);
 
   return (
     <AppLayout>
@@ -217,7 +225,7 @@ export default function Dashboard() {
         <div className="w-60 bg-discord-darker border-r border-discord-dark p-4">
           <h2 className="text-white font-semibold mb-4">Active Challenges</h2>
           <div className="space-y-2">
-            {mockChallenges.map((challenge) => (
+            {mockChallenges.map(challenge => (
               <button
                 key={challenge.id}
                 onClick={() => setSelectedChallenge(challenge)}
@@ -249,7 +257,7 @@ export default function Dashboard() {
         {/* Main content */}
         <div className="flex-1">
           <ChallengeChannel
-            challenge={selectedChallenge}
+            challenge={selectedChallenge || undefined}
             userProgress={challengeProgress}
             userGoal={selectedChallenge?.goal_value}
             onLogProgress={handleLogProgress}
@@ -259,5 +267,5 @@ export default function Dashboard() {
         </div>
       </div>
     </AppLayout>
-  )
+  );
 }
