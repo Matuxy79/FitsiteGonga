@@ -23,107 +23,148 @@ export default function AppDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to FitsiteGonga!</h1>
-        <p className="text-gray-600">
-          Your fitness journey starts here. Track workouts, join challenges, and achieve your goals.
+      <div className="bg-discord-darker rounded-lg p-6">
+        <h1 className="text-2xl font-bold text-white mb-2">Welcome to FitsiteGonga!</h1>
+        <p className="text-discord-muted">
+          Your fitness journey starts here. Use the 7 panels to track, plan, and achieve your goals.
         </p>
       </div>
 
-      {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Start Workout Card */}
-        <div
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => router.push('/app/workouts')}
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">💪</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Start Workout</h3>
-              <p className="text-gray-600">Begin a new training session</p>
-            </div>
-          </div>
-        </div>
-
-        {/* View Metrics Card */}
-        <div
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => router.push('/app/metrics')}
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📊</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">View Metrics</h3>
-              <p className="text-gray-600">Check your progress and stats</p>
+      {/* 7 Panel Overview */}
+      <div className="bg-discord-darker rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-white mb-4">Your Fitness Dashboard</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Energy Mode */}
+          <div
+            className="bg-discord-dark rounded-lg p-4 hover:bg-discord-medium transition-colors cursor-pointer"
+            onClick={() => router.push('/app/energy')}
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">⚡</span>
+              <div>
+                <h3 className="font-medium text-white">Energy Mode</h3>
+                <p className="text-sm text-discord-muted">Track training readiness</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Set Goals Card */}
-        <div
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => router.push('/app/goals')}
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🎯</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Set Goals</h3>
-              <p className="text-gray-600">Define your fitness objectives</p>
+          {/* Split Planner */}
+          <div
+            className="bg-discord-dark rounded-lg p-4 hover:bg-discord-medium transition-colors cursor-pointer"
+            onClick={() => router.push('/app/split-planner')}
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">📋</span>
+              <div>
+                <h3 className="font-medium text-white">Split Planner</h3>
+                <p className="text-sm text-discord-muted">Plan your workouts</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Join Challenges Card */}
-        <div
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => router.push('/app/challenges')}
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🏆</span>
+          {/* Lifts & Goals */}
+          <div
+            className="bg-discord-dark rounded-lg p-4 hover:bg-discord-medium transition-colors cursor-pointer"
+            onClick={() => router.push('/app/lifts')}
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">🏋️</span>
+              <div>
+                <h3 className="font-medium text-white">Lifts & Goals</h3>
+                <p className="text-sm text-discord-muted">Track your progress</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Join Challenges</h3>
-              <p className="text-gray-600">Compete with others and stay motivated</p>
+          </div>
+
+          {/* Quick Logger */}
+          <div
+            className="bg-discord-dark rounded-lg p-4 hover:bg-discord-medium transition-colors cursor-pointer"
+            onClick={() => router.push('/app/logger')}
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">✍️</span>
+              <div>
+                <h3 className="font-medium text-white">Quick Logger</h3>
+                <p className="text-sm text-discord-muted">Log sets and measurements</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Chat */}
+          <div
+            className="bg-discord-dark rounded-lg p-4 hover:bg-discord-medium transition-colors cursor-pointer"
+            onClick={() => router.push('/app/chat')}
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">💬</span>
+              <div>
+                <h3 className="font-medium text-white">Chat</h3>
+                <p className="text-sm text-discord-muted">Connect with trainers</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Calculators */}
+          <div
+            className="bg-discord-dark rounded-lg p-4 hover:bg-discord-medium transition-colors cursor-pointer"
+            onClick={() => router.push('/app/calculators')}
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">🧮</span>
+              <div>
+                <h3 className="font-medium text-white">Calculators</h3>
+                <p className="text-sm text-discord-muted">Fitness formulas</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Highlights */}
+          <div
+            className="bg-discord-dark rounded-lg p-4 hover:bg-discord-medium transition-colors cursor-pointer"
+            onClick={() => router.push('/app/highlights')}
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">📸</span>
+              <div>
+                <h3 className="font-medium text-white">Highlights</h3>
+                <p className="text-sm text-discord-muted">Instagram inspiration</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-        <div className="text-gray-600">
-          <p>No recent activity yet. Start a workout or join a challenge!</p>
+      {/* Getting Started Flow */}
+      <div className="bg-discord-accent/10 border border-discord-accent/20 rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-white mb-4">Getting Started</h2>
+        <div className="space-y-3 text-discord-muted">
+          <div className="flex items-center space-x-3">
+            <span className="text-discord-accent font-bold">1.</span>
+            <span>
+              Start with <strong className="text-white">Energy Mode</strong> to set your training
+              readiness
+            </span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className="text-discord-accent font-bold">2.</span>
+            <span>
+              Use <strong className="text-white">Split Planner</strong> to plan your workout
+              schedule
+            </span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className="text-discord-accent font-bold">3.</span>
+            <span>
+              Set goals in <strong className="text-white">Lifts & Goals</strong> and track progress
+            </span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className="text-discord-accent font-bold">4.</span>
+            <span>
+              Log your workouts with <strong className="text-white">Quick Logger</strong>
+            </span>
+          </div>
         </div>
-      </div>
-
-      {/* Getting Started Tips */}
-      <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-        <h2 className="text-xl font-semibold text-blue-800 mb-4">Getting Started</h2>
-        <ul className="list-disc list-inside text-blue-700 space-y-2">
-          <li>
-            Complete your profile in <span className="font-medium">Account Setup</span> if you
-            haven&apos;t already.
-          </li>
-          <li>
-            Explore the <span className="font-medium">Workouts</span> section to log your first
-            session.
-          </li>
-          <li>
-            Check out <span className="font-medium">Challenges</span> to find a new goal.
-          </li>
-          <li>
-            Set personal targets in the <span className="font-medium">Goals</span> section.
-          </li>
-        </ul>
       </div>
     </div>
   );
