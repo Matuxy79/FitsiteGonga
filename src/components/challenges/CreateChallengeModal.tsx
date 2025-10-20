@@ -182,6 +182,7 @@ export function CreateChallengeModal({ isOpen, onClose, onSubmit }: CreateChalle
                   value={formData.end_date}
                   onChange={e => handleChange('end_date', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Challenge end date"
                 />
               </div>
             </div>

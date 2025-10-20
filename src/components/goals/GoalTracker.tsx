@@ -212,6 +212,7 @@ export function GoalTracker() {
                 value={newGoal.type}
                 onChange={e => setNewGoal({ ...newGoal, type: e.target.value as Goal['type'] })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Goal Type"
               >
                 <option value="weight_loss">⚖️ Weight Loss</option>
                 <option value="muscle_gain">💪 Muscle Gain</option>
@@ -237,6 +238,7 @@ export function GoalTracker() {
                 value={newGoal.unit}
                 onChange={e => setNewGoal({ ...newGoal, unit: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Unit of measurement"
               >
                 <option value="lbs">lbs</option>
                 <option value="kg">kg</option>
