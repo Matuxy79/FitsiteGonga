@@ -301,6 +301,7 @@ function AddGoalModal({ movements, onAdd, onClose }: AddGoalModalProps) {
               onChange={e => setSelectedMovement(e.target.value)}
               className="w-full p-3 bg-discord-dark border border-discord-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-discord-accent"
               required
+              aria-label="Select movement"
             >
               <option value="">Select a movement</option>
               {movements.map(movement => (

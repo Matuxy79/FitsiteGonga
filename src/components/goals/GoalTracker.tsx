@@ -230,6 +230,7 @@ export function GoalTracker() {
                   setNewGoal({ ...newGoal, target_value: parseFloat(e.target.value) || 0 })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Target value"
               />
             </div>
             <div>
@@ -256,6 +257,7 @@ export function GoalTracker() {
                   setNewGoal({ ...newGoal, current_value: parseFloat(e.target.value) || 0 })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Current value"
               />
             </div>
             <div>
@@ -265,6 +267,7 @@ export function GoalTracker() {
                 value={newGoal.target_date}
                 onChange={e => setNewGoal({ ...newGoal, target_date: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Target date"
               />
             </div>
           </div>
@@ -376,6 +379,7 @@ export function GoalTracker() {
                 value={goal.current_value}
                 onChange={e => updateProgress(goal.id, parseFloat(e.target.value) || 0)}
                 className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Update progress value"
               />
               <span className="text-sm text-gray-500">{goal.unit}</span>
             </div>

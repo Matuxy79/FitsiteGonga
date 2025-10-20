@@ -146,6 +146,7 @@ export default function SplitPlannerPage() {
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               lightDay ? 'bg-discord-accent' : 'bg-discord-dark'
             }`}
+            aria-label={`Toggle light day ${lightDay ? 'off' : 'on'}`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
