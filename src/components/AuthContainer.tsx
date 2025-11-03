@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AnimatePresence } from 'framer-motion'
 import { LoginCard } from './LoginCard'
 import { SignupCard } from './SignupCard'
+import { AuthLayout } from './layout/AuthLayout'
 import { ToastProvider } from './ui/Toast'
 import { useToast } from '@/hooks/useToast'
 
@@ -28,25 +29,27 @@ export function AuthContainer() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <AnimatePresence mode="wait">
-          {authMode === 'login' ? (
-            <LoginCard
-              key="login"
-              onSuccess={handleAuthSuccess}
-              onSwitchToSignup={switchToSignup}
-            />
-          ) : (
-            <SignupCard
-              key="signup"
-              onSuccess={handleAuthSuccess}
-              onSwitchToLogin={switchToLogin}
-            />
-          )}
-        </AnimatePresence>
+    <AuthLayout>
+      <div className="flex items-center justify-center py-8">
+        <div className="w-full max-w-md">
+          <AnimatePresence mode="wait">
+            {authMode === 'login' ? (
+              <LoginCard
+                key="login"
+                onSuccess={handleAuthSuccess}
+                onSwitchToSignup={switchToSignup}
+              />
+            ) : (
+              <SignupCard
+                key="signup"
+                onSuccess={handleAuthSuccess}
+                onSwitchToLogin={switchToLogin}
+              />
+            )}
+          </AnimatePresence>
+        </div>
       </div>
       <ToastProvider toasts={toasts} onDismiss={dismiss} />
-    </div>
+    </AuthLayout>
   )
 }

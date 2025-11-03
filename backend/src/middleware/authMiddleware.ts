@@ -1,0 +1,105 @@
+import { Request, Response, NextFunction } from 'express';
+import { authService } from '../services/authService';
+
+// Extend Express Request to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: string;
+        email: string;
+        role: string;
+      };
+    }
+  }
+}
+
+/**
+ * Middleware to authenticate JWT token
+ * Extracts token from Authorization header or cookie
+ */
+export const authenticateJWT = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Try to get token from Authorization header
+    const authHeader = req.headers.authorization;
+    let token: string | undefined;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else {
+      // Fallback to cookie
+      token = req.cookies?.accessToken;
+    }
+
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized - No token provided' });
+    }
+
+    // Verify token
+    const decoded = authService.verifyAccessToken(token);
+    req.user = decoded;
+    next();
+  } catch (error: any) {
+    return res.status(403).json({ 
+      error: 'Forbidden - Invalid or expired token',
+      message: error.message 
+    });
+  }
+};
+
+/**
+ * Middleware to require specific roles
+ * Must be used after authenticateJWT
+ */
+export const requireRole = (allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ 
+        error: 'Forbidden - Insufficient permissions',
+        required: allowedRoles,
+        current: req.user.role
+      });
+    }
+
+    next();
+  };
+};
+
+/**
+ * Optional authentication - doesn't fail if no token
+ */
+export const optionalAuth = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+    let token: string | undefined;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else {
+      token = req.cookies?.accessToken;
+    }
+
+    if (token) {
+      const decoded = authService.verifyAccessToken(token);
+      req.user = decoded;
+    }
+  } catch (error) {
+    // Ignore errors for optional auth
+  }
+  
+  next();
+};
+
+

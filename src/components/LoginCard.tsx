@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { loginSchema, type LoginDTO } from '@/schema/auth'
 import { FormField } from '@/components/ui/FormField'
 import { useToast } from '@/hooks/useToast'
+import Button from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase'
 import { generateErrorRef } from '@/lib/utils'
 
@@ -82,11 +83,11 @@ export function LoginCard({ onSuccess, onSwitchToSignup }: LoginCardProps) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 10 }}
       transition={{ duration: 0.25 }}
-      className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg p-6"
+      className="w-full max-w-md mx-auto bg-discord-dark rounded-lg border border-discord-darker p-6 shadow-xl shadow-black/10"
     >
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-        <p className="text-gray-600 mt-2">Sign in to your account</p>
+        <h1 className="text-2xl font-bold text-white">Welcome back</h1>
+        <p className="text-discord-muted mt-2">Sign in to your account</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -110,20 +111,21 @@ export function LoginCard({ onSuccess, onSwitchToSignup }: LoginCardProps) {
           onBlur={() => handleBlur('password')}
         />
 
-        <button
+        <Button
           type="submit"
+          isLoading={formState === 'loading'}
           disabled={formState === 'loading' || formState === 'validating'}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full"
         >
-          {formState === 'loading' ? 'Signing in...' : 'Sign in'}
-        </button>
+          Sign in
+        </Button>
       </form>
 
       <div className="mt-4 text-center">
         <button
           type="button"
           onClick={onSwitchToSignup}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          className="text-discord-accent hover:text-discord-accent/90 text-sm font-medium"
         >
           Don't have an account? Sign up
         </button>

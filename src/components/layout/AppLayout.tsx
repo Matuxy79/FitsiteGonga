@@ -11,7 +11,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="flex h-screen bg-discord-darkest text-discord-light">
+    <div className="flex h-screen discord-bg text-discord-light">
       {/* Left Sidebar - Challenge Categories */}
       <Sidebar />
       

@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password_hash  String
+  display_name  String
+  avatar_url    String?
+  role          Role     @default(CLIENT)
+  fitness_level FitnessLevel @default(BEGINNER)
+  goals         String[] @default([])
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  challenges_created Challenge[] @relation("ChallengeCreator")
+  progress_logs      ProgressLog[]
+  user_achievements  UserAchievement[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Challenge {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  category    Category
+  type        ChallengeType
+  goal_value  Int
+  goal_unit   String
+  start_date  DateTime
+  end_date    DateTime
+  created_by  String
+  is_active   Boolean  @default(true)
+  participants String[] @default([])
+  created_at  DateTime @default(now())
+
+  creator        User          @relation("ChallengeCreator", fields: [created_by], references: [id])
+  progress_logs  ProgressLog[]
+  achievements   Achievement[]
+
+  @@index([created_by])
+  @@index([is_active])
+  @@index([category])
+  @@map("challenges")
+}
+
+model ProgressLog {
+  id          String   @id @default(uuid())
+  user_id     String
+  challenge_id String
+  value       Int
+  unit        String
+  notes       String?
+  photo_url   String?
+  logged_at   DateTime @default(now())
+  created_at  DateTime @default(now())
+
+  user      User      @relation(fields: [user_id], references: [id])
+  challenge Challenge @relation(fields: [challenge_id], references: [id])
+
+  @@index([user_id])
+  @@index([challenge_id])
+  @@index([logged_at(sort: Desc)])
+  @@index([challenge_id, user_id])
+  @@map("progress_logs")
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  tier        Tier
+  category    AchievementCategory
+  criteria    Json
+  created_at  DateTime @default(now())
+
+  challenge_id String?
+  challenge    Challenge? @relation(fields: [challenge_id], references: [id])
+  user_achievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid())
+  user_id       String
+  achievement_id String
+  earned_date   DateTime @default(now())
+  progress_value Int?
+
+  user        User        @relation(fields: [user_id], references: [id])
+  achievement Achievement @relation(fields: [achievement_id], references: [id])
+
+  @@unique([user_id, achievement_id])
+  @@map("user_achievements")
+}
+
+enum Role {
+  CLIENT
+  TRAINER
+  ADMIN
+}
+
+enum FitnessLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Category {
+  STRENGTH
+  CARDIO
+  NUTRITION
+  CUSTOM
+}
+
+enum ChallengeType {
+  DURATION
+  REPETITION
+  DISTANCE
+  CUSTOM
+}
+
+enum Tier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  LEGENDARY
+}
+
+enum AchievementCategory {
+  WORKOUT
+  CONSISTENCY
+  MILESTONE
+  SOCIAL
+}
+
+

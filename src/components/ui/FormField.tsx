@@ -1,5 +1,6 @@
 import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
+import { Input } from './Input'
 
 export interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
@@ -13,28 +14,25 @@ const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
       <div className="space-y-1">
         <label 
           htmlFor={props.id} 
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-discord-muted"
         >
           {label}
         </label>
-        <input
+        <Input
           ref={ref}
-          className={cn(
-            "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-            error && "border-red-500 focus:ring-red-500 focus:border-red-500",
-            className
-          )}
+          hasError={!!error}
+          className={className}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${props.id}-error` : helperText ? `${props.id}-helper` : undefined}
           {...props}
         />
         {error && (
-          <p id={`${props.id}-error`} className="text-sm text-red-600" role="alert">
+          <p id={`${props.id}-error`} className="text-sm text-discord-error" role="alert">
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p id={`${props.id}-helper`} className="text-sm text-gray-500">
+          <p id={`${props.id}-helper`} className="text-sm text-discord-muted">
             {helperText}
           </p>
         )}
