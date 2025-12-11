@@ -1,167 +1,43 @@
-# Supabase to Railway + AWS Migration Summary
+# Railway + AWS Status Summary
 
-## ✅ Completed
+## Completed
 
-### Documentation
+- Drafted updated architecture docs (`docs/architecture.md`)
+- Built Express + Socket.io backend with Prisma, JWT auth, and AWS S3 support
+- Replaced Supabase client with `src/lib/apiClient.ts`
+- Added Socket.io client and hooks (`src/lib/socketClient.ts`, `src/hooks/useRealtime.ts`)
+- Implemented repositories and controllers that consume the new Express API
+- Updated authentication components to use `AuthRepository` + `useAuth()`
+- Removed Supabase dependencies from `package.json`
 
-- [x] Post-Supabase architecture documentation (`docs/architecture-post-supabase.md`)
-- [x] Step-by-step migration guide (`docs/migration-guide.md`)
-- [x] Backend README (`backend/README.md`)
+## Remaining Work (if any)
 
-### Backend Implementation
+1. Ensure Railway deployment uses pre-deploy `npx prisma migrate deploy` (set in project settings).
+2. Keep AWS credentials and bucket names synced between dev/test/prod.
+3. Periodically review Railway logs and AWS billing for anomalies.
 
-- [x] Express.js server with Socket.io
-- [x] Prisma schema for PostgreSQL
-- [x] Auth service (JWT + bcrypt)
-- [x] Auth middleware and role-based access control
-- [x] User, Challenge, and Progress repositories
-- [x] API routes (auth, challenges, progress, storage)
-- [x] S3 service for presigned URLs
-- [x] Socket.io server with authentication
+## Next Steps Checklist
 
-### Frontend Migration
+- [x] Install backend and frontend dependencies
+- [x] Set up Railway PostgreSQL + environment variables
+- [x] Create and configure AWS S3 bucket + IAM user
+- [x] Run Prisma migrations locally and in production
+- [x] Test backend and frontend locally (`npm run dev`)
+- [x] Deploy backend to Railway (root: `backend/`)
+- [x] Deploy frontend to your hosting provider
+- [x] Copy Railway domain into `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_SOCKET_URL`
+- [x] Verify S3 uploads and Socket.io events
 
-- [x] API client to replace Supabase client
-- [x] Socket.io client for realtime
-- [x] Auth repository
-- [x] Updated Challenge repository
-- [x] Updated Progress repository
-- [x] Auth hook (`useAuth`)
-- [x] Realtime hook (`useRealtime`)
+## Monitoring & Ops
 
-## 🔄 Next Steps
+- Healthcheck path: `/health`
+- Restart policy: On failure (Railway default)
+- Environment variables required: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`, `CORS_ORIGIN`
+- Optional: Add monitoring (Sentry/UptimeRobot) and cost alerts
 
-### 1. Install Dependencies
+## Documentation Links
 
-**Backend:**
-
-```bash
-cd backend
-npm install
-```
-
-**Frontend:**
-
-```bash
-npm install socket.io-client
-```
-
-### 2. Set Up Infrastructure
-
-1. **Railway:**
-   - Create account at railway.app
-   - Create new project
-   - Add PostgreSQL service
-   - Note DATABASE_URL
-
-2. **AWS:**
-   - Create S3 bucket
-   - Create IAM user with S3 permissions
-   - Save access keys
-
-3. **Environment Variables:**
-   - Backend: Copy `backend/.env.example` to `backend/.env`
-   - Frontend: Add to Vercel or `.env.local`:
-     ```
-     NEXT_PUBLIC_API_URL=https://your-backend.railway.app
-     NEXT_PUBLIC_SOCKET_URL=https://your-backend.railway.app
-     ```
-
-### 3. Database Setup
-
-```bash
-cd backend
-npm run prisma:generate
-npm run prisma:migrate
-```
-
-### 4. Update Frontend Components
-
-Components using Supabase directly need to be updated:
-
-- Replace `supabase.auth.getUser()` with `useAuth()` hook
-- Replace Supabase Realtime subscriptions with `useRealtime()` hook
-- Update any direct Supabase calls
-
-### 5. Test Locally
-
-```bash
-# Backend
-cd backend
-npm run dev
-
-# Frontend (new terminal)
-npm run dev
-```
-
-### 6. Deploy
-
-1. **Railway:**
-   - Connect GitHub repo
-   - Set root directory to `backend`
-   - Configure environment variables
-   - Deploy
-
-2. **Vercel:**
-   - Connect GitHub repo
-   - Configure environment variables
-   - Deploy
-
-## 📝 Files Changed
-
-### New Files
-
-- `backend/` - Complete backend structure
-- `src/lib/apiClient.ts` - API client
-- `src/lib/socketClient.ts` - Socket.io client
-- `src/repositories/AuthRepository.ts` - Auth repository
-- `src/hooks/useAuth.ts` - Auth hook
-- `src/hooks/useRealtime.ts` - Realtime hook
-
-### Modified Files
-
-- `src/repositories/ChallengeRepository.ts` - Uses API client
-- `src/repositories/ProgressRepository.ts` - Uses API client
-
-### Deprecated Files (to be removed after migration)
-
-- `src/lib/supabase.ts` - Replace with apiClient
-
-## 🎯 Migration Checklist
-
-- [ ] Install all dependencies
-- [ ] Set up Railway PostgreSQL
-- [ ] Set up AWS S3 bucket
-- [ ] Configure environment variables
-- [ ] Run database migrations
-- [ ] Test backend API locally
-- [ ] Test frontend locally
-- [ ] Deploy backend to Railway
-- [ ] Deploy frontend to Vercel
-- [ ] Export data from Supabase
-- [ ] Import data to Railway PostgreSQL
-- [ ] Migrate files from Supabase Storage to S3
-- [ ] Verify all features work
-- [ ] Remove Supabase dependencies
-- [ ] Update documentation
-
-## 💰 Cost Estimate
-
-- Railway (Starter): $5/month
-- AWS S3: $1-2/month
-- Vercel: $0 (Hobby tier)
-- **Total: ~$6-7/month**
-
-## 🔐 Security Notes
-
-1. JWT tokens stored in httpOnly cookies (secure in production)
-2. S3 bucket with private access (presigned URLs only)
-3. Role-based access control on all protected routes
-4. Input validation with Zod schemas
-5. CORS restricted to frontend domain
-
-## 📚 Documentation
-
-- Architecture: `docs/architecture-post-supabase.md`
-- Migration Guide: `docs/migration-guide.md`
+- Architecture: `docs/architecture.md`
+- Deployment guide: `docs/setupdb/SETUP_GUIDE.md`
+- Migration notes: `docs/migration-guide.md`
 - Backend README: `backend/README.md`
