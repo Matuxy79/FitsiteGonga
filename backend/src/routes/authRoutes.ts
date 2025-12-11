@@ -4,7 +4,7 @@ import { userRepository } from '../repositories/userRepository';
 import { authService } from '../services/authService';
 import { authenticateJWT } from '../middleware/authMiddleware';
 
-const router = Router();
+const router: Router = Router();
 
 const registerSchema = z.object({
   email: z.string().email(),

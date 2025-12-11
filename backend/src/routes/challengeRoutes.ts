@@ -4,7 +4,7 @@ import { challengeRepository } from '../repositories/challengeRepository';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
 import { getIO } from '../socket/socketServer';
 
-const router = Router();
+const router: Router = Router();
 
 const createChallengeSchema = z.object({
   name: z.string().min(1),

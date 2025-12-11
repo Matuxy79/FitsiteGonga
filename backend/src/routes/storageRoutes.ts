@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { s3Service } from '../services/s3Service';
 import { authenticateJWT } from '../middleware/authMiddleware';
 
-const router = Router();
+const router: Router = Router();
 
 const presignedUrlSchema = z.object({
   key: z.string().min(1),
