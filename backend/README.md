@@ -45,6 +45,7 @@ See `.env.example` for required variables:
 - `AWS_S3_BUCKET_NAME` - S3 bucket name
 - `FRONTEND_URL` - Frontend URL for CORS
 - `PORT` - Server port (default: 3000)
+- `NODE_ENV` - Set to `production` in deployments so cookies are marked secure
 
 ### Database Setup
 

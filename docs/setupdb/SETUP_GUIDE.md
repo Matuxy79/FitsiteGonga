@@ -60,6 +60,8 @@ FRONTEND_URL=http://localhost:3000
 CORS_ORIGIN=http://localhost:3000
 ```
 
+> **Production reminder:** On Railway or other deployments, override `NODE_ENV=production` so cookies are marked `secure` and Prisma lowers logging noise.
+
 ### Frontend (`.env.local` or production variable)
 
 ```bash
