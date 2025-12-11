@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import dotenv from 'dotenv';
-import { initSocketServer, setIO } from './socket/socketServer';
+import { initSocketServer, setIO, SocketIOServer } from './socket/socketServer';
 import { initRoutes } from './routes';
 
 dotenv.config();
@@ -34,7 +34,7 @@ app.get('/health', (req, res) => {
 initRoutes(app);
 
 // Initialize Socket.io
-const io = initSocketServer(httpServer);
+const io: SocketIOServer = initSocketServer(httpServer);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

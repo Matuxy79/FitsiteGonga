@@ -4,7 +4,7 @@ import { progressRepository } from '../repositories/progressRepository';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
 import { getIO } from '../socket/socketServer';
 
-const router = Router();
+const router: Router = Router();
 
 const createProgressSchema = z.object({
   challenge_id: z.string().uuid(),

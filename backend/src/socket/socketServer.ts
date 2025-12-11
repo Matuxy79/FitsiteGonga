@@ -3,7 +3,7 @@ import { Server as HTTPServer } from 'http';
 import { authService } from '../services/authService';
 
 // Extend Socket data interface
-interface SocketData {
+export interface SocketData {
   user: {
     userId: string;
     email: string;
@@ -90,6 +90,9 @@ export const getIO = (): Server<DefaultEventsMap, DefaultEventsMap, DefaultEvent
   return ioInstance;
 };
 
+// Type alias for the Socket.io server
+export type SocketIOServer = Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
+
 // For backwards compatibility
-export let io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
+export let io: SocketIOServer;
 

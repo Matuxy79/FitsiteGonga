@@ -1,6 +1,9 @@
 import prisma from '../db/client';
 import { User, Role, FitnessLevel } from '@prisma/client';
 
+// User type without password_hash for safe returns
+export type UserWithoutPassword = Omit<User, 'password_hash'>;
+
 export interface CreateUserDTO {
   email: string;
   password_hash: string;
@@ -30,7 +33,7 @@ export const userRepository = {
   /**
    * Find user by ID
    */
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<UserWithoutPassword | null> {
     return prisma.user.findUnique({
       where: { id },
       select: {
@@ -50,7 +53,7 @@ export const userRepository = {
   /**
    * Create new user
    */
-  async create(data: CreateUserDTO): Promise<User> {
+  async create(data: CreateUserDTO): Promise<UserWithoutPassword> {
     return prisma.user.create({
       data: {
         email: data.email,
@@ -77,7 +80,7 @@ export const userRepository = {
   /**
    * Update user
    */
-  async update(id: string, data: UpdateUserDTO): Promise<User> {
+  async update(id: string, data: UpdateUserDTO): Promise<UserWithoutPassword> {
     return prisma.user.update({
       where: { id },
       data,
