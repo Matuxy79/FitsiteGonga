@@ -2,31 +2,34 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ChallengeChannel } from '@/components/challenges/ChallengeChannel'
 import ServerList from '@/components/navigation/ServerList'
 import ChannelList from '@/components/navigation/ChannelList'
 import { useChallengeController } from '@/controllers/useChallengeController'
 import { useProgressController } from '@/controllers/useProgressController'
-import type { User, Challenge, ProgressLog } from '@/types/fitness'
+import { useAuth } from '@/hooks/useAuth'
+import type { Challenge } from '@/types/fitness'
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, loading: authLoading } = useAuth()
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const router = useRouter()
 
-  const { loading: loadingChallenges, viewModels, challenges } = useChallengeController()
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  
-  // Progress controller for the selected challenge
+  const { loading: loadingChallenges, challenges } = useChallengeController()
+
   const {
     loading: loadingProgress,
     progressLogs,
-    viewModels: progressViewModels,
     logProgress,
     loadProgress
   } = useProgressController(selectedId || undefined)
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/')
+    }
+  }, [authLoading, user, router])
 
   const selectedChallenge: Challenge | null = useMemo(() => {
     const id = selectedId || challenges[0]?.id
@@ -34,43 +37,24 @@ export default function Dashboard() {
     return challenges.find(c => c.id === id) || null
   }, [selectedId, challenges])
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      if (!authUser) {
-        router.push('/')
-        return
-      }
-      const userObj: User = {
-        id: authUser.id,
-        email: authUser.email || '',
-        display_name: authUser.user_metadata?.display_name || authUser.email?.split('@')[0] || 'User',
-        avatar_url: authUser.user_metadata?.avatar_url,
-        role: 'client',
-        fitness_level: 'beginner',
-        goals: [],
-        created_at: authUser.created_at,
-        updated_at: authUser.updated_at || authUser.created_at
-      }
-      setUser(userObj)
-      setLoading(false)
-    }
-    getUser()
-  }, [router])
-
   const categories = useMemo(() => {
-    // Group challenges by category for ChannelList
-    const byCat: Record<string, Challenge[]> = { strength: [], cardio: [], nutrition: [], custom: [] }
-    challenges.forEach(c => { (byCat[c.category] ||= []).push(c) })
+    const grouped: Record<string, Challenge[]> = {
+      strength: [],
+      cardio: [],
+      nutrition: [],
+      custom: []
+    }
+    challenges.forEach((challenge) => {
+      grouped[challenge.category]?.push(challenge)
+    })
     return [
-      { id: 'strength', name: 'Strength', icon: '💪', challenges: byCat.strength },
-      { id: 'cardio', name: 'Cardio', icon: '🏃', challenges: byCat.cardio },
-      { id: 'nutrition', name: 'Nutrition', icon: '🥗', challenges: byCat.nutrition },
-      { id: 'custom', name: 'Custom', icon: '🎯', challenges: byCat.custom },
+      { id: 'strength', name: 'Strength', icon: "dY'¦", challenges: grouped.strength },
+      { id: 'cardio', name: 'Cardio', icon: 'dY?ź', challenges: grouped.cardio },
+      { id: 'nutrition', name: 'Nutrition', icon: 'dYť-', challenges: grouped.nutrition },
+      { id: 'custom', name: 'Custom', icon: 'dYZ_', challenges: grouped.custom },
     ]
   }, [challenges])
 
-  // Load progress when challenge changes
   useEffect(() => {
     if (selectedChallenge?.id) {
       loadProgress(selectedChallenge.id)
@@ -92,7 +76,7 @@ export default function Dashboard() {
     }
   }
 
-  if (loading || loadingChallenges) {
+  if (authLoading || loadingChallenges) {
     return (
       <div className="min-h-screen discord-bg flex items-center justify-center">
         <div className="text-center">

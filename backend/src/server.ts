@@ -12,7 +12,7 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // Security middleware
 app.use(helmet());
@@ -50,8 +50,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// Initialize Socket.io and set global instance
-const io = initSocketServer(httpServer);
+// Initialize global Socket.io instance
 setIO(io);
 
 httpServer.listen(PORT, () => {

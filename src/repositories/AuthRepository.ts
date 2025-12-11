@@ -1,33 +1,78 @@
-import apiClient from '@/lib/apiClient';
-import { setAuthToken } from '@/lib/apiClient';
+import apiClient from '@/lib/apiClient'
+import { setAuthToken } from '@/lib/apiClient'
+import type { User as FitnessUser } from '@/types/fitness'
 
 export interface RegisterDTO {
-  email: string;
-  password: string;
-  display_name: string;
+  email: string
+  password: string
+  display_name: string
 }
 
 export interface LoginDTO {
-  email: string;
-  password: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  display_name: string;
-  avatar_url?: string;
-  role: 'CLIENT' | 'TRAINER' | 'ADMIN';
-  fitness_level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-  goals: string[];
-  created_at: string;
-  updated_at: string;
+  email: string
+  password: string
 }
 
 export interface AuthResponse {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
+  user: FitnessUser
+  accessToken: string
+  refreshToken: string
+}
+
+export type User = FitnessUser
+
+type RawAuthResponse = {
+  user: RawUser
+  accessToken: string
+  refreshToken: string
+}
+
+interface RawUser {
+  id: string
+  email: string
+  display_name: string
+  avatar_url?: string
+  role?: 'CLIENT' | 'TRAINER' | 'ADMIN' | string
+  fitness_level?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | string
+  goals?: string[]
+  created_at: string
+  updated_at?: string
+}
+
+const roleMap: Record<string, FitnessUser['role']> = {
+  CLIENT: 'client',
+  TRAINER: 'trainer',
+  ADMIN: 'admin',
+}
+
+const levelMap: Record<string, FitnessUser['fitness_level']> = {
+  BEGINNER: 'beginner',
+  INTERMEDIATE: 'intermediate',
+  ADVANCED: 'advanced',
+}
+
+function normalizeUser(raw: RawUser): FitnessUser {
+  const normalizedRole = roleMap[raw.role?.toUpperCase() || ''] || 'client'
+  const normalizedLevel = levelMap[raw.fitness_level?.toUpperCase() || ''] || 'beginner'
+  return {
+    id: raw.id,
+    email: raw.email,
+    display_name: raw.display_name,
+    avatar_url: raw.avatar_url,
+    role: normalizedRole,
+    fitness_level: normalizedLevel,
+    goals: raw.goals || [],
+    created_at: raw.created_at,
+    updated_at: raw.updated_at || raw.created_at,
+  }
+}
+
+function extractAuthResponse(response: any): AuthResponse {
+  const payload: RawAuthResponse = response?.data || response
+  return {
+    ...payload,
+    user: normalizeUser(payload.user),
+  }
 }
 
 export const AuthRepository = {
@@ -35,38 +80,33 @@ export const AuthRepository = {
    * Register new user
    */
   async register(data: RegisterDTO): Promise<AuthResponse> {
-    const response = await apiClient.post<{ data: AuthResponse }>('/api/auth/register', data);
-    const authData = response.data || response;
-    
-    // Store token in localStorage (fallback for mobile)
-    setAuthToken(authData.accessToken);
-    
-    return authData;
+    const response = await apiClient.post<{ data: RawAuthResponse }>('/api/auth/register', data)
+    const authData = extractAuthResponse(response)
+
+    setAuthToken(authData.accessToken)
+    return authData
   },
 
   /**
    * Login user
    */
   async login(data: LoginDTO): Promise<AuthResponse> {
-    const response = await apiClient.post<{ data: AuthResponse }>('/api/auth/login', data);
-    const authData = response.data || response;
-    
-    // Store token in localStorage (fallback for mobile)
-    setAuthToken(authData.accessToken);
-    
-    return authData;
+    const response = await apiClient.post<{ data: RawAuthResponse }>('/api/auth/login', data)
+    const authData = extractAuthResponse(response)
+
+    setAuthToken(authData.accessToken)
+    return authData
   },
 
   /**
    * Refresh access token
    */
   async refreshToken(): Promise<{ accessToken: string }> {
-    const response = await apiClient.post<{ data: { accessToken: string } }>('/api/auth/refresh');
-    const data = response.data || response;
-    
-    setAuthToken(data.accessToken);
-    
-    return data;
+    const response = await apiClient.post<{ data: { accessToken: string } }>('/api/auth/refresh')
+    const payload = response.data || response
+
+    setAuthToken(payload.accessToken)
+    return payload
   },
 
   /**
@@ -74,10 +114,9 @@ export const AuthRepository = {
    */
   async logout(): Promise<void> {
     try {
-      await apiClient.post('/api/auth/logout');
+      await apiClient.post('/api/auth/logout')
     } finally {
-      // Always clear token even if request fails
-      setAuthToken(null);
+      setAuthToken(null)
     }
   },
 
@@ -85,9 +124,8 @@ export const AuthRepository = {
    * Get current user
    */
   async getCurrentUser(): Promise<User> {
-    const response = await apiClient.get<{ data: { user: User } }>('/api/auth/me');
-    return (response as any).data?.user || response;
+    const response = await apiClient.get<{ data: { user: RawUser } }>('/api/auth/me')
+    const payload = response.data || response
+    return normalizeUser(payload.user)
   },
-};
-
-
+}
