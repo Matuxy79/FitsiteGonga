@@ -1,4 +1,4 @@
-import { Server, Socket } from 'socket.io';
+import { Server, Socket, DefaultEventsMap } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { authService } from '../services/authService';
 
@@ -14,8 +14,8 @@ interface SocketData {
 /**
  * Initialize Socket.io server with authentication
  */
-export const initSocketServer = (httpServer: HTTPServer): Server => {
-  const io = new Server<{}, {}, {}, SocketData>(httpServer, {
+export const initSocketServer = (httpServer: HTTPServer): Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData> => {
+  const io = new Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>(httpServer, {
     cors: {
       origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000',
       credentials: true,
@@ -42,7 +42,7 @@ export const initSocketServer = (httpServer: HTTPServer): Server => {
   });
 
   // Connection handler
-  io.on('connection', (socket: Socket<{}, {}, {}, SocketData>) => {
+  io.on('connection', (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
     const user = socket.data.user;
     console.log(`✅ User connected: ${user.email} (${user.userId})`);
 
@@ -77,13 +77,13 @@ export const initSocketServer = (httpServer: HTTPServer): Server => {
 };
 
 // Export singleton instance (set after initialization)
-let ioInstance: Server<{}, {}, {}, SocketData> | null = null;
+let ioInstance: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData> | null = null;
 
-export const setIO = (io: Server<{}, {}, {}, SocketData>) => {
+export const setIO = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
   ioInstance = io;
 };
 
-export const getIO = (): Server<{}, {}, {}, SocketData> => {
+export const getIO = (): Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData> => {
   if (!ioInstance) {
     throw new Error('Socket.io server not initialized. Call setIO() first.');
   }
@@ -91,5 +91,5 @@ export const getIO = (): Server<{}, {}, {}, SocketData> => {
 };
 
 // For backwards compatibility
-export let io: Server<{}, {}, {}, SocketData>;
+export let io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
 
