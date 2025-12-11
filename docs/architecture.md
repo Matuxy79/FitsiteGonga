@@ -8,14 +8,15 @@
 - **Components**: Custom Discord-themed component library
 - **State Management**: Zustand for global state, React Hook Form for forms
 - **Animation**: Framer Motion for smooth transitions
-- **Real-time**: Supabase Realtime subscriptions
+- **Real-time**: Socket.io client for progress/achievement events
 
 ### Backend
-- **Database**: Supabase PostgreSQL
-- **Authentication**: Supabase Auth (OAuth + email/password)
-- **API**: Next.js API routes + Supabase client
-- **Real-time**: Supabase Realtime for live updates
-- **Storage**: Supabase Storage for progress photos
+- **Framework**: Express + Socket.io hosted on Railway (self-hosted Node service)
+- **Database**: Prisma-managed PostgreSQL (Railway or self-hosted)
+- **Authentication**: JWT-based auth with bcrypt password hashing
+- **API**: RESTful Express routes consumed via `apiClient`
+- **Real-time**: Socket.io channels for challenge progress + achievement notifications
+- **Storage**: AWS S3 buckets for progress photo uploads
 
 ### Development Tools
 - **Testing**: Vitest (unit), Playwright (E2E), Testing Library
@@ -27,10 +28,10 @@
 
 ### Core Entities
 
-#### Users (extends Supabase Auth)
+#### Users (backend-managed auth)
 ```typescript
 interface User {
-  id: string; // Supabase auth user ID
+  id: string; // JWT user ID from auth service
   email: string;
   display_name: string;
   avatar_url?: string;
@@ -235,30 +236,26 @@ interface GoalButtonProps {
 - `PUT /api/goals/[id]` - Update goal
 - `DELETE /api/goals/[id]` - Delete goal
 
+## Deployment & Hosting
+- **Railway service** (`backend/` Express app) handles REST + Socket.io; configure `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_SOCKET_URL` with the Railway domain so the Next.js frontend points at your deployed API.
+- **Environments** store `DATABASE_URL`, `JWT_SECRET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, and `S3_BUCKET_NAME`; these must match your PostgreSQL and S3 setup before deployments succeed.
+- **Migrations**: Run `npx prisma migrate deploy` (or `npx prisma migrate dev` locally) before releasing, so the schema in `prisma/schema.prisma` matches the production database.
+- **Healthcheck**: Use `/health` as the Railway healthcheck endpoint; the backend already exposes it in `backend/src/server.ts`.
+
 ## Real-time Subscriptions
 
 ### Challenge Updates
 ```typescript
-// Subscribe to challenge progress updates
-supabase
-  .channel('challenge-progress')
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'progress_logs'
-  }, handleProgressUpdate)
+// Connect via Socket.io to listen for challenge events
+socket.on('progress:new', handleProgressUpdate)
+socket.on('progress:updated', handleProgressUpdate)
+socket.on('progress:deleted', handleProgressDeletion)
 ```
 
 ### Achievement Notifications
 ```typescript
-// Subscribe to achievement awards
-supabase
-  .channel('achievements')
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'user_achievements'
-  }, handleAchievementAward)
+// Socket.io emits achievement awards from the backend
+socket.on('achievement:earned', handleAchievementAward)
 ```
 
 ## Database Schema
@@ -357,17 +354,16 @@ CREATE TABLE fitness_goals (
 
 ## Security & Permissions
 
-### Row Level Security (RLS)
-- Users can only access their own progress logs and goals
-- Trainers can access their clients' data
-- Admins have full access
-- Public challenges are readable by all authenticated users
+### Access Controls
+- All operations go through Express middleware that enforces user ownership, trainer/admin roles, and token validation.
+- JWTs are signed with `JWT_SECRET` and refreshed via `/api/auth/refresh`.
+- Uploaded photos are stored in S3 with signed URLs (no public buckets).
 
 ### API Security
 - JWT tokens for authentication
-- Role-based access control
+- Role-based access control enforced server-side
 - Input validation with Zod schemas
-- Rate limiting on progress logging
+- Rate limiting on critical endpoints (progress logging) still recommended
 
 ## Performance Considerations
 
@@ -380,8 +376,7 @@ CREATE TABLE fitness_goals (
 - Redis for frequently accessed challenge data
 - Client-side caching for user achievements
 - CDN for progress photos
-
 ### Real-time Optimization
-- Selective subscriptions based on user's active challenges
-- Debounced progress updates to prevent spam
-- Connection pooling for Supabase client
+ - Use Socket.io rooms (`challenge:{id}`) so clients only listen to their active challenges
+ - Debounced progress updates to prevent spammy broadcasts
+ - Socket.io scaling via Railway replicas if traffic grows
