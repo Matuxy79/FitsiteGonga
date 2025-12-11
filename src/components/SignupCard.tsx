@@ -7,9 +7,9 @@ import { motion } from 'framer-motion'
 import { signupSchema, type SignupDTO } from '@/schema/auth'
 import { FormField } from '@/components/ui/FormField'
 import { useToast } from '@/hooks/useToast'
-import { supabase } from '@/lib/supabase'
-import { generateErrorRef } from '@/lib/utils'
 import Button from '@/components/ui/Button'
+import { AuthRepository } from '@/repositories/AuthRepository'
+import { generateErrorRef } from '@/lib/utils'
 
 interface SignupCardProps {
   onSuccess: () => void
@@ -36,27 +36,22 @@ export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
     try {
       setFormState('loading')
       
-      const { data: authData, error } = await supabase.auth.signUp({
+      await AuthRepository.register({
         email: data.email,
         password: data.password,
+        display_name: data.displayName,
       })
 
-      if (error) {
-        throw error
-      }
-
-      if (authData?.user) {
-        setFormState('success')
-        toast({
-          title: 'Account created successfully',
-          description: 'Check your email to confirm your account',
-          variant: 'success'
-        })
-        
-        setTimeout(() => {
-          onSuccess()
-        }, 2000)
-      }
+      setFormState('success')
+      toast({
+        title: 'Account created successfully',
+        description: 'Redirecting to dashboard...',
+        variant: 'success'
+      })
+      
+      setTimeout(() => {
+        onSuccess()
+      }, 2000)
     } catch (error) {
       setFormState('error')
       const errorRef = generateErrorRef()
@@ -91,6 +86,16 @@ export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          id="displayName"
+          label="Display Name"
+          type="text"
+          placeholder="Choose a display name"
+          error={errors.displayName?.message}
+          {...register('displayName')}
+          onBlur={() => handleBlur('displayName')}
+        />
+
         <FormField
           id="email"
           label="Email"

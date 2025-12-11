@@ -35,7 +35,6 @@ export function useAuth(): UseAuthReturn {
       setError(null);
       const response = await AuthRepository.login({ email, password });
       setUser(response.user);
-      setAuthToken(response.accessToken);
     } catch (err: any) {
       setError(err.error || 'Failed to login');
       throw err;
@@ -53,7 +52,6 @@ export function useAuth(): UseAuthReturn {
       setError(null);
       const response = await AuthRepository.register({ email, password, display_name: displayName });
       setUser(response.user);
-      setAuthToken(response.accessToken);
     } catch (err: any) {
       setError(err.error || 'Failed to register');
       throw err;

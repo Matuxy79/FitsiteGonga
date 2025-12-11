@@ -8,7 +8,7 @@ import { loginSchema, type LoginDTO } from '@/schema/auth'
 import { FormField } from '@/components/ui/FormField'
 import { useToast } from '@/hooks/useToast'
 import Button from '@/components/ui/Button'
-import { supabase } from '@/lib/supabase'
+import { AuthRepository } from '@/repositories/AuthRepository'
 import { generateErrorRef } from '@/lib/utils'
 
 interface LoginCardProps {
@@ -36,27 +36,21 @@ export function LoginCard({ onSuccess, onSwitchToSignup }: LoginCardProps) {
     try {
       setFormState('loading')
       
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
+      await AuthRepository.login({
         email: data.email,
         password: data.password,
       })
 
-      if (error) {
-        throw error
-      }
-
-      if (authData?.user) {
-        setFormState('success')
-        toast({
-          title: 'Login successful',
-          description: 'Redirecting to dashboard...',
-          variant: 'success'
-        })
-        
-        setTimeout(() => {
-          onSuccess()
-        }, 500)
-      }
+      setFormState('success')
+      toast({
+        title: 'Login successful',
+        description: 'Redirecting to dashboard...',
+        variant: 'success'
+      })
+      
+      setTimeout(() => {
+        onSuccess()
+      }, 500)
     } catch (error) {
       setFormState('error')
       const errorRef = generateErrorRef()

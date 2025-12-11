@@ -12,12 +12,12 @@ export const ChallengeRepository = {
     return response.data
   },
 
-  async join(challengeId: string, userId: string) {
+  async join(challengeId: string) {
     const response = await apiClient.post<{ data: Challenge }>(`/api/challenges/${challengeId}/join`)
     return response.data
   },
 
-  async leave(challengeId: string, userId: string) {
+  async leave(challengeId: string) {
     const response = await apiClient.post<{ data: Challenge }>(`/api/challenges/${challengeId}/leave`)
     return response.data
   },
