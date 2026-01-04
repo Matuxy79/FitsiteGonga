@@ -27,7 +27,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/')
+      const hasStoredToken = typeof window !== 'undefined' && !!localStorage.getItem('accessToken')
+      const reason = hasStoredToken ? 'session-expired' : 'login-required'
+      router.replace(`/?reason=${reason}`)
     }
   }, [authLoading, user, router])
 

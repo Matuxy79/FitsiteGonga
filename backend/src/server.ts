@@ -1,14 +1,12 @@
+import './env';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
-import dotenv from 'dotenv';
 import { initSocketServer, setIO, SocketIOServer } from './socket/socketServer';
 import { initRoutes } from './routes';
-
-dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);

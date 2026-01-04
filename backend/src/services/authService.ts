@@ -1,11 +1,21 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET!;
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
+// Lazy-load secrets to ensure dotenv has loaded
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET must be set');
+  }
+  return secret;
+}
 
-if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
-  throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must be set');
+function getJwtRefreshSecret(): string {
+  const secret = process.env.JWT_REFRESH_SECRET;
+  if (!secret) {
+    throw new Error('JWT_REFRESH_SECRET must be set');
+  }
+  return secret;
 }
 
 export interface JWTPayload {
@@ -34,7 +44,7 @@ export const authService = {
    * Generate JWT access token (15 minutes expiry)
    */
   generateAccessToken(payload: JWTPayload): string {
-    return jwt.sign(payload, JWT_SECRET, {
+    return jwt.sign(payload, getJwtSecret(), {
       expiresIn: '15m',
     });
   },
@@ -43,7 +53,7 @@ export const authService = {
    * Generate JWT refresh token (7 days expiry)
    */
   generateRefreshToken(userId: string): string {
-    return jwt.sign({ userId }, JWT_REFRESH_SECRET, {
+    return jwt.sign({ userId }, getJwtRefreshSecret(), {
       expiresIn: '7d',
     });
   },
@@ -63,7 +73,7 @@ export const authService = {
    */
   verifyAccessToken(token: string): JWTPayload {
     try {
-      return jwt.verify(token, JWT_SECRET) as JWTPayload;
+      return jwt.verify(token, getJwtSecret()) as JWTPayload;
     } catch (error) {
       throw new Error('Invalid or expired token');
     }
@@ -74,11 +84,9 @@ export const authService = {
    */
   verifyRefreshToken(token: string): { userId: string } {
     try {
-      return jwt.verify(token, JWT_REFRESH_SECRET) as { userId: string };
+      return jwt.verify(token, getJwtRefreshSecret()) as { userId: string };
     } catch (error) {
       throw new Error('Invalid or expired refresh token');
     }
   },
 };
-
-

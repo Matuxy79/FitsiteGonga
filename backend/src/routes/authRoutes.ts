@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
 import { userRepository } from '../repositories/userRepository';
 import { authService } from '../services/authService';
 import { authenticateJWT } from '../middleware/authMiddleware';
@@ -17,11 +18,37 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  limit: 12,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  handler: (_req, res, _next, options) => {
+    res.status(options.statusCode).json({
+      error: 'Too many login attempts',
+      retryAfterSeconds: Math.ceil(options.windowMs / 1000),
+    });
+  },
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  limit: 6,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  handler: (_req, res, _next, options) => {
+    res.status(options.statusCode).json({
+      error: 'Too many registration attempts',
+      retryAfterSeconds: Math.ceil(options.windowMs / 1000),
+    });
+  },
+});
+
 /**
  * POST /api/auth/register
  * Register a new user
  */
-router.post('/register', async (req, res) => {
+router.post('/register', registerLimiter, async (req, res) => {
   try {
     const validated = registerSchema.parse(req.body);
     const { email, password, display_name } = validated;
@@ -87,7 +114,7 @@ router.post('/register', async (req, res) => {
  * POST /api/auth/login
  * Login user
  */
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const validated = loginSchema.parse(req.body);
     const { email, password } = validated;
