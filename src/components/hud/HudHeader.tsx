@@ -15,7 +15,7 @@ export function HudHeader({ operator, activeChallenge }: HudHeaderProps) {
     <header className="h-14 bg-black/60 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6">
       <div className="min-w-0">
         <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.45em]">
-          // System ready
+          {'// System ready'}
         </div>
         <div className="mt-1 text-sm font-black tracking-[0.3em] uppercase text-slate-200 truncate">
           {label}
@@ -41,4 +41,3 @@ export function HudHeader({ operator, activeChallenge }: HudHeaderProps) {
     </header>
   );
 }
-

@@ -121,7 +121,7 @@ export function LoginCard({ onSuccess, onSwitchToSignup }: LoginCardProps) {
           onClick={onSwitchToSignup}
           className="text-discord-accent hover:text-discord-accent/90 text-sm font-medium"
         >
-          Don't have an account? Sign up
+          Don&apos;t have an account? Sign up
         </button>
       </div>
     </motion.div>

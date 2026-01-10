@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -15,11 +15,20 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
+import { AuthRepository } from '@/repositories/AuthRepository';
 import { getEmailSector, mapAuthErrorToToast, type FieldErrors } from '@/lib/authFeedback';
 
 type AuthMode = 'login' | 'signup';
 
 export default function ObsidianLanding() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <ObsidianLandingInner />
+    </Suspense>
+  );
+}
+
+function ObsidianLandingInner() {
   const [mode, setMode] = useState<AuthMode>('login');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [bgImage, setBgImage] = useState(
@@ -33,6 +42,10 @@ export default function ObsidianLanding() {
   const [capsLockOn, setCapsLockOn] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
   const [redirecting, setRedirecting] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSending, setResetSending] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const handledReasonRef = useRef(false);
@@ -70,6 +83,13 @@ export default function ObsidianLanding() {
         message: 'Credentials cleared.',
         sector: 'AUTH',
       });
+    } else if (reason === 'password-reset') {
+      toast({
+        status: 'OK',
+        title: 'PASSWORD UPDATED',
+        message: 'Sign in with your new password.',
+        sector: 'AUTH',
+      });
     }
 
     router.replace('/');
@@ -94,6 +114,54 @@ export default function ObsidianLanding() {
   const handleAdminSave = () => {
     if (tempBgInput) setBgImage(tempBgInput);
     setIsAdminOpen(false);
+  };
+
+  const openResetModal = () => {
+    setResetEmail(email.trim());
+    setResetSent(false);
+    setResetOpen(true);
+  };
+
+  const handleSendReset = async () => {
+    if (resetSending) return;
+
+    const trimmed = resetEmail.trim();
+    if (!trimmed) {
+      toast({
+        status: 'WARN',
+        title: 'EMAIL REQUIRED',
+        message: 'Enter the email tied to your account.',
+        sector: 'AUTH',
+      });
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast({
+        status: 'WARN',
+        title: 'INVALID EMAIL',
+        message: 'Enter a valid email address.',
+        sector: 'AUTH',
+      });
+      return;
+    }
+
+    try {
+      setResetSending(true);
+      await AuthRepository.requestPasswordReset(trimmed);
+      setResetSent(true);
+      toast({
+        status: 'OK',
+        title: 'RESET LINK SENT',
+        message: 'If that email exists, check your inbox for a reset link.',
+        sector: 'AUTH',
+      });
+    } catch (error: any) {
+      const mapped = mapAuthErrorToToast({ mode: 'login', email: trimmed, error });
+      toast(mapped.toast);
+    } finally {
+      setResetSending(false);
+    }
   };
 
   const submitDisabled = useMemo(() => {
@@ -251,7 +319,7 @@ export default function ObsidianLanding() {
           >
             <div className="h-1 w-12 bg-emerald-500/60 rounded-full mb-4" />
             <p className="text-xs font-mono text-slate-500 uppercase tracking-[0.4em] mb-2">
-              // Activity Log
+              {'// Activity Log'}
             </p>
             <div className="space-y-3 text-sm">
               <div>
@@ -368,6 +436,17 @@ export default function ObsidianLanding() {
                     {fieldErrors.password}
                   </p>
                 )}
+                {mode === 'login' && (
+                  <div className="pt-1 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={openResetModal}
+                      className="text-[10px] font-mono text-slate-500 hover:text-emerald-300 tracking-[0.35em] uppercase transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             <AnimatePresence>
@@ -442,6 +521,8 @@ export default function ObsidianLanding() {
                   setFieldErrors({});
                   setCooldownSeconds(null);
                   setCapsLockOn(false);
+                  setResetOpen(false);
+                  setResetSent(false);
                 }}
                 className="text-[10px] tracking-[0.6em] font-black uppercase px-3 py-2 border border-emerald-500/40 rounded-sm bg-white/5 hover:bg-emerald-500/10 transition-colors text-slate-100 shadow-[0_0_25px_rgba(16,185,129,0.25)] flex items-center gap-1"
               >
@@ -454,6 +535,72 @@ export default function ObsidianLanding() {
           </div>
         </div>
       </div>
+      <AnimatePresence>
+        {resetOpen && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-lg bg-zinc-900 border border-slate-700 p-8 rounded-none shadow-2xl relative"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setResetOpen(false);
+                  setResetSent(false);
+                }}
+                className="absolute top-4 right-4 text-slate-500 hover:text-white"
+                aria-label="Close password reset"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+                <ShieldCheck className="text-emerald-500 w-6 h-6" />
+                <h3 className="font-bold text-xl tracking-widest uppercase">Password Reset</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                    Email
+                  </label>
+                  <input
+                    value={resetEmail}
+                    onChange={(event) => setResetEmail(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') handleSendReset();
+                    }}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Email address"
+                    className="w-full bg-black border border-slate-700 p-3 text-sm text-emerald-400 font-mono focus:outline-none focus:border-emerald-500"
+                  />
+                  <p className="text-[10px] text-slate-600 mt-2 font-mono">
+                    If the account exists, a reset link will be sent.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSendReset}
+                  disabled={resetSending}
+                  className="w-full bg-slate-800 border border-slate-700 hover:bg-emerald-900 hover:border-emerald-500/50 transition-colors px-4 py-3 text-xs font-black tracking-[0.4em] uppercase text-slate-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {resetSending ? 'SENDING...' : resetSent ? 'SEND AGAIN' : 'SEND RESET LINK'}
+                </button>
+
+                {resetSent && (
+                  <div className="border border-emerald-500/25 bg-emerald-500/5 p-3 text-[10px] text-emerald-300 font-mono tracking-[0.25em] uppercase">
+                    Check your inbox. Link expires soon.
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {isAdmin && isAdminOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">

@@ -32,7 +32,7 @@ export function ChallengeChannel({
       <div className="flex-1 flex items-center justify-center bg-transparent p-8">
         <div className="w-full max-w-md border border-emerald-500/15 bg-black/40 backdrop-blur-xl p-8 shadow-[0_0_30px_rgba(16,185,129,0.12)]">
           <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.45em]">
-            // System ready
+            {'// System ready'}
           </div>
           <h2 className="mt-3 text-xl font-black tracking-[0.25em] uppercase text-slate-100">
             No active protocol
@@ -246,4 +246,3 @@ export function ChallengeChannel({
     </div>
   )
 }
-

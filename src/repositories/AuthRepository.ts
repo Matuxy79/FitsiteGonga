@@ -128,4 +128,12 @@ export const AuthRepository = {
     const payload = response.data || response
     return normalizeUser(payload.user)
   },
+
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>('/api/auth/forgot-password', { email })
+  },
+
+  async resetPassword(params: { token: string; password: string }): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>('/api/auth/reset-password', params)
+  },
 }

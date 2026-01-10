@@ -155,7 +155,7 @@ export function HudSidebar({
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-                // Sector
+                {'// Sector'}
               </div>
               <div className="mt-2 text-sm font-black tracking-[0.35em] uppercase text-slate-200">
                 {selectedCategoryConfig?.label || selectedCategory}
@@ -176,7 +176,7 @@ export function HudSidebar({
           {challengesForCategory.length === 0 ? (
             <div className="px-4 py-6">
               <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-                // No protocols
+                {'// No protocols'}
               </div>
               <div className="mt-2 text-sm text-slate-200">
                 No challenges in this sector yet.
@@ -227,7 +227,7 @@ export function HudSidebar({
 
         <div className="p-4 border-t border-white/5">
           <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-            // Status
+            {'// Status'}
           </div>
           <div className="mt-2 flex items-center justify-between text-xs font-mono">
             <span className="text-slate-500">OPERATOR</span>
@@ -238,4 +238,3 @@ export function HudSidebar({
     </aside>
   );
 }
-
