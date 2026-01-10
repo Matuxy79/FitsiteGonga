@@ -3,16 +3,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { HudHeader } from '@/components/hud/HudHeader'
+import { HudSidebar } from '@/components/hud/HudSidebar'
 import { ChallengeChannel } from '@/components/challenges/ChallengeChannel'
-import ServerList from '@/components/navigation/ServerList'
-import ChannelList from '@/components/navigation/ChannelList'
 import { useChallengeController } from '@/controllers/useChallengeController'
 import { useProgressController } from '@/controllers/useProgressController'
 import { useAuth } from '@/hooks/useAuth'
 import type { Challenge } from '@/types/fitness'
 
+const CATEGORY_ORDER: Challenge['category'][] = ['strength', 'cardio', 'nutrition', 'custom']
+
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, logout } = useAuth()
+  const [selectedCategory, setSelectedCategory] = useState<Challenge['category']>('strength')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const router = useRouter()
 
@@ -33,10 +36,39 @@ export default function Dashboard() {
     }
   }, [authLoading, user, router])
 
+  // Keep selection stable as challenge data loads/changes.
+  useEffect(() => {
+    if (loadingChallenges) return
+    if (challenges.length === 0) return
+
+    const categoriesWithChallenges = CATEGORY_ORDER.filter(category =>
+      challenges.some(challenge => challenge.category === category)
+    )
+
+    // If selected category has no challenges, fall back to first populated sector.
+    const fallbackCategory = categoriesWithChallenges[0] || 'strength'
+    if (!challenges.some(challenge => challenge.category === selectedCategory)) {
+      setSelectedCategory(fallbackCategory)
+      setSelectedId(null)
+    }
+  }, [loadingChallenges, challenges, selectedCategory])
+
+  useEffect(() => {
+    if (loadingChallenges) return
+
+    const challengesInSector = challenges.filter(challenge => challenge.category === selectedCategory)
+    if (challengesInSector.length === 0) {
+      setSelectedId(null)
+      return
+    }
+
+    if (selectedId && challengesInSector.some(challenge => challenge.id === selectedId)) return
+    setSelectedId(challengesInSector[0].id)
+  }, [loadingChallenges, challenges, selectedCategory, selectedId])
+
   const selectedChallenge: Challenge | null = useMemo(() => {
-    const id = selectedId || challenges[0]?.id
-    if (!id) return null
-    return challenges.find(c => c.id === id) || null
+    if (!selectedId) return null
+    return challenges.find(challenge => challenge.id === selectedId) || null
   }, [selectedId, challenges])
 
   const categories = useMemo(() => {
@@ -63,6 +95,17 @@ export default function Dashboard() {
     }
   }, [selectedChallenge?.id, loadProgress])
 
+  const handleSelectCategory = (category: Challenge['category']) => {
+    setSelectedCategory(category)
+    const next = challenges.find(challenge => challenge.category === category)?.id || null
+    setSelectedId(next)
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    router.replace('/?reason=signed-out')
+  }
+
   const handleLogProgress = async (value: number, notes?: string) => {
     if (!selectedChallenge || !user) return
     
@@ -80,10 +123,12 @@ export default function Dashboard() {
 
   if (authLoading || loadingChallenges) {
     return (
-      <div className="min-h-screen discord-bg flex items-center justify-center">
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-discord-accent mx-auto mb-4"></div>
-          <p className="text-discord-light">Loading your fitness dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+          <p className="text-slate-300 font-mono text-sm tracking-[0.2em] uppercase">
+            Booting command center...
+          </p>
         </div>
       </div>
     )
@@ -92,24 +137,29 @@ export default function Dashboard() {
   if (!user) return null
 
   return (
-    <AppLayout>
-      <div className="flex h-full">
-        <ServerList />
-        <ChannelList
-          categories={categories}
-          selectedChannelId={selectedChallenge?.id}
-          onSelect={(id) => setSelectedId(id)}
+    <AppLayout
+      west={
+        <HudSidebar
+          operator={user}
+          challenges={challenges}
+          selectedCategory={selectedCategory}
+          onSelectCategory={handleSelectCategory}
+          selectedChallengeId={selectedChallenge?.id || null}
+          onSelectChallenge={id => setSelectedId(id)}
+          onLogout={handleLogout}
         />
-        <div className="flex-1">
-          <ChallengeChannel
-            challenge={selectedChallenge || undefined}
-            userProgress={progressLogs}
-            userGoal={selectedChallenge?.goal_value}
-            onLogProgress={handleLogProgress}
-            canEdit={true}
-            currentUser={user}
-          />
-        </div>
+      }
+      header={<HudHeader operator={user} activeChallenge={selectedChallenge || undefined} />}
+    >
+      <div className="h-full">
+        <ChallengeChannel
+          challenge={selectedChallenge || undefined}
+          userProgress={progressLogs}
+          userGoal={selectedChallenge?.goal_value}
+          onLogProgress={handleLogProgress}
+          canEdit={true}
+          currentUser={user}
+        />
       </div>
     </AppLayout>
   )
