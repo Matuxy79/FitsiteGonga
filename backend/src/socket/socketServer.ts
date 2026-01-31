@@ -2,7 +2,6 @@ import { Server, Socket, DefaultEventsMap } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { authService } from '../services/authService';
 
-// Extend Socket data interface
 export interface SocketData {
   user: {
     userId: string;
@@ -11,9 +10,6 @@ export interface SocketData {
   };
 }
 
-/**
- * Initialize Socket.io server with authentication
- */
 export const initSocketServer = (httpServer: HTTPServer): Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData> => {
   const io = new Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>(httpServer, {
     cors: {
@@ -24,13 +20,10 @@ export const initSocketServer = (httpServer: HTTPServer): Server<DefaultEventsMa
     transports: ['websocket', 'polling'],
   });
 
-  // Authentication middleware for Socket.io
+  // Authentication middleware
   io.use((socket, next) => {
     const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
-
-    if (!token) {
-      return next(new Error('Authentication error: No token provided'));
-    }
+    if (!token) return next(new Error('Authentication error: No token provided'));
 
     try {
       const decoded = authService.verifyAccessToken(token);
@@ -41,42 +34,48 @@ export const initSocketServer = (httpServer: HTTPServer): Server<DefaultEventsMa
     }
   });
 
-  // Connection handler
   io.on('connection', (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
     const user = socket.data.user;
     console.log(`✅ User connected: ${user.email} (${user.userId})`);
 
-    // Join user-specific room for notifications
+    // Auto-join user-specific room for DMs/notifications
     socket.join(`user:${user.userId}`);
 
-    // Join challenge room
+    // Auto-join global feed room
+    socket.join('global');
+
+    // Squad rooms
+    socket.on('join:squad', (squadId: string) => {
+      socket.join(`squad:${squadId}`);
+      console.log(`📥 User ${user.email} joined squad:${squadId}`);
+    });
+
+    socket.on('leave:squad', (squadId: string) => {
+      socket.leave(`squad:${squadId}`);
+      console.log(`📤 User ${user.email} left squad:${squadId}`);
+    });
+
+    // Challenge rooms (legacy)
     socket.on('join:challenge', (challengeId: string) => {
       socket.join(`challenge:${challengeId}`);
-      console.log(`📥 User ${user.email} joined challenge:${challengeId}`);
     });
 
-    // Leave challenge room
     socket.on('leave:challenge', (challengeId: string) => {
       socket.leave(`challenge:${challengeId}`);
-      console.log(`📤 User ${user.email} left challenge:${challengeId}`);
     });
 
-    // Handle disconnect
     socket.on('disconnect', (reason) => {
       console.log(`❌ User disconnected: ${user.email} - ${reason}`);
     });
 
-    // Error handler
     socket.on('error', (error) => {
       console.error(`Socket error for user ${user.email}:`, error);
     });
   });
 
-  // Export io instance for use in controllers
   return io;
 };
 
-// Export singleton instance (set after initialization)
 let ioInstance: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData> | null = null;
 
 export const setIO = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
@@ -84,15 +83,9 @@ export const setIO = (io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEven
 };
 
 export const getIO = (): Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData> => {
-  if (!ioInstance) {
-    throw new Error('Socket.io server not initialized. Call setIO() first.');
-  }
+  if (!ioInstance) throw new Error('Socket.io server not initialized. Call setIO() first.');
   return ioInstance;
 };
 
-// Type alias for the Socket.io server
 export type SocketIOServer = Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>;
-
-// For backwards compatibility
 export let io: SocketIOServer;
-
