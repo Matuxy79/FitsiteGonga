@@ -345,6 +345,41 @@ export interface Squad {
   role: 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER'
 }
 
+// Transform backend snake_case to frontend camelCase
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function transformMessage(raw: any): Message {
+  return {
+    id: raw.id,
+    content: raw.content,
+    senderId: raw.sender_id,
+    sender: {
+      id: raw.sender?.id || '',
+      displayName: raw.sender?.display_name || 'Unknown',
+      avatarUrl: raw.sender?.avatar_url || null,
+      role: raw.sender?.role || 'CLIENT',
+    },
+    channelType: raw.channel_type,
+    squadId: raw.squad_id,
+    recipientId: raw.recipient_id,
+    parentId: raw.parent_id,
+    mediaUrls: raw.media_urls || [],
+    isEdited: raw.is_edited || false,
+    editedAt: raw.edited_at,
+    isDeleted: raw.is_deleted || false,
+    createdAt: raw.created_at,
+    reactions: (raw.reactions || []).map((r: any) => ({
+      id: r.id,
+      userId: r.user_id,
+      emoji: r.emoji,
+      user: {
+        id: r.user?.id || r.user_id,
+        displayName: r.user?.display_name || 'Unknown',
+      },
+    })),
+    _count: raw._count,
+  }
+}
+
 export function useGlobalFeed() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
@@ -360,11 +395,12 @@ export function useGlobalFeed() {
       if (!refresh && cursor) params.set('cursor', cursor)
       
       const data = await fetchWithAuth(`/messages/global?${params}`)
-      
+      const transformed = (data.messages || []).map(transformMessage)
+
       if (refresh) {
-        setMessages(data.messages)
+        setMessages(transformed)
       } else {
-        setMessages(prev => [...prev, ...data.messages])
+        setMessages(prev => [...prev, ...transformed])
       }
       setCursor(data.nextCursor)
       setHasMore(data.hasMore)
@@ -389,11 +425,12 @@ export function useGlobalFeed() {
       auth: { token },
     })
 
-    socket.on('message:global', (message: Message) => {
-      setMessages(prev => [message, ...prev])
+    socket.on('message:global', (rawMessage: any) => {
+      setMessages(prev => [transformMessage(rawMessage), ...prev])
     })
 
-    socket.on('message:updated', (updated: Message) => {
+    socket.on('message:updated', (rawUpdated: any) => {
+      const updated = transformMessage(rawUpdated)
       setMessages(prev => prev.map(m => m.id === updated.id ? updated : m))
     })
 

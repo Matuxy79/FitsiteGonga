@@ -378,7 +378,7 @@ function MessageBubble({
   const isOwn = message.sender.id === currentUserId
 
   // Group reactions
-  const reactionGroups = message.reactions.reduce((groups, r) => {
+  const reactionGroups = (message.reactions || []).reduce((groups, r) => {
     if (!groups[r.emoji]) groups[r.emoji] = []
     groups[r.emoji].push(r)
     return groups
