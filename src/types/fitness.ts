@@ -1,23 +1,35 @@
-// TypeScript types for FitsiteGonga fitness platform
+// =============================================================================
+// FITSITEGONGA - Production Type Definitions
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// USER & AUTH
+// -----------------------------------------------------------------------------
 
 export interface User {
   id: string;
   email: string;
   display_name: string;
   avatar_url?: string;
-  role: 'client' | 'trainer' | 'admin';
-  fitness_level: 'beginner' | 'intermediate' | 'advanced';
+  role: 'CLIENT' | 'TRAINER' | 'ADMIN';
+  fitness_level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  body_weight?: number;
+  body_weight_unit?: 'LBS' | 'KG';
   goals: string[];
   created_at: string;
   updated_at: string;
 }
 
+// -----------------------------------------------------------------------------
+// CHALLENGES (Original System)
+// -----------------------------------------------------------------------------
+
 export interface Challenge {
   id: string;
   name: string;
   description?: string;
-  category: 'strength' | 'cardio' | 'nutrition' | 'custom';
-  type: 'duration' | 'repetition' | 'distance' | 'custom';
+  category: 'STRENGTH' | 'CARDIO' | 'NUTRITION' | 'CUSTOM';
+  type: 'DURATION' | 'REPETITION' | 'DISTANCE' | 'CUSTOM';
   goal_value: number;
   goal_unit: string;
   start_date: string;
@@ -28,13 +40,34 @@ export interface Challenge {
   created_at: string;
 }
 
+export interface ProgressLog {
+  id: string;
+  user_id: string;
+  challenge_id: string;
+  value: number;
+  unit: string;
+  notes?: string;
+  photo_url?: string;
+  logged_at: string;
+  created_at: string;
+  user?: User;
+  challenge?: Challenge;
+}
+
+// -----------------------------------------------------------------------------
+// ACHIEVEMENTS
+// -----------------------------------------------------------------------------
+
+export type AchievementTier = 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | 'DIAMOND' | 'LEGENDARY';
+export type AchievementCategory = 'WORKOUT' | 'CONSISTENCY' | 'MILESTONE' | 'SOCIAL';
+
 export interface Achievement {
   id: string;
   name: string;
   description: string;
   icon: string;
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'legendary';
-  category: 'workout' | 'consistency' | 'milestone' | 'social';
+  tier: AchievementTier;
+  category: AchievementCategory;
   criteria: {
     workout_count?: number;
     streak_days?: number;
@@ -52,115 +85,287 @@ export interface UserAchievement {
   achievement_id: string;
   earned_date: string;
   progress_value?: number;
-  achievement?: Achievement; // Populated via join
+  achievement?: Achievement;
 }
 
-export interface ProgressLog {
+// -----------------------------------------------------------------------------
+// LIFT TRACKING (The Forge)
+// -----------------------------------------------------------------------------
+
+export type WeightUnit = 'LBS' | 'KG';
+export type LiftTrend = 'up' | 'down' | 'stable';
+
+export interface TrackedLift {
   id: string;
   user_id: string;
-  challenge_id: string;
-  value: number;
-  unit: string;
-  notes?: string;
-  photo_url?: string;
+  exercise_id: string;
+  exercise_name: string;
+  working_weight: number;
+  working_unit: WeightUnit;
+  one_rep_max: number | null;
+  goal_weight: number | null;
+  goal_date: string | null;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+  // Computed from API
+  bestSet?: {
+    weight: number;
+    reps: number;
+    estimated_1rm: number;
+    date: string;
+  };
+  lastSet?: {
+    weight: number;
+    reps: number;
+    date: string;
+    formatted: string;
+  };
+  trend?: LiftTrend;
+  totalSets?: number;
+}
+
+export interface SetLog {
+  id: string;
+  lift_id: string;
+  user_id: string;
+  weight: number;
+  reps: number;
+  unit: WeightUnit;
+  rpe: number | null;
+  tempo: string | null;
+  rest_time: number | null;
+  set_number: number | null;
+  is_warmup: boolean;
+  is_pr: boolean;
+  estimated_1rm: number | null;
+  volume: number | null;
+  notes: string | null;
   logged_at: string;
   created_at: string;
-  user?: User; // Populated via join
-  challenge?: Challenge; // Populated via join
 }
 
-export interface FitnessGoal {
+export type GoalType = 'ONE_REP_MAX' | 'WORKING_WEIGHT' | 'VOLUME' | 'CONSISTENCY' | 'REPS';
+export type GoalStatus = 'ACTIVE' | 'COMPLETED' | 'FAILED' | 'PAUSED';
+
+export interface LiftGoal {
   id: string;
+  lift_id: string;
   user_id: string;
-  goal_type: 'weight_loss' | 'muscle_gain' | 'endurance' | 'strength' | 'custom';
+  goal_type: GoalType;
   target_value: number;
   current_value: number;
-  unit: string;
-  deadline?: string;
-  status: 'active' | 'completed' | 'paused' | 'cancelled';
+  timeframe_days: number | null;
+  status: GoalStatus;
   created_at: string;
   updated_at: string;
 }
 
-// Discord-inspired UI types
-export interface ChannelCategory {
+// Active session (client-side)
+export interface ActiveSet {
+  id: string;
+  weight: number;
+  reps: number;
+  rpe?: number;
+  isWarmup: boolean;
+  isPR: boolean;
+  timestamp: Date;
+  restTime?: number;
+}
+
+export interface LiftSession {
+  liftId: string;
+  exerciseId: string;
+  exerciseName: string;
+  sets: ActiveSet[];
+  startTime: Date;
+  endTime?: Date;
+  notes?: string;
+}
+
+// -----------------------------------------------------------------------------
+// WORKOUT PLANNING
+// -----------------------------------------------------------------------------
+
+export type WorkoutType = 'PUSH' | 'PULL' | 'LEGS' | 'UPPER' | 'LOWER' | 'FULL_BODY' | 'CARDIO' | 'REST' | 'CUSTOM';
+export type WorkoutStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED' | 'RESCHEDULED';
+
+export interface WorkoutTemplate {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  type: WorkoutType;
+  exercises: {
+    exercise_id: string;
+    sets: number;
+    reps_min: number;
+    reps_max: number;
+    rest_seconds: number;
+  }[];
+  is_public: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScheduledWorkout {
+  id: string;
+  user_id: string;
+  template_id: string | null;
+  scheduled_for: string;
+  day_of_week: number | null;
+  is_recurring: boolean;
+  status: WorkoutStatus;
+  started_at: string | null;
+  completed_at: string | null;
+  template?: WorkoutTemplate;
+}
+
+// -----------------------------------------------------------------------------
+// MESSAGING (The Nexus)
+// -----------------------------------------------------------------------------
+
+export type ChannelType = 'GLOBAL' | 'SQUAD' | 'DIRECT' | 'TRAINER';
+
+export interface Message {
+  id: string;
+  content: string;
+  sender_id: string;
+  sender: {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+    role: User['role'];
+  };
+  channel_type: ChannelType;
+  squad_id: string | null;
+  recipient_id: string | null;
+  parent_id: string | null;
+  media_urls: string[];
+  is_edited: boolean;
+  edited_at: string | null;
+  is_deleted: boolean;
+  created_at: string;
+  reactions: MessageReaction[];
+  _count?: { replies: number };
+}
+
+export interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  user: { id: string; display_name: string };
+}
+
+// -----------------------------------------------------------------------------
+// SQUADS (Alpha Squads)
+// -----------------------------------------------------------------------------
+
+export type SquadVisibility = 'PUBLIC' | 'INVITE_ONLY' | 'PRIVATE';
+export type SquadRole = 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER';
+export type InviteStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
+
+export interface Squad {
   id: string;
   name: string;
-  icon: string;
-  challenges: Challenge[];
+  description: string | null;
+  avatar_url: string | null;
+  owner_id: string;
+  owner?: User;
+  visibility: SquadVisibility;
+  max_members: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // Computed
+  memberCount?: number;
+  unreadCount?: number;
+  role?: SquadRole;
 }
 
-export interface ServerGroup {
+export interface SquadMember {
   id: string;
-  name: string;
-  icon: string;
-  channels: ChannelCategory[];
-  member_count: number;
+  squad_id: string;
+  user_id: string;
+  role: SquadRole;
+  joined_at: string;
+  notifications_enabled: boolean;
+  user?: User;
 }
 
-// Component prop types
-export interface ChallengeCardProps {
-  challenge: Challenge;
-  userProgress?: number;
-  userGoal?: number;
-  onJoin: () => void;
-  onLeave: () => void;
-  isActive: boolean;
-  canEdit?: boolean;
+export interface SquadInvite {
+  id: string;
+  squad_id: string;
+  inviter_id: string;
+  invitee_id: string;
+  status: InviteStatus;
+  created_at: string;
+  responded_at: string | null;
+  squad?: Squad;
+  inviter?: User;
 }
 
-export interface ProgressEntryProps {
-  log: ProgressLog;
-  user: User;
-  onReact: (reaction: string) => void;
-  onComment: (comment: string) => void;
-  canEdit: boolean;
-  reactions?: ProgressReaction[];
+// -----------------------------------------------------------------------------
+// SOCIAL (Friendships & Trainer Links)
+// -----------------------------------------------------------------------------
+
+export type FriendshipStatus = 'PENDING' | 'ACCEPTED' | 'BLOCKED';
+export type TrainerClientStatus = 'PENDING' | 'ACTIVE' | 'PAUSED' | 'ENDED';
+
+export interface Friendship {
+  id: string;
+  user_a_id: string;
+  user_b_id: string;
+  status: FriendshipStatus;
+  initiated_by: string;
+  accepted_at: string | null;
+  created_at: string;
+  friend?: User; // The other user
 }
 
-export interface AchievementBadgeProps {
-  achievement: UserAchievement;
-  size?: 'sm' | 'md' | 'lg';
-  showProgress?: boolean;
+export interface TrainerClient {
+  id: string;
+  trainer_id: string;
+  client_id: string;
+  status: TrainerClientStatus;
+  can_view_progress: boolean;
+  can_create_workouts: boolean;
+  can_modify_goals: boolean;
+  started_at: string;
+  ended_at: string | null;
+  trainer?: User;
+  client?: User;
 }
 
-export interface GoalButtonProps {
-  goal: FitnessGoal;
-  onUpdate: (value: number) => void;
-  isActive: boolean;
-  disabled?: boolean;
+// -----------------------------------------------------------------------------
+// TRI-SECTOR SIDEBAR STATE
+// -----------------------------------------------------------------------------
+
+export type SectorId = 'nexus' | 'forge' | 'identity';
+
+export type NexusPanel = 'global-feed' | 'trainer-link' | 'alpha-squads';
+export type ForgePanel = 'active-lifts' | 'week-planner' | 'challenges';
+export type IdentityPanel = 'profile' | 'friends' | 'settings';
+
+export type SidebarPanel = NexusPanel | ForgePanel | IdentityPanel;
+
+export interface SidebarState {
+  activeSector: SectorId;
+  activePanel: SidebarPanel;
+  notifications: {
+    nexus: number;
+    forge: number;
+    identity: number;
+  };
 }
 
-export interface SidebarProps {
-  selectedCategory: string;
-  onCategorySelect: (category: string) => void;
-  challenges: Challenge[];
-  userRole: User['role'];
-}
+// -----------------------------------------------------------------------------
+// API RESPONSES
+// -----------------------------------------------------------------------------
 
-export interface ChallengeChannelProps {
-  challenge: Challenge;
-  userProgress: ProgressLog[];
-  userGoal?: number;
-  onLogProgress: (value: number, notes?: string) => void;
-  canEdit: boolean;
-}
-
-export interface ProgressFeedProps {
-  logs: ProgressLog[];
-  onReact: (logId: string, reaction: string) => void;
-  onComment: (logId: string, comment: string) => void;
-  currentUserId: string;
-}
-
-export interface AchievementSidebarProps {
-  achievements: UserAchievement[];
-  totalProgress: number;
-  userLevel: number;
-  nextLevelProgress: number;
-}
-
-// API response types
 export interface ApiResponse<T> {
   data: T;
   error?: string;
@@ -175,139 +380,127 @@ export interface PaginatedResponse<T> {
   hasMore: boolean;
 }
 
-// Form types
-export interface CreateChallengeForm {
+export interface CursorPaginatedResponse<T> {
+  data: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+// -----------------------------------------------------------------------------
+// FORM TYPES
+// -----------------------------------------------------------------------------
+
+export interface CreateLiftForm {
+  exercise_id: string;
+  exercise_name: string;
+  working_weight: number;
+  working_unit: WeightUnit;
+  goal_weight?: number;
+  goal_date?: string;
+}
+
+export interface LogSetForm {
+  weight: number;
+  reps: number;
+  unit: WeightUnit;
+  rpe?: number;
+  tempo?: string;
+  rest_time?: number;
+  set_number?: number;
+  is_warmup: boolean;
+  notes?: string;
+}
+
+export interface LogSessionForm {
+  exercise_id: string;
+  sets: LogSetForm[];
+  notes?: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface CreateSquadForm {
   name: string;
   description?: string;
-  category: Challenge['category'];
-  type: Challenge['type'];
-  goal_value: number;
-  goal_unit: string;
-  start_date: string;
-  end_date: string;
+  visibility: SquadVisibility;
+  max_members: number;
 }
 
-export interface LogProgressForm {
-  challenge_id: string;
-  value: number;
-  notes?: string;
-  photo?: File;
-}
-
-export interface CreateGoalForm {
-  goal_type: FitnessGoal['goal_type'];
-  target_value: number;
-  unit: string;
-  deadline?: string;
-}
-
-// Real-time event types
-export interface ProgressUpdateEvent {
-  type: 'progress_logged';
-  user_id: string;
-  challenge_id: string;
-  value: number;
-  timestamp: string;
-}
-
-export interface AchievementEvent {
-  type: 'achievement_earned';
-  user_id: string;
-  achievement_id: string;
-  achievement_name: string;
-  timestamp: string;
-}
-
-export interface ChallengeUpdateEvent {
-  type: 'challenge_updated' | 'challenge_joined' | 'challenge_left';
-  challenge_id: string;
-  user_id: string;
-  timestamp: string;
-}
-
-export type RealtimeEvent = ProgressUpdateEvent | AchievementEvent | ChallengeUpdateEvent;
-
-// Utility types
-export interface ProgressReaction {
-  id: string;
-  log_id: string;
-  user_id: string;
-  reaction: string;
-  created_at: string;
-}
-
-export interface ProgressComment {
-  id: string;
-  log_id: string;
-  user_id: string;
+export interface SendMessageForm {
   content: string;
-  created_at: string;
-  user?: User;
+  channel_type: ChannelType;
+  squad_id?: string;
+  recipient_id?: string;
+  parent_id?: string;
+  media_urls?: string[];
 }
 
-export interface UserStats {
-  total_workouts: number;
-  total_distance: number;
-  current_streak: number;
-  longest_streak: number;
-  achievements_earned: number;
-  goals_completed: number;
-  goals_active: number;
+// -----------------------------------------------------------------------------
+// REALTIME EVENTS
+// -----------------------------------------------------------------------------
+
+export interface MessageEvent {
+  type: 'message:global' | 'message:squad' | 'message:direct';
+  message: Message;
 }
 
-export interface ChallengeStats {
-  total_participants: number;
-  total_progress_logs: number;
-  average_progress: number;
-  completion_rate: number;
-  top_contributors: Array<{
-    user_id: string;
-    user_name: string;
-    total_progress: number;
-  }>;
+export interface ReactionEvent {
+  type: 'message:reaction';
+  messageId: string;
+  emoji: string;
+  userId: string;
+  action: 'added' | 'removed';
 }
 
-// Discord-inspired theme types
-export interface DiscordTheme {
-  colors: {
-    background: string;
-    backgroundSecondary: string;
-    backgroundTertiary: string;
-    text: string;
-    textSecondary: string;
-    accent: string;
-    success: string;
-    warning: string;
-    error: string;
-  };
-  spacing: {
-    xs: string;
-    sm: string;
-    md: string;
-    lg: string;
-    xl: string;
-  };
-  borderRadius: {
-    sm: string;
-    md: string;
-    lg: string;
-  };
+export interface SquadEvent {
+  type: 'squad:invite' | 'squad:member-joined' | 'squad:member-left';
+  squadId: string;
+  userId: string;
 }
 
-// Achievement tier colors and styling
+export interface LiftEvent {
+  type: 'lift:pr' | 'lift:session-complete';
+  liftId: string;
+  userId: string;
+  data: Record<string, unknown>;
+}
+
+export type RealtimeEvent = MessageEvent | ReactionEvent | SquadEvent | LiftEvent;
+
+// -----------------------------------------------------------------------------
+// CONSTANTS
+// -----------------------------------------------------------------------------
+
 export const ACHIEVEMENT_TIERS = {
-  bronze: { color: '#cd7f32', bgColor: '#cd7f3220' },
-  silver: { color: '#c0c0c0', bgColor: '#c0c0c020' },
-  gold: { color: '#ffd700', bgColor: '#ffd70020' },
-  platinum: { color: '#e5e4e2', bgColor: '#e5e4e220' },
-  diamond: { color: '#b9f2ff', bgColor: '#b9f2ff20' },
-  legendary: { color: '#ff6b6b', bgColor: '#ff6b6b20' },
+  BRONZE: { color: '#cd7f32', bgColor: '#cd7f3220' },
+  SILVER: { color: '#c0c0c0', bgColor: '#c0c0c020' },
+  GOLD: { color: '#ffd700', bgColor: '#ffd70020' },
+  PLATINUM: { color: '#e5e4e2', bgColor: '#e5e4e220' },
+  DIAMOND: { color: '#b9f2ff', bgColor: '#b9f2ff20' },
+  LEGENDARY: { color: '#ff6b6b', bgColor: '#ff6b6b20' },
 } as const;
 
-// Challenge category icons and colors
 export const CHALLENGE_CATEGORIES = {
-  strength: { icon: '💪', color: '#ff6b6b', name: 'Strength' },
-  cardio: { icon: '🏃', color: '#4ecdc4', name: 'Cardio' },
-  nutrition: { icon: '🥗', color: '#45b7d1', name: 'Nutrition' },
-  custom: { icon: '🎯', color: '#96ceb4', name: 'Custom' },
+  STRENGTH: { icon: '💪', color: '#ff6b6b', name: 'Strength' },
+  CARDIO: { icon: '🏃', color: '#4ecdc4', name: 'Cardio' },
+  NUTRITION: { icon: '🥗', color: '#45b7d1', name: 'Nutrition' },
+  CUSTOM: { icon: '🎯', color: '#96ceb4', name: 'Custom' },
+} as const;
+
+export const SECTOR_COLORS = {
+  nexus: '#10b981',    // Emerald/Green
+  forge: '#a855f7',    // Purple
+  identity: '#06b6d4', // Cyan
+} as const;
+
+export const WORKOUT_TYPES = {
+  PUSH: { icon: '💪', color: '#ef4444', name: 'Push' },
+  PULL: { icon: '🔙', color: '#3b82f6', name: 'Pull' },
+  LEGS: { icon: '🦵', color: '#22c55e', name: 'Legs' },
+  UPPER: { icon: '⬆️', color: '#f59e0b', name: 'Upper' },
+  LOWER: { icon: '⬇️', color: '#06b6d4', name: 'Lower' },
+  FULL_BODY: { icon: '🏋️', color: '#8b5cf6', name: 'Full Body' },
+  CARDIO: { icon: '🏃', color: '#ec4899', name: 'Cardio' },
+  REST: { icon: '😴', color: '#6b7280', name: 'Rest' },
+  CUSTOM: { icon: '⚙️', color: '#64748b', name: 'Custom' },
 } as const;

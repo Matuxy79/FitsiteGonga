@@ -39,6 +39,9 @@ See `.env.example` for required variables:
 - `DATABASE_URL` - PostgreSQL connection string
 - `JWT_SECRET` - Secret for access tokens (32+ chars)
 - `JWT_REFRESH_SECRET` - Secret for refresh tokens
+- `PASSWORD_RESET_TTL_MINUTES` - Password reset link expiry (minutes, default: 60)
+- `RESEND_API_KEY` - Resend API key (optional; if unset, reset links are logged)
+- `RESEND_FROM_EMAIL` - From address for reset emails (optional)
 - `AWS_REGION` - AWS region (e.g., us-east-1)
 - `AWS_ACCESS_KEY_ID` - AWS access key
 - `AWS_SECRET_ACCESS_KEY` - AWS secret key
@@ -82,6 +85,8 @@ npm start
 - `POST /api/auth/refresh` - Refresh access token
 - `POST /api/auth/logout` - Logout user
 - `GET /api/auth/me` - Get current user
+- `POST /api/auth/forgot-password` - Send password reset email
+- `POST /api/auth/reset-password` - Reset password using token
 
 ### Challenges
 

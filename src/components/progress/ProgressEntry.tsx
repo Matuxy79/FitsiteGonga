@@ -74,9 +74,9 @@ export function ProgressEntry({
         <div className="flex items-center space-x-2 mb-2">
           {reactions.length > 0 && (
             <div className="flex items-center space-x-1">
-              {reactions.map((reaction, index) => (
-                <span key={index} className="text-lg">
-                  {reaction}
+              {reactions.map((reaction) => (
+                <span key={reaction.id} className="text-lg">
+                  {reaction.reaction}
                 </span>
               ))}
             </div>

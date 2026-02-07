@@ -7,10 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =============================================================================
+// CORE USER MODEL
+// =============================================================================
+
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
-  password_hash  String
+  password_hash String
   display_name  String
   avatar_url    String?
   role          Role     @default(CLIENT)
@@ -19,14 +23,63 @@ model User {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
+  // Legacy challenge system
   challenges_created Challenge[] @relation("ChallengeCreator")
   progress_logs      ProgressLog[]
   user_achievements  UserAchievement[]
+  password_reset_tokens PasswordResetToken[]
+
+  // Messaging
+  messages_sent         Message[]         @relation("MessageSender")
+  messages_received     Message[]         @relation("MessageRecipient")
+  message_reactions     MessageReaction[]
+  
+  // Squads
+  squads_owned              Squad[]       @relation("SquadOwner")
+  squad_memberships         SquadMember[]
+  squad_invites_sent        SquadInvite[] @relation("SquadInviter")
+  squad_invites_received    SquadInvite[] @relation("SquadInvitee")
+  
+  // Social
+  friendships_a     Friendship[]    @relation("FriendshipUserA")
+  friendships_b     Friendship[]    @relation("FriendshipUserB")
+  
+  // Lift Tracking (The Forge)
+  user_lifts            UserLift[]
+  set_logs              SetLog[]
+  lift_goals            LiftGoal[]
+  
+  // Workout Planning
+  workout_templates     WorkoutTemplate[]
+  scheduled_workouts    ScheduledWorkout[]
+  
+  // Trainer Relationships
+  trainer_relationships TrainerClient[] @relation("TrainerRole")
+  client_relationships  TrainerClient[] @relation("ClientRole")
 
   @@index([email])
   @@index([role])
   @@map("users")
 }
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  user_id    String
+  token_hash String   @unique
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("password_reset_tokens")
+}
+
+// =============================================================================
+// LEGACY CHALLENGE SYSTEM (keeping for backwards compatibility)
+// =============================================================================
 
 model Challenge {
   id          String   @id @default(uuid())
@@ -46,6 +99,7 @@ model Challenge {
   creator        User          @relation("ChallengeCreator", fields: [created_by], references: [id])
   progress_logs  ProgressLog[]
   achievements   Achievement[]
+  squad_challenges SquadChallenge[]
 
   @@index([created_by])
   @@index([is_active])
@@ -105,6 +159,344 @@ model UserAchievement {
   @@map("user_achievements")
 }
 
+// =============================================================================
+// MESSAGING & COMMUNICATION (SECTOR 01: THE NEXUS)
+// =============================================================================
+
+model Message {
+  id          String   @id @default(uuid())
+  content     String
+  
+  sender_id   String
+  sender      User     @relation("MessageSender", fields: [sender_id], references: [id], onDelete: Cascade)
+  
+  channel_type  ChannelType  @default(GLOBAL)
+  squad_id      String?
+  squad         Squad?       @relation(fields: [squad_id], references: [id], onDelete: Cascade)
+  recipient_id  String?
+  recipient     User?        @relation("MessageRecipient", fields: [recipient_id], references: [id], onDelete: Cascade)
+  
+  media_urls    String[]     @default([])
+  
+  parent_id     String?
+  parent        Message?     @relation("MessageThread", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies       Message[]    @relation("MessageThread")
+  
+  is_edited     Boolean      @default(false)
+  edited_at     DateTime?
+  is_deleted    Boolean      @default(false)
+  deleted_at    DateTime?
+  
+  created_at    DateTime     @default(now())
+  
+  reactions     MessageReaction[]
+
+  @@index([sender_id])
+  @@index([squad_id])
+  @@index([recipient_id])
+  @@index([channel_type])
+  @@index([created_at(sort: Desc)])
+  @@index([parent_id])
+  @@map("messages")
+}
+
+model MessageReaction {
+  id          String   @id @default(uuid())
+  message_id  String
+  message     Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  emoji       String
+  created_at  DateTime @default(now())
+
+  @@unique([message_id, user_id, emoji])
+  @@index([message_id])
+  @@map("message_reactions")
+}
+
+// =============================================================================
+// SQUADS (GROUPS)
+// =============================================================================
+
+model Squad {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  avatar_url  String?
+  
+  owner_id    String
+  owner       User     @relation("SquadOwner", fields: [owner_id], references: [id])
+  
+  visibility  SquadVisibility @default(INVITE_ONLY)
+  max_members Int             @default(50)
+  
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  members     SquadMember[]
+  messages    Message[]
+  invites     SquadInvite[]
+  challenges  SquadChallenge[]
+
+  @@index([owner_id])
+  @@index([visibility])
+  @@map("squads")
+}
+
+model SquadMember {
+  id          String   @id @default(uuid())
+  squad_id    String
+  squad       Squad    @relation(fields: [squad_id], references: [id], onDelete: Cascade)
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  role        SquadRole @default(MEMBER)
+  joined_at   DateTime  @default(now())
+  
+  notifications_enabled Boolean @default(true)
+  
+  @@unique([squad_id, user_id])
+  @@index([squad_id])
+  @@index([user_id])
+  @@map("squad_members")
+}
+
+model SquadInvite {
+  id          String   @id @default(uuid())
+  squad_id    String
+  squad       Squad    @relation(fields: [squad_id], references: [id], onDelete: Cascade)
+  
+  inviter_id  String
+  inviter     User     @relation("SquadInviter", fields: [inviter_id], references: [id])
+  invitee_id  String
+  invitee     User     @relation("SquadInvitee", fields: [invitee_id], references: [id])
+  
+  status      InviteStatus @default(PENDING)
+  created_at  DateTime     @default(now())
+  responded_at DateTime?
+
+  @@unique([squad_id, invitee_id])
+  @@index([invitee_id, status])
+  @@map("squad_invites")
+}
+
+model SquadChallenge {
+  id          String   @id @default(uuid())
+  squad_id    String
+  squad       Squad    @relation(fields: [squad_id], references: [id], onDelete: Cascade)
+  challenge_id String
+  challenge   Challenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  
+  created_at  DateTime @default(now())
+
+  @@unique([squad_id, challenge_id])
+  @@map("squad_challenges")
+}
+
+// =============================================================================
+// FRIENDSHIPS & SOCIAL
+// =============================================================================
+
+model Friendship {
+  id          String   @id @default(uuid())
+  
+  user_a_id   String
+  user_a      User     @relation("FriendshipUserA", fields: [user_a_id], references: [id], onDelete: Cascade)
+  user_b_id   String
+  user_b      User     @relation("FriendshipUserB", fields: [user_b_id], references: [id], onDelete: Cascade)
+  
+  status      FriendshipStatus @default(PENDING)
+  initiated_by String
+  
+  created_at  DateTime @default(now())
+  accepted_at DateTime?
+
+  @@unique([user_a_id, user_b_id])
+  @@index([user_a_id, status])
+  @@index([user_b_id, status])
+  @@map("friendships")
+}
+
+// =============================================================================
+// LIFT TRACKING (SECTOR 02: THE FORGE)
+// =============================================================================
+
+model UserLift {
+  id              String   @id @default(uuid())
+  user_id         String
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  exercise_id     String
+  exercise_name   String
+  
+  working_weight  Float
+  working_unit    WeightUnit @default(LBS)
+  one_rep_max     Float?
+  
+  goal_weight     Float?
+  goal_date       DateTime?
+  
+  is_active       Boolean  @default(true)
+  display_order   Int      @default(0)
+  
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  set_logs        SetLog[]
+  lift_goals      LiftGoal[]
+
+  @@unique([user_id, exercise_id])
+  @@index([user_id, is_active])
+  @@index([user_id, display_order])
+  @@map("user_lifts")
+}
+
+model SetLog {
+  id          String   @id @default(uuid())
+  lift_id     String
+  lift        UserLift @relation(fields: [lift_id], references: [id], onDelete: Cascade)
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  weight      Float
+  reps        Int
+  unit        WeightUnit @default(LBS)
+  
+  rpe         Float?
+  tempo       String?
+  rest_time   Int?
+  
+  estimated_1rm Float?
+  volume       Float?
+  
+  set_number   Int?
+  is_warmup    Boolean   @default(false)
+  is_pr        Boolean   @default(false)
+  notes        String?
+  
+  logged_at    DateTime  @default(now())
+  created_at   DateTime  @default(now())
+
+  @@index([lift_id, logged_at(sort: Desc)])
+  @@index([user_id, logged_at(sort: Desc)])
+  @@index([lift_id, is_pr])
+  @@map("set_logs")
+}
+
+model LiftGoal {
+  id          String   @id @default(uuid())
+  lift_id     String
+  lift        UserLift @relation(fields: [lift_id], references: [id], onDelete: Cascade)
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  goal_type   LiftGoalType
+  target_value Float
+  current_value Float   @default(0)
+  
+  timeframe_days Int?
+  start_date  DateTime  @default(now())
+  end_date    DateTime?
+  
+  status      GoalStatus @default(ACTIVE)
+  completed_at DateTime?
+  
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@index([lift_id, status])
+  @@index([user_id, status])
+  @@map("lift_goals")
+}
+
+// =============================================================================
+// WORKOUT PLANNING
+// =============================================================================
+
+model WorkoutTemplate {
+  id          String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  type        WorkoutType
+  
+  exercises   Json
+  
+  is_public   Boolean  @default(false)
+  is_active   Boolean  @default(true)
+  
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  scheduled_workouts ScheduledWorkout[]
+
+  @@index([user_id, is_active])
+  @@map("workout_templates")
+}
+
+model ScheduledWorkout {
+  id          String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  template_id String?
+  template    WorkoutTemplate? @relation(fields: [template_id], references: [id], onDelete: SetNull)
+  
+  scheduled_for DateTime
+  day_of_week   Int?
+  is_recurring  Boolean  @default(false)
+  
+  status        WorkoutStatus @default(SCHEDULED)
+  started_at    DateTime?
+  completed_at  DateTime?
+  
+  custom_name   String?
+  
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([user_id, scheduled_for])
+  @@index([user_id, status])
+  @@map("scheduled_workouts")
+}
+
+// =============================================================================
+// TRAINER CONNECTIONS
+// =============================================================================
+
+model TrainerClient {
+  id          String   @id @default(uuid())
+  
+  trainer_id  String
+  trainer     User     @relation("TrainerRole", fields: [trainer_id], references: [id], onDelete: Cascade)
+  client_id   String
+  client      User     @relation("ClientRole", fields: [client_id], references: [id], onDelete: Cascade)
+  
+  status      TrainerClientStatus @default(PENDING)
+  
+  can_view_progress Boolean @default(true)
+  can_create_workouts Boolean @default(true)
+  can_modify_goals Boolean @default(false)
+  
+  started_at  DateTime?
+  ended_at    DateTime?
+  
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@unique([trainer_id, client_id])
+  @@index([trainer_id, status])
+  @@index([client_id, status])
+  @@map("trainer_clients")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
 enum Role {
   CLIENT
   TRAINER
@@ -147,4 +539,82 @@ enum AchievementCategory {
   SOCIAL
 }
 
+enum ChannelType {
+  GLOBAL
+  SQUAD
+  DIRECT
+  TRAINER
+}
 
+enum SquadVisibility {
+  PUBLIC
+  INVITE_ONLY
+  PRIVATE
+}
+
+enum SquadRole {
+  OWNER
+  ADMIN
+  MODERATOR
+  MEMBER
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum WeightUnit {
+  LBS
+  KG
+}
+
+enum LiftGoalType {
+  ONE_REP_MAX
+  WORKING_WEIGHT
+  VOLUME
+  CONSISTENCY
+  REPS
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+  PAUSED
+}
+
+enum WorkoutType {
+  PUSH
+  PULL
+  LEGS
+  UPPER
+  LOWER
+  FULL_BODY
+  CARDIO
+  REST
+  CUSTOM
+}
+
+enum WorkoutStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+  RESCHEDULED
+}
+
+enum TrainerClientStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  ENDED
+}

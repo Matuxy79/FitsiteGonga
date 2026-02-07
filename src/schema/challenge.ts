@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const createChallengeSchema = z.object({
+const challengeSchemaBase = z.object({
   name: z.string().min(1, 'Challenge name is required').max(100, 'Challenge name too long'),
   description: z.string().optional(),
   category: z.enum(['strength', 'cardio', 'nutrition', 'custom']),
@@ -9,7 +9,9 @@ export const createChallengeSchema = z.object({
   goal_unit: z.string().min(1, 'Goal unit is required'),
   start_date: z.string().datetime('Invalid start date'),
   end_date: z.string().datetime('Invalid end date'),
-}).refine((data) => {
+})
+
+export const createChallengeSchema = challengeSchemaBase.refine((data) => {
   const startDate = new Date(data.start_date)
   const endDate = new Date(data.end_date)
   return endDate > startDate
@@ -18,7 +20,17 @@ export const createChallengeSchema = z.object({
   path: ["end_date"]
 })
 
-export const updateChallengeSchema = createChallengeSchema.partial()
+export const updateChallengeSchema = challengeSchemaBase
+  .partial()
+  .refine((data) => {
+    if (!data.start_date || !data.end_date) return true
+    const startDate = new Date(data.start_date)
+    const endDate = new Date(data.end_date)
+    return endDate > startDate
+  }, {
+    message: "End date must be after start date",
+    path: ["end_date"]
+  })
 
 export const joinChallengeSchema = z.object({
   challenge_id: z.string().uuid('Invalid challenge ID')

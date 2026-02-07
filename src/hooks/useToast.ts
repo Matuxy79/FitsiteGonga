@@ -1,29 +1,5 @@
-import { useState } from 'react'
+// Re-export from the ToastProvider for backward compatibility
+// The actual implementation is now in @/providers/ToastProvider
 
-export interface Toast {
-  id: string
-  title: string
-  description?: string
-  variant?: 'default' | 'destructive' | 'success'
-}
-
-export function useToast() {
-  const [toasts, setToasts] = useState<Toast[]>([])
-
-  const toast = ({ title, description, variant = 'default' }: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9)
-    const newToast: Toast = { id, title, description, variant }
-    
-    setToasts(prev => [...prev, newToast])
-    
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id))
-    }, 5000)
-  }
-
-  const dismiss = (id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id))
-  }
-
-  return { toast, toasts, dismiss }
-}
+export { useToast, ToastProvider } from '@/providers/ToastProvider';
+export type { Toast, TerminalNotification, NotificationStatus } from '@/providers/ToastProvider';

@@ -9,6 +9,8 @@ export interface ApiError {
   error: string;
   details?: any;
   message?: string;
+  status?: number;
+  meta?: any;
 }
 
 /**
@@ -47,29 +49,40 @@ async function request<T>(
   const token = getAuthToken();
   const url = `${API_URL}${endpoint}`;
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  const headers = new Headers(options.headers);
+  headers.set('Content-Type', 'application/json');
 
-  // Add auth token if available
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+      credentials: 'include', // Include cookies
+    });
+  } catch (err: any) {
+    const error: ApiError = {
+      error: 'Network error',
+      message: err?.message || 'Failed to reach server',
+      status: 0,
+    };
+    throw error;
   }
-
-  const response = await fetch(url, {
-    ...options,
-    headers,
-    credentials: 'include', // Include cookies
-  });
 
   // Handle non-JSON responses
   const contentType = response.headers.get('content-type');
   if (!contentType?.includes('application/json')) {
+    const text = await response.text();
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const error: ApiError = {
+        error: `HTTP ${response.status}`,
+        message: text || response.statusText,
+        status: response.status,
+      };
+      throw error;
     }
-    return response.text() as unknown as T;
+    return text as unknown as T;
   }
 
   const data = await response.json();
@@ -79,6 +92,8 @@ async function request<T>(
       error: data.error || 'Request failed',
       details: data.details,
       message: data.message,
+      status: response.status,
+      meta: data,
     };
     throw error;
   }

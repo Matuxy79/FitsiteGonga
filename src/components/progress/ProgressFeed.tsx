@@ -34,8 +34,8 @@ export function ProgressFeed({
           <ProgressEntry
             log={log}
             user={log.user!}
-            onReact={onReact}
-            onComment={onComment}
+            onReact={(reaction) => onReact(log.id, reaction)}
+            onComment={(comment) => onComment(log.id, comment)}
             canEdit={log.user_id === currentUserId}
             reactions={[]}
           />

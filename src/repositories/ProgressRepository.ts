@@ -1,6 +1,38 @@
 import apiClient from '@/lib/apiClient'
 import type { ProgressLog } from '@/types/fitness'
 
+const categoryFromApi: Record<string, string> = {
+  STRENGTH: 'strength',
+  CARDIO: 'cardio',
+  NUTRITION: 'nutrition',
+  CUSTOM: 'custom',
+}
+
+const typeFromApi: Record<string, string> = {
+  DURATION: 'duration',
+  REPETITION: 'repetition',
+  DISTANCE: 'distance',
+  CUSTOM: 'custom',
+}
+
+function normalizeProgressLog(raw: any): ProgressLog {
+  const challenge = raw?.challenge
+  if (challenge) {
+    const categoryKey = String(challenge.category || '').toUpperCase()
+    const typeKey = String(challenge.type || '').toUpperCase()
+    raw = {
+      ...raw,
+      challenge: {
+        ...challenge,
+        category: categoryFromApi[categoryKey] || challenge.category,
+        type: typeFromApi[typeKey] || challenge.type,
+      },
+    }
+  }
+
+  return raw as ProgressLog
+}
+
 export interface CreateProgressLogDTO {
   challenge_id: string
   value: number
@@ -12,22 +44,22 @@ export interface CreateProgressLogDTO {
 export const ProgressRepository = {
   async listByChallenge(challengeId: string): Promise<ProgressLog[]> {
     const response = await apiClient.get<{ data: ProgressLog[] }>(`/api/progress?challengeId=${challengeId}`)
-    return response.data || []
+    return (response.data || []).map(normalizeProgressLog)
   },
 
   async listByUser(userId: string): Promise<ProgressLog[]> {
     const response = await apiClient.get<{ data: ProgressLog[] }>(`/api/progress?userId=${userId}`)
-    return response.data || []
+    return (response.data || []).map(normalizeProgressLog)
   },
 
   async create(payload: CreateProgressLogDTO): Promise<ProgressLog> {
     const response = await apiClient.post<{ data: ProgressLog }>('/api/progress', payload)
-    return response.data
+    return normalizeProgressLog(response.data)
   },
 
   async update(id: string, payload: Partial<CreateProgressLogDTO>): Promise<ProgressLog> {
     const response = await apiClient.put<{ data: ProgressLog }>(`/api/progress/${id}`, payload)
-    return response.data
+    return normalizeProgressLog(response.data)
   },
 
   async delete(id: string): Promise<void> {

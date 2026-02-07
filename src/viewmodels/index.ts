@@ -12,13 +12,19 @@ export interface ChallengeViewModel {
 }
 
 export function toChallengeVM(ch: Challenge): ChallengeViewModel {
-  const icon = ch.category === 'strength' ? '💪' : ch.category === 'cardio' ? '🏃' : ch.category === 'nutrition' ? '🥗' : '🎯'
+  // Handle both uppercase (from type) and lowercase (from bad normalization) categories
+  const categoryLower = ch.category?.toLowerCase() || 'custom'
+  const icon = categoryLower === 'strength' ? '💪' 
+    : categoryLower === 'cardio' ? '🏃' 
+    : categoryLower === 'nutrition' ? '🥗' 
+    : '🎯'
+  
   return {
     id: ch.id,
     title: ch.name,
     subtitle: ch.description,
     icon,
-    participants: ch.participants.length,
+    participants: ch.participants?.length || 0,
     goalLabel: `${ch.goal_value} ${ch.goal_unit}`,
     category: ch.category,
   }
@@ -57,7 +63,16 @@ export interface AchievementViewModel {
 }
 
 export function toAchievementVM(achievement: Achievement, userAchievement?: any): AchievementViewModel {
-  const tierColors = {
+  // Handle both uppercase (from type) and lowercase tier names
+  const tierColors: Record<string, string> = {
+    // Uppercase (correct)
+    BRONZE: 'text-amber-600',
+    SILVER: 'text-gray-400',
+    GOLD: 'text-yellow-500',
+    PLATINUM: 'text-purple-400',
+    DIAMOND: 'text-blue-400',
+    LEGENDARY: 'text-red-500',
+    // Lowercase (fallback)
     bronze: 'text-amber-600',
     silver: 'text-gray-400',
     gold: 'text-yellow-500',
@@ -76,13 +91,13 @@ export function toAchievementVM(achievement: Achievement, userAchievement?: any)
     description: achievement.description,
     icon: achievement.icon,
     tier: achievement.tier,
-    tierColor: tierColors[achievement.tier] || 'text-discord-muted',
+    tierColor: tierColors[achievement.tier] || 'text-slate-500',
     progress: isEarned ? 100 : Math.min(progress, 100),
     progressText,
     isEarned,
-    earnedDate: userAchievement?.earned_date ? new Date(userAchievement.earned_date).toLocaleDateString() : undefined,
+    earnedDate: userAchievement?.earned_date 
+      ? new Date(userAchievement.earned_date).toLocaleDateString() 
+      : undefined,
     category: achievement.category,
   }
 }
-
-

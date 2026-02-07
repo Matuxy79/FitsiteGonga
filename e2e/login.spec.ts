@@ -14,14 +14,14 @@ test.describe('Login Flow', () => {
 
   test('should validate email format', async ({ page }) => {
     await page.fill('input[type="email"]', 'invalid-email')
-    await page.blur('input[type="email"]')
+    await page.locator('input[type="email"]').blur()
     
     await expect(page.locator('text=Invalid email address')).toBeVisible()
   })
 
   test('should validate password length', async ({ page }) => {
     await page.fill('input[type="password"]', '123')
-    await page.blur('input[type="password"]')
+    await page.locator('input[type="password"]').blur()
     
     await expect(page.locator('text=Password must be at least 6 characters')).toBeVisible()
   })
