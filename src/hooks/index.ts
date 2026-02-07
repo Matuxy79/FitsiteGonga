@@ -5,7 +5,13 @@ import { io, Socket } from 'socket.io-client'
 // API BASE
 // =============================================================================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const RAW_API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_ORIGIN = RAW_API_ORIGIN.replace(/\/+$/, '')
+const API_BASE = API_ORIGIN.endsWith('/api') ? API_ORIGIN : `${API_ORIGIN}/api`
+
+const WS_ORIGIN = (process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_SOCKET_URL || API_ORIGIN)
+  .replace(/\/+$/, '')
+  .replace(/\/api$/, '')
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
@@ -379,7 +385,7 @@ export function useGlobalFeed() {
     const token = localStorage.getItem('accessToken')
     if (!token) return
 
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001', {
+    const socket = io(WS_ORIGIN, {
       auth: { token },
     })
 
@@ -551,7 +557,7 @@ export function useSquadChat(squadId: string | null) {
     const token = localStorage.getItem('accessToken')
     if (!token) return
 
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001', {
+    const socket = io(WS_ORIGIN, {
       auth: { token },
     })
 
@@ -625,7 +631,7 @@ export function useDirectMessages(userId: string | null) {
     const token = localStorage.getItem('accessToken')
     if (!token) return
 
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001', {
+    const socket = io(WS_ORIGIN, {
       auth: { token },
     })
 

@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils'
 // TYPES
 // -----------------------------------------------------------------------------
 
+// Squad interface - compatible with both hook returns and component needs
 export interface Squad {
   id: string
   name: string
@@ -42,8 +43,11 @@ export interface Squad {
   visibility: 'PUBLIC' | 'INVITE_ONLY' | 'PRIVATE'
   maxMembers: number
   memberCount: number
-  isActive: boolean
-  createdAt: string
+  // Optional fields - may come from hook or be missing
+  unreadCount?: number
+  role?: 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER'
+  isActive?: boolean
+  createdAt?: string
 }
 
 export interface SquadMember {

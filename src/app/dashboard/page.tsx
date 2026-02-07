@@ -45,31 +45,39 @@ export default function Dashboard() {
   // Socket state
   const [socket, setSocket] = useState<Socket | null>(null)
 
-  // Custom hooks for data
+  // ==========================================================================
+  // HOOKS - Using CORRECT return value names
+  // ==========================================================================
+  
+  // useTrackedLifts returns: { lifts, loading, error, loadLifts, addLift, updateLift, removeLift, reorderLifts }
   const { 
-    trackedLifts, 
+    lifts,                    // ✅ CORRECT (was: trackedLifts)
     loading: liftsLoading, 
-    addTrackedLift, 
-    removeTrackedLift,
-    refreshLifts 
+    error: liftsError,
+    loadLifts,                // ✅ CORRECT (was: refreshLifts)
+    addLift,                  // ✅ CORRECT (was: addTrackedLift)
+    updateLift,
+    removeLift,               // ✅ CORRECT (was: removeTrackedLift)
   } = useTrackedLifts()
   
+  // useLiftSession returns: { history, loading, saving, loadHistory, logSet, logSession, deleteSet }
   const { 
-    logSet, 
-    saveSession, 
-    sessionSets, 
-    clearSession 
+    history: sessionHistory,
+    loading: sessionLoading,
+    saving: sessionSaving,
+    logSet,
+    logSession,               // ✅ CORRECT (was: saveSession)
   } = useLiftSession(selectedLiftId || '')
   
+  // useSquads returns: { squads, loading, loadSquads, createSquad, joinSquad, leaveSquad, inviteToSquad }
   const { 
     squads, 
-    pendingInvites,
     loading: squadsLoading, 
+    loadSquads,
     createSquad, 
     joinSquad, 
     leaveSquad,
-    acceptInvite,
-    declineInvite
+    inviteToSquad,
   } = useSquads()
 
   // Challenge controller
@@ -85,6 +93,19 @@ export default function Dashboard() {
   // Week planner data (placeholder for now)
   const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplate[]>([])
   const [scheduledWorkouts, setScheduledWorkouts] = useState<ScheduledWorkout[]>([])
+
+  // ==========================================================================
+  // STUB FUNCTIONS for features not yet in hooks
+  // ==========================================================================
+  
+  // These will be implemented when backend supports them
+  const pendingInvites: any[] = []  // TODO: Add to useSquads hook
+  const acceptInvite = async (inviteId: string) => {
+    console.log('TODO: Accept invite:', inviteId)
+  }
+  const declineInvite = async (inviteId: string) => {
+    console.log('TODO: Decline invite:', inviteId)
+  }
 
   // ==========================================================================
   // AUTH REDIRECT
@@ -132,10 +153,10 @@ export default function Dashboard() {
 
   // Auto-select first lift
   useEffect(() => {
-    if (!selectedLiftId && trackedLifts.length > 0) {
-      setSelectedLiftId(trackedLifts[0].id)
+    if (!selectedLiftId && lifts.length > 0) {
+      setSelectedLiftId(lifts[0].id)
     }
-  }, [selectedLiftId, trackedLifts])
+  }, [selectedLiftId, lifts])
 
   // ==========================================================================
   // HANDLERS
@@ -165,16 +186,16 @@ export default function Dashboard() {
   }
 
   const handleExerciseSelect = async (exercise: any, config: any) => {
-    await addTrackedLift({
+    await addLift({
       exerciseId: exercise.id,
       exerciseName: exercise.name,
       workingWeight: config.workingWeight,
-      workingUnit: config.unit,
+      workingUnit: config.unit?.toUpperCase() || 'LBS',
       goalWeight: config.goalWeight,
       goalDate: config.goalDate,
     })
     setShowExercisePicker(false)
-    refreshLifts()
+    loadLifts()  // Refresh list
   }
 
   const handleLiftSelect = (liftId: string) => {
@@ -198,16 +219,16 @@ export default function Dashboard() {
     await logSet({
       weight: setData.weight,
       reps: setData.reps,
-      unit: setData.unit,
+      unit: (setData.unit?.toUpperCase() || 'LBS') as 'LBS' | 'KG',
       rpe: setData.rpe,
       isWarmup: setData.isWarmup,
     })
-    refreshLifts()
+    loadLifts()  // Refresh to show updated stats
   }
 
   const handleUpdateGoal = async (liftId: string, goalWeight: number, goalDate?: string) => {
-    // TODO: Implement goal update
-    console.log('Update goal:', liftId, goalWeight, goalDate)
+    await updateLift(liftId, { goalWeight, goalDate })
+    loadLifts()
   }
 
   const handleChallengeSelect = (challengeId: string) => {
@@ -220,7 +241,6 @@ export default function Dashboard() {
 
   const handleSelectSquad = (squadId: string) => {
     setSelectedSquadId(squadId)
-    // Switch to squad chat panel if needed
   }
 
   // Week planner handlers (placeholder)
@@ -248,8 +268,8 @@ export default function Dashboard() {
   // TRANSFORM DATA FOR COMPONENTS
   // ==========================================================================
 
-  // Convert trackedLifts to ActiveLift format for sidebar
-  const activeLiftsForSidebar: ActiveLift[] = trackedLifts.map(lift => ({
+  // Convert lifts to ActiveLift format for sidebar
+  const activeLiftsForSidebar: ActiveLift[] = lifts.map(lift => ({
     id: lift.id,
     exerciseId: lift.exerciseId,
     exerciseName: lift.exerciseName,
@@ -262,7 +282,7 @@ export default function Dashboard() {
   }))
 
   // Transform for ActiveLiftTracker component (different interface)
-  const liftsForTracker: ComponentTrackedLift[] = trackedLifts.map(lift => ({
+  const liftsForTracker: ComponentTrackedLift[] = lifts.map(lift => ({
     id: lift.id,
     exerciseId: lift.exerciseId,
     exerciseName: lift.exerciseName,
@@ -284,11 +304,11 @@ export default function Dashboard() {
     id: s.id,
     name: s.name,
     memberCount: s.memberCount || 0,
-    unreadCount: 0,
+    unreadCount: s.unreadCount || 0,
   }))
 
   // Already tracked exercise IDs for picker
-  const alreadyTrackedIds = trackedLifts.map(l => l.exerciseId)
+  const alreadyTrackedIds = lifts.map(l => l.exerciseId)
 
   // ==========================================================================
   // RENDER: MAIN CONTENT BASED ON SECTOR/PANEL
@@ -332,7 +352,7 @@ export default function Dashboard() {
             onCreateSquad={handleCreateSquad}
             onJoinSquad={joinSquad}
             onLeaveSquad={leaveSquad}
-            onInviteUser={(squadId, email) => console.log('Invite:', squadId, email)}
+            onInviteUser={(squadId, userId) => inviteToSquad(squadId, userId)}
             onAcceptInvite={acceptInvite}
             onDeclineInvite={declineInvite}
             onSelectSquad={handleSelectSquad}
@@ -455,7 +475,7 @@ export default function Dashboard() {
                 <div className="mt-6 grid grid-cols-3 gap-4">
                   <div className="bg-black/30 rounded-lg p-4">
                     <div className="text-xs text-slate-500 uppercase tracking-wider">Tracked Lifts</div>
-                    <div className="text-2xl font-bold text-purple-400 mt-1">{trackedLifts.length}</div>
+                    <div className="text-2xl font-bold text-purple-400 mt-1">{lifts.length}</div>
                   </div>
                   <div className="bg-black/30 rounded-lg p-4">
                     <div className="text-xs text-slate-500 uppercase tracking-wider">Squads</div>
@@ -607,10 +627,19 @@ export default function Dashboard() {
                 workingWeight={liftTrackerExercise.workingWeight}
                 workingUnit={liftTrackerExercise.workingUnit}
                 onSaveSession={async (sessionData) => {
-                  await saveSession(sessionData.notes)
+                  // Use logSession from hook (correct name)
+                  if (selectedLiftId && sessionData.sets && sessionData.sets.length > 0) {
+                    await logSession({
+                      exerciseId: liftTrackerExercise.id,
+                      sets: sessionData.sets,
+                      notes: sessionData.notes,
+                      startTime: sessionData.startTime || new Date().toISOString(),
+                      endTime: new Date().toISOString(),
+                    })
+                  }
                   setShowLiftTracker(false)
                   setLiftTrackerExercise(null)
-                  refreshLifts()
+                  loadLifts()
                 }}
                 onClose={() => {
                   setShowLiftTracker(false)
