@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db/client';
 import { authenticateJWT } from '../middleware/authMiddleware';
-import { s3Service } from '../services/s3Service';
+import { s3Service, getPublicUrl } from '../services/s3Service';
 import { getIO } from '../socket/socketServer';
 
 const router: Router = Router();
@@ -912,7 +912,7 @@ router.post('/upload', authenticateJWT, async (req, res) => {
     res.json({
       uploadUrl,
       key,
-      publicUrl: `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`,
+      publicUrl: getPublicUrl(key),
     });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
