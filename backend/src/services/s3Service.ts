@@ -1,20 +1,21 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-// Railway Object Storage (S3-compatible) with AWS fallback
-const ENDPOINT = process.env.RAILWAY_OBJECT_STORAGE_ENDPOINT || process.env.AWS_S3_ENDPOINT;
-const BUCKET_NAME = process.env.RAILWAY_OBJECT_STORAGE_BUCKET_NAME || process.env.AWS_S3_BUCKET_NAME!;
+// Railway Object Storage (S3-compatible via Tigris)
+const ENDPOINT = process.env.RAILWAY_OBJECT_STORAGE_ENDPOINT!;
+const BUCKET_NAME = process.env.RAILWAY_OBJECT_STORAGE_BUCKET_NAME || process.env.BUCKET_NAME!;
 
-if (!BUCKET_NAME) {
-  throw new Error('RAILWAY_OBJECT_STORAGE_BUCKET_NAME or AWS_S3_BUCKET_NAME must be set');
+if (!BUCKET_NAME || !ENDPOINT) {
+  console.error('Missing object storage config. Ensure RAILWAY_OBJECT_STORAGE_* vars are set.');
+  console.error('ENDPOINT:', ENDPOINT, 'BUCKET_NAME:', BUCKET_NAME);
 }
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'auto',
-  ...(ENDPOINT && { endpoint: ENDPOINT }),
+  region: 'auto',
+  endpoint: ENDPOINT,
   credentials: {
-    accessKeyId: (process.env.RAILWAY_OBJECT_STORAGE_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID)!,
-    secretAccessKey: (process.env.RAILWAY_OBJECT_STORAGE_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY)!,
+    accessKeyId: process.env.RAILWAY_OBJECT_STORAGE_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.RAILWAY_OBJECT_STORAGE_SECRET_ACCESS_KEY!,
   },
 });
 
@@ -23,12 +24,8 @@ const s3Client = new S3Client({
  * Railway/Tigris uses virtual-hosted-style: https://{bucket}.{host}/{key}
  */
 export function getPublicUrl(key: string): string {
-  if (ENDPOINT) {
-    const host = ENDPOINT.replace('https://', '');
-    return `https://${BUCKET_NAME}.${host}/${key}`;
-  }
-  // AWS fallback
-  return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`;
+  const host = ENDPOINT.replace('https://', '');
+  return `https://${BUCKET_NAME}.${host}/${key}`;
 }
 
 export interface PresignedUrlOptions {
