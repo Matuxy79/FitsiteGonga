@@ -3,7 +3,7 @@ import { z } from 'zod';
 import multer from 'multer';
 import { prisma } from '../db/client';
 import { authenticateJWT } from '../middleware/authMiddleware';
-import { s3Service, getPublicUrl } from '../services/s3Service';
+import { s3Service } from '../services/s3Service';
 import { getIO } from '../socket/socketServer';
 
 const uploadMiddleware = multer({
@@ -25,12 +25,14 @@ const router: Router = Router();
 // =============================================================================
 
 const sendMessageSchema = z.object({
-  content: z.string().min(1).max(2000),
+  content: z.string().max(2000).default(''),
   channelType: z.enum(['GLOBAL', 'SQUAD', 'DIRECT', 'TRAINER']).default('GLOBAL'),
   squadId: z.string().uuid().optional(),
   recipientId: z.string().uuid().optional(),
   parentId: z.string().uuid().optional(),
   mediaUrls: z.array(z.string()).optional(),
+}).refine(data => data.content.length > 0 || (data.mediaUrls && data.mediaUrls.length > 0), {
+  message: 'Message must have content or media',
 });
 
 const editMessageSchema = z.object({
@@ -917,7 +919,10 @@ router.post('/upload', authenticateJWT, uploadMiddleware.single('file'), async (
 
     await s3Service.uploadFile(key, req.file.buffer, req.file.mimetype);
 
-    res.json({ publicUrl: getPublicUrl(key) });
+    // Return proxy URL (goes through our backend) instead of direct Tigris URL
+    // Objects in Railway Object Storage are private, so browsers can't access them directly
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    res.json({ publicUrl: `${baseUrl}/api/media/${key}` });
   } catch (error: any) {
     console.error('Upload error:', error);
     res.status(500).json({ error: 'Failed to upload file' });
