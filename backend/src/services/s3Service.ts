@@ -3,7 +3,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // Railway Object Storage (S3-compatible via Tigris)
 const ENDPOINT = process.env.RAILWAY_OBJECT_STORAGE_ENDPOINT!;
-const BUCKET_NAME = process.env.RAILWAY_OBJECT_STORAGE_BUCKET_NAME || process.env.BUCKET_NAME!;
+const BUCKET_NAME = process.env.RAILWAY_OBJECT_STORAGE_BUCKET_NAME || process.env.RAILWAY_BUCKET_NAME || process.env.BUCKET_NAME!;
 
 if (!BUCKET_NAME || !ENDPOINT) {
   console.error('Missing object storage config. Ensure RAILWAY_OBJECT_STORAGE_* vars are set.');
