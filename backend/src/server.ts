@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { initSocketServer, setIO, SocketIOServer } from './socket/socketServer';
 import { initRoutes } from './routes';
+import { s3Service } from './services/s3Service';
 
 const app = express();
 const httpServer = createServer(app);
@@ -58,6 +59,10 @@ httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📡 Socket.io server initialized`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  s3Service.configureBucketCors()
+    .then(() => console.log('✅ Object storage CORS configured'))
+    .catch((err) => console.error('⚠️ Failed to set storage CORS:', err.message));
 });
 
 // Graceful shutdown
