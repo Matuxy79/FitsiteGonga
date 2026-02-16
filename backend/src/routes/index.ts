@@ -20,7 +20,7 @@ export const initRoutes = (app: Express) => {
   // Media proxy: permanent redirect to direct Tigris public URL
   // Fallback for old messages that stored /api/media/ URLs before public ACL
   app.get('/api/media/*', (req, res) => {
-    const key = req.params[0];
+    const key = req.path.slice('/api/media/'.length);
     if (!key) return res.status(400).json({ error: 'Missing key' });
     const publicUrl = getPublicUrl(key);
     res.set('Cache-Control', 'public, max-age=86400'); // 24h

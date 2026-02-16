@@ -484,7 +484,7 @@ function MessageBubble({
           )}
 
           {/* Reply Count */}
-          {message._count?.replies && message._count.replies > 0 && (
+          {message._count && message._count.replies > 0 && (
             <button className="mt-2 text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
               <Reply className="w-3 h-3" />
               {message._count.replies} {message._count.replies === 1 ? 'reply' : 'replies'}
