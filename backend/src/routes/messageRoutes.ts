@@ -1,9 +1,22 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import multer from 'multer';
 import { prisma } from '../db/client';
 import { authenticateJWT } from '../middleware/authMiddleware';
 import { s3Service, getPublicUrl } from '../services/s3Service';
 import { getIO } from '../socket/socketServer';
+
+const uploadMiddleware = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image and video files are allowed'));
+    }
+  },
+});
 
 const router: Router = Router();
 
@@ -889,37 +902,25 @@ router.get('/conversations', authenticateJWT, async (req, res) => {
 
 /**
  * POST /api/messages/upload
- * Get presigned URL for message media upload
+ * Upload media file (proxied through backend to avoid CORS with storage)
  */
-router.post('/upload', authenticateJWT, async (req, res) => {
+router.post('/upload', authenticateJWT, uploadMiddleware.single('file'), async (req, res) => {
   try {
-    const { filename, contentType } = z.object({
-      filename: z.string().min(1),
-      contentType: z.string().regex(/^(image|video)\//),
-    }).parse(req.body);
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' });
+    }
 
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(2, 9);
-    const ext = filename.split('.').pop() || 'jpg';
+    const ext = req.file.originalname.split('.').pop() || 'jpg';
     const key = `messages/${req.user!.userId}/${timestamp}-${randomId}.${ext}`;
 
-    const uploadUrl = await s3Service.generatePresignedUploadUrl({
-      key,
-      contentType,
-      expiresIn: 300,
-    });
+    await s3Service.uploadFile(key, req.file.buffer, req.file.mimetype);
 
-    res.json({
-      uploadUrl,
-      key,
-      publicUrl: getPublicUrl(key),
-    });
+    res.json({ publicUrl: getPublicUrl(key) });
   } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation error', details: error.errors });
-    }
-    console.error('Upload URL error:', error);
-    res.status(500).json({ error: 'Failed to generate upload URL' });
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
   }
 });
 

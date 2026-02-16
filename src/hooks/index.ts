@@ -724,40 +724,36 @@ export function useMediaUpload() {
   const upload = useCallback(async (file: File): Promise<string> => {
     setUploading(true)
     setProgress(0)
-    
-    try {
-      // Get presigned URL
-      const { uploadUrl, publicUrl } = await fetchWithAuth('/messages/upload', {
-        method: 'POST',
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type,
-        }),
-      })
 
-      // Upload to S3
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
       const xhr = new XMLHttpRequest()
-      
-      await new Promise<void>((resolve, reject) => {
+
+      const publicUrl = await new Promise<string>((resolve, reject) => {
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             setProgress(Math.round((e.loaded / e.total) * 100))
           }
         }
-        
+
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
-            resolve()
+            const data = JSON.parse(xhr.responseText)
+            resolve(data.publicUrl)
           } else {
             reject(new Error('Upload failed'))
           }
         }
-        
+
         xhr.onerror = () => reject(new Error('Upload failed'))
-        
-        xhr.open('PUT', uploadUrl)
-        xhr.setRequestHeader('Content-Type', file.type)
-        xhr.send(file)
+
+        xhr.open('POST', `${API_BASE}/messages/upload`)
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+        // Do NOT set Content-Type — browser sets multipart boundary automatically
+        xhr.send(formData)
       })
 
       return publicUrl

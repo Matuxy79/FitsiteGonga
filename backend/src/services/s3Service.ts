@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand, PutBucketCorsCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // Railway Object Storage (S3-compatible via Tigris)
@@ -103,18 +103,15 @@ export const s3Service = {
     return `avatars/${userId}.${ext}`;
   },
 
-  async configureBucketCors(): Promise<void> {
-    const command = new PutBucketCorsCommand({
+  /**
+   * Upload a file buffer directly to storage (server-side, no CORS issues)
+   */
+  async uploadFile(key: string, body: Buffer, contentType: string): Promise<void> {
+    const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
-      CORSConfiguration: {
-        CORSRules: [{
-          AllowedOrigins: ['*'],
-          AllowedMethods: ['GET', 'PUT', 'POST', 'HEAD'],
-          AllowedHeaders: ['*'],
-          ExposeHeaders: ['ETag'],
-          MaxAgeSeconds: 3600,
-        }],
-      },
+      Key: key,
+      Body: body,
+      ContentType: contentType,
     });
     await s3Client.send(command);
   },
