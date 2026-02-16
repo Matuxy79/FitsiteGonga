@@ -12,6 +12,9 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 4000;
 
+// Trust Railway's reverse proxy (required for rate-limiting + real IPs)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
