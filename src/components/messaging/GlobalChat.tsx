@@ -266,7 +266,7 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
           <div className="mb-3 flex items-center gap-2 overflow-x-auto py-2">
             {pendingMedia.map((url, idx) => (
               <div key={idx} className="relative shrink-0">
-                <img src={url} alt="" className="w-16 h-16 object-cover rounded-lg" />
+                <img src={url} alt="" loading="lazy" decoding="async" className="w-16 h-16 object-cover rounded-lg" />
                 <button
                   onClick={() => setPendingMedia(prev => prev.filter((_, i) => i !== idx))}
                   className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
@@ -377,12 +377,15 @@ function MessageBubble({
   const [showActions, setShowActions] = useState(false)
   const isOwn = message.sender.id === currentUserId
 
-  // Group reactions
-  const reactionGroups = (message.reactions || []).reduce((groups, r) => {
-    if (!groups[r.emoji]) groups[r.emoji] = []
-    groups[r.emoji].push(r)
-    return groups
-  }, {} as Record<string, typeof message.reactions>)
+  // Build reaction display from summary (API) or grouped reactions (socket)
+  const reactionDisplay: Record<string, { count: number; hasReacted: boolean }> =
+    message.reactionSummary ||
+    (message.reactions || []).reduce((acc, r) => {
+      if (!acc[r.emoji]) acc[r.emoji] = { count: 0, hasReacted: false }
+      acc[r.emoji].count++
+      if (r.userId === currentUserId) acc[r.emoji].hasReacted = true
+      return acc
+    }, {} as Record<string, { count: number; hasReacted: boolean }>)
 
   return (
     <motion.div
@@ -403,6 +406,8 @@ function MessageBubble({
               <img
                 src={message.sender.avatarUrl}
                 alt={message.sender.displayName}
+                loading="lazy"
+                decoding="async"
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -448,33 +453,33 @@ function MessageBubble({
                   key={idx}
                   src={url}
                   alt=""
+                  loading="lazy"
+                  decoding="async"
                   className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               ))}
             </div>
           )}
 
           {/* Reactions */}
-          {Object.keys(reactionGroups).length > 0 && (
+          {Object.keys(reactionDisplay).length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
-              {Object.entries(reactionGroups).map(([emoji, reactions]) => {
-                const hasReacted = reactions.some(r => r.userId === currentUserId)
-                return (
-                  <button
-                    key={emoji}
-                    onClick={() => onReact(emoji)}
-                    className={cn(
-                      'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors',
-                      hasReacted
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-zinc-800 text-slate-400 hover:bg-zinc-700'
-                    )}
-                  >
-                    <span>{emoji}</span>
-                    <span>{reactions.length}</span>
-                  </button>
-                )
-              })}
+              {Object.entries(reactionDisplay).map(([emoji, { count, hasReacted }]) => (
+                <button
+                  key={emoji}
+                  onClick={() => onReact(emoji)}
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors',
+                    hasReacted
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-zinc-800 text-slate-400 hover:bg-zinc-700'
+                  )}
+                >
+                  <span>{emoji}</span>
+                  <span>{count}</span>
+                </button>
+              ))}
             </div>
           )}
 

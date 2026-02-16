@@ -3,7 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { initSocketServer, setIO, SocketIOServer } from './socket/socketServer';
 import { initRoutes } from './routes';
@@ -17,9 +19,17 @@ app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet());
+app.use(compression({ level: 6, threshold: 1024 }));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
+}));
+app.use(rateLimit({
+  windowMs: 60_000,
+  limit: 200,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skip: (req) => req.path === '/health',
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,6 +39,17 @@ app.use(morgan('combined'));
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Metrics endpoint
+const serverStartedAt = new Date().toISOString();
+app.get('/metrics', (req, res) => {
+  res.json({
+    startedAt: serverStartedAt,
+    uptime: process.uptime(),
+    memoryUsage: process.memoryUsage(),
+    activeConnections: io?.engine?.clientsCount || 0,
+  });
 });
 
 // Initialize routes

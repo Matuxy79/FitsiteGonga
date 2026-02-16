@@ -1,10 +1,42 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import multer from 'multer';
+import rateLimit from 'express-rate-limit';
 import { prisma } from '../db/client';
 import { authenticateJWT } from '../middleware/authMiddleware';
-import { s3Service } from '../services/s3Service';
+import { s3Service, getPublicUrl } from '../services/s3Service';
 import { getIO } from '../socket/socketServer';
+
+// Rate limiters
+const messageSendLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 30,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) => (req as any).user?.userId || req.ip || 'unknown',
+  handler: (_req, res) => {
+    res.status(429).json({ error: 'Too many messages. Slow down.', retryAfterSeconds: 60 });
+  },
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 5 * 60_000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) => (req as any).user?.userId || req.ip || 'unknown',
+  handler: (_req, res) => {
+    res.status(429).json({ error: 'Upload limit reached. Try again later.', retryAfterSeconds: 300 });
+  },
+});
+
+const reactionLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 60,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) => (req as any).user?.userId || req.ip || 'unknown',
+});
 
 const uploadMiddleware = multer({
   storage: multer.memoryStorage(),
@@ -91,13 +123,9 @@ router.get('/global', authenticateJWT, async (req, res) => {
           },
         },
         reactions: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                display_name: true,
-              },
-            },
+          select: {
+            emoji: true,
+            user_id: true,
           },
         },
         replies: {
@@ -120,12 +148,36 @@ router.get('/global', authenticateJWT, async (req, res) => {
       },
     });
 
+    // Aggregate reactions into compact summaries
+    const userId = req.user!.userId;
+    const transformed = messages.map((msg: any) => {
+      const reactionSummary: Record<string, { count: number; hasReacted: boolean }> = {};
+      for (const r of msg.reactions) {
+        if (!reactionSummary[r.emoji]) {
+          reactionSummary[r.emoji] = { count: 0, hasReacted: false };
+        }
+        reactionSummary[r.emoji].count++;
+        if (r.user_id === userId) {
+          reactionSummary[r.emoji].hasReacted = true;
+        }
+      }
+      const { reactions, ...rest } = msg;
+      return { ...rest, reactions: [], reactionSummary };
+    });
+
     const nextCursor = messages.length === limitNum
       ? messages[messages.length - 1].created_at.toISOString()
       : null;
 
+    // Cache historical pages (with cursor), don't cache latest
+    if (cursor) {
+      res.set('Cache-Control', 'private, max-age=300');
+    } else {
+      res.set('Cache-Control', 'no-cache');
+    }
+
     res.json({
-      messages,
+      messages: transformed,
       nextCursor,
       hasMore: !!nextCursor,
     });
@@ -139,7 +191,7 @@ router.get('/global', authenticateJWT, async (req, res) => {
  * POST /api/messages
  * Send a message to any channel
  */
-router.post('/', authenticateJWT, async (req, res) => {
+router.post('/', authenticateJWT, messageSendLimiter, async (req, res) => {
   try {
     const validated = sendMessageSchema.parse(req.body);
 
@@ -369,7 +421,7 @@ router.delete('/:messageId', authenticateJWT, async (req, res) => {
  * POST /api/messages/:messageId/reactions
  * Add reaction to message
  */
-router.post('/:messageId/reactions', authenticateJWT, async (req, res) => {
+router.post('/:messageId/reactions', authenticateJWT, reactionLimiter, async (req, res) => {
   try {
     const validated = addReactionSchema.parse(req.body);
 
@@ -906,7 +958,7 @@ router.get('/conversations', authenticateJWT, async (req, res) => {
  * POST /api/messages/upload
  * Upload media file (proxied through backend to avoid CORS with storage)
  */
-router.post('/upload', authenticateJWT, uploadMiddleware.single('file'), async (req, res) => {
+router.post('/upload', authenticateJWT, uploadLimiter, uploadMiddleware.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' });
@@ -919,10 +971,7 @@ router.post('/upload', authenticateJWT, uploadMiddleware.single('file'), async (
 
     await s3Service.uploadFile(key, req.file.buffer, req.file.mimetype);
 
-    // Return proxy URL (goes through our backend) instead of direct Tigris URL
-    // Objects in Railway Object Storage are private, so browsers can't access them directly
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    res.json({ publicUrl: `${baseUrl}/api/media/${key}` });
+    res.json({ publicUrl: getPublicUrl(key) });
   } catch (error: any) {
     console.error('Upload error:', error);
     res.status(500).json({ error: 'Failed to upload file' });

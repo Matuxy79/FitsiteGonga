@@ -47,7 +47,8 @@ export const s3Service = {
       Bucket: BUCKET_NAME,
       Key: key,
       ContentType: contentType,
-      // Optional: Add metadata or ACL settings
+      ACL: 'public-read',
+      CacheControl: 'public, max-age=31536000, immutable',
     });
 
     const url = await getSignedUrl(s3Client, command, { expiresIn });
@@ -112,6 +113,8 @@ export const s3Service = {
       Key: key,
       Body: body,
       ContentType: contentType,
+      ACL: 'public-read',
+      CacheControl: 'public, max-age=31536000, immutable',
     });
     await s3Client.send(command);
   },

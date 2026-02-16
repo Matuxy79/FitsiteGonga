@@ -6,7 +6,7 @@ import storageRoutes from './storageRoutes';
 import adminRoutes from './adminRoutes';
 import liftRoutes from './liftRoutes';
 import messageRoutes from './messageRoutes';
-import { s3Service } from '../services/s3Service';
+import { getPublicUrl } from '../services/s3Service';
 
 export const initRoutes = (app: Express) => {
   app.use('/api/auth', authRoutes);
@@ -17,17 +17,13 @@ export const initRoutes = (app: Express) => {
   app.use('/api/lifts', liftRoutes);
   app.use('/api/messages', messageRoutes);
 
-  // Media proxy: redirects to presigned Tigris download URL
-  // Objects in Railway Object Storage are private, so we proxy access
-  app.get('/api/media/*', async (req, res) => {
-    try {
-      const key = req.params[0];
-      if (!key) return res.status(400).json({ error: 'Missing key' });
-      const downloadUrl = await s3Service.generatePresignedDownloadUrl(key, 3600);
-      res.redirect(downloadUrl);
-    } catch (error) {
-      console.error('Media proxy error:', error);
-      res.status(404).json({ error: 'Media not found' });
-    }
+  // Media proxy: permanent redirect to direct Tigris public URL
+  // Fallback for old messages that stored /api/media/ URLs before public ACL
+  app.get('/api/media/*', (req, res) => {
+    const key = req.params[0];
+    if (!key) return res.status(400).json({ error: 'Missing key' });
+    const publicUrl = getPublicUrl(key);
+    res.set('Cache-Control', 'public, max-age=86400'); // 24h
+    res.redirect(301, publicUrl);
   });
 };

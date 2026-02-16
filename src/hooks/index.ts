@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
+import { initSocket } from '@/lib/socketClient'
 
 // =============================================================================
 // API BASE
@@ -329,6 +330,7 @@ export interface Message {
     emoji: string
     user: { id: string; displayName: string }
   }>
+  reactionSummary?: Record<string, { count: number; hasReacted: boolean }>
   _count?: { replies: number }
 }
 
@@ -376,6 +378,7 @@ function transformMessage(raw: any): Message {
         displayName: r.user?.display_name || 'Unknown',
       },
     })),
+    reactionSummary: raw.reactionSummary || raw.reaction_summary,
     _count: raw._count,
   }
 }
@@ -400,7 +403,11 @@ export function useGlobalFeed() {
       if (refresh) {
         setMessages(transformed)
       } else {
-        setMessages(prev => [...prev, ...transformed])
+        setMessages(prev => {
+          const existingIds = new Set(prev.map(m => m.id))
+          const newMessages = transformed.filter((m: Message) => !existingIds.has(m.id))
+          return [...prev, ...newMessages]
+        })
       }
       setCursor(data.nextCursor)
       setHasMore(data.hasMore)
@@ -416,32 +423,39 @@ export function useGlobalFeed() {
     loadMessages(true)
   }, [])
 
-  // Real-time updates
+  // Real-time updates (shared socket connection)
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
     if (!token) return
 
-    const socket = io(WS_ORIGIN, {
-      auth: { token },
-    })
+    let socket: Socket
+    try {
+      socket = initSocket()
+    } catch {
+      return
+    }
 
-    socket.on('message:global', (rawMessage: any) => {
-      setMessages(prev => [transformMessage(rawMessage), ...prev])
-    })
+    const onGlobal = (rawMessage: any) => {
+      const msg = transformMessage(rawMessage)
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev
+        return [msg, ...prev]
+      })
+    }
 
-    socket.on('message:updated', (rawUpdated: any) => {
+    const onUpdated = (rawUpdated: any) => {
       const updated = transformMessage(rawUpdated)
       setMessages(prev => prev.map(m => m.id === updated.id ? updated : m))
-    })
+    }
 
-    socket.on('message:deleted', ({ id }: { id: string }) => {
+    const onDeleted = ({ id }: { id: string }) => {
       setMessages(prev => prev.filter(m => m.id !== id))
-    })
+    }
 
-    socket.on('message:reaction', ({ messageId, emoji, userId, action }) => {
+    const onReaction = ({ messageId, emoji, userId, action }: any) => {
       setMessages(prev => prev.map(m => {
         if (m.id !== messageId) return m
-        
+
         if (action === 'added') {
           return {
             ...m,
@@ -454,12 +468,20 @@ export function useGlobalFeed() {
           }
         }
       }))
-    })
+    }
+
+    socket.on('message:global', onGlobal)
+    socket.on('message:updated', onUpdated)
+    socket.on('message:deleted', onDeleted)
+    socket.on('message:reaction', onReaction)
 
     socketRef.current = socket
 
     return () => {
-      socket.disconnect()
+      socket.off('message:global', onGlobal)
+      socket.off('message:updated', onUpdated)
+      socket.off('message:deleted', onDeleted)
+      socket.off('message:reaction', onReaction)
     }
   }, [])
 
