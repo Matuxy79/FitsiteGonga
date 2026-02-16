@@ -60,7 +60,8 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
   const [sending, setSending] = useState(false)
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
-  const [pendingMedia, setPendingMedia] = useState<string[]>([])
+  const [pendingMedia, setPendingMedia] = useState<string[]>([]) // blob URLs for preview
+  const remoteUrls = useRef<Record<string, string>>({}) // blob URL → tigris URL
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -95,11 +96,15 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
   // Handle send
   const handleSend = async () => {
     if (!newMessage.trim() && pendingMedia.length === 0) return
-    if (sending) return
+    if (sending || uploading) return
+
+    const mediaToSend = pendingMedia.map(b => remoteUrls.current[b]).filter(Boolean)
 
     setSending(true)
     try {
-      await sendMessage(newMessage, pendingMedia.length > 0 ? pendingMedia : undefined)
+      await sendMessage(newMessage, mediaToSend.length > 0 ? mediaToSend : undefined)
+      pendingMedia.forEach(b => URL.revokeObjectURL(b))
+      remoteUrls.current = {}
       setNewMessage('')
       setPendingMedia([])
       setReplyingTo(null)
@@ -111,25 +116,27 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
     }
   }
 
-  // Handle file upload
+  // Handle file upload — show local preview instantly, upload in background
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
 
     for (const file of Array.from(files)) {
-      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        continue
-      }
+      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) continue
+
+      const blobUrl = URL.createObjectURL(file)
+      setPendingMedia(prev => [...prev, blobUrl])
 
       try {
         const url = await upload(file)
-        setPendingMedia(prev => [...prev, url])
+        remoteUrls.current[blobUrl] = url
       } catch (error) {
         console.error('Upload failed:', error)
+        setPendingMedia(prev => prev.filter(u => u !== blobUrl))
+        URL.revokeObjectURL(blobUrl)
       }
     }
 
-    // Reset input
     e.target.value = ''
   }
 
@@ -268,7 +275,11 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
               <div key={idx} className="relative shrink-0">
                 <img src={url} alt="" loading="lazy" decoding="async" className="w-16 h-16 object-cover rounded-lg" />
                 <button
-                  onClick={() => setPendingMedia(prev => prev.filter((_, i) => i !== idx))}
+                  onClick={() => {
+                    URL.revokeObjectURL(url)
+                    delete remoteUrls.current[url]
+                    setPendingMedia(prev => prev.filter((_, i) => i !== idx))
+                  }}
                   className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
                 >
                   <X className="w-3 h-3 text-white" />
@@ -335,10 +346,10 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
           {/* Send Button */}
           <button
             onClick={handleSend}
-            disabled={(!newMessage.trim() && pendingMedia.length === 0) || sending}
+            disabled={(!newMessage.trim() && pendingMedia.length === 0) || sending || uploading}
             className={cn(
               'p-2.5 rounded-xl transition-all',
-              (newMessage.trim() || pendingMedia.length > 0) && !sending
+              (newMessage.trim() || pendingMedia.length > 0) && !sending && !uploading
                 ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
                 : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
             )}
