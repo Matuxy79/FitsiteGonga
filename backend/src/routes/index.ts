@@ -6,7 +6,7 @@ import storageRoutes from './storageRoutes';
 import adminRoutes from './adminRoutes';
 import liftRoutes from './liftRoutes';
 import messageRoutes from './messageRoutes';
-import { getPublicUrl } from '../services/s3Service';
+import { s3Service } from '../services/s3Service';
 
 export const initRoutes = (app: Express) => {
   app.use('/api/auth', authRoutes);
@@ -17,13 +17,17 @@ export const initRoutes = (app: Express) => {
   app.use('/api/lifts', liftRoutes);
   app.use('/api/messages', messageRoutes);
 
-  // Media proxy: permanent redirect to direct Tigris public URL
-  // Fallback for old messages that stored /api/media/ URLs before public ACL
-  app.get('/api/media/*', (req, res) => {
+  // Media proxy: generate presigned download URL and redirect
+  // Objects stay private, no ACL config needed
+  app.get('/api/media/*', async (req, res) => {
     const key = req.path.slice('/api/media/'.length);
     if (!key) return res.status(400).json({ error: 'Missing key' });
-    const publicUrl = getPublicUrl(key);
-    res.set('Cache-Control', 'public, max-age=86400'); // 24h
-    res.redirect(301, publicUrl);
+    try {
+      const signedUrl = await s3Service.generatePresignedDownloadUrl(key, 3600);
+      res.set('Cache-Control', 'private, max-age=3500');
+      res.redirect(302, signedUrl);
+    } catch {
+      res.status(404).json({ error: 'File not found' });
+    }
   });
 };

@@ -4,7 +4,7 @@ import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { prisma } from '../db/client';
 import { authenticateJWT } from '../middleware/authMiddleware';
-import { s3Service, getPublicUrl } from '../services/s3Service';
+import { s3Service } from '../services/s3Service';
 import { getIO } from '../socket/socketServer';
 
 // Rate limiters
@@ -971,7 +971,8 @@ router.post('/upload', authenticateJWT, uploadLimiter, uploadMiddleware.single('
 
     await s3Service.uploadFile(key, req.file.buffer, req.file.mimetype);
 
-    res.json({ publicUrl: getPublicUrl(key) });
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    res.json({ publicUrl: `${baseUrl}/api/media/${key}` });
   } catch (error: any) {
     console.error('Upload error:', error);
     res.status(500).json({ error: 'Failed to upload file' });
