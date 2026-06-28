@@ -9,6 +9,7 @@ declare global {
         userId: string;
         email: string;
         role: string;
+        membership_tier: string;
       };
     }
   }
@@ -71,6 +72,40 @@ export const requireRole = (allowedRoles: string[]) => {
 
     next();
   };
+};
+
+/**
+ * Middleware to require a paid subscription or admin role
+ */
+export const requirePaid = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (req.user.membership_tier !== 'PAID' && req.user.role !== 'ADMIN') {
+    return res.status(403).json({
+      error: 'Forbidden - Paid subscription or admin access required',
+    });
+  }
+
+  next();
+};
+
+/**
+ * Middleware to require admin role
+ */
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({
+      error: 'Forbidden - Admin access required',
+    });
+  }
+
+  next();
 };
 
 /**

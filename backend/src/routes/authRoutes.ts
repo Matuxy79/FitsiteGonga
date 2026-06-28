@@ -74,6 +74,7 @@ router.post('/register', registerLimiter, async (req, res) => {
       userId: user.id,
       email: user.email,
       role: user.role,
+      membership_tier: user.membership_tier,
     });
 
     // Set httpOnly cookies
@@ -136,6 +137,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       userId: user.id,
       email: user.email,
       role: user.role,
+      membership_tier: user.membership_tier,
     });
 
     // Set httpOnly cookies
@@ -198,6 +200,7 @@ router.post('/refresh', async (req, res) => {
       userId: user.id,
       email: user.email,
       role: user.role,
+      membership_tier: user.membership_tier,
     });
 
     res.cookie('accessToken', accessToken, {

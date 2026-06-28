@@ -12,6 +12,9 @@ export interface User {
   display_name: string;
   avatar_url?: string;
   role: 'CLIENT' | 'TRAINER' | 'ADMIN';
+  membership_tier: 'FREE' | 'PAID';
+  subscription_status?: 'ACTIVE' | 'CANCELLED' | 'PAST_DUE' | 'EXPIRED';
+  trial_ends_at?: string;
   fitness_level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   body_weight?: number;
   body_weight_unit?: 'LBS' | 'KG';
