@@ -205,6 +205,30 @@ npm test
 - Check Railway PostgreSQL service is running
 - Test connection: `psql $DATABASE_URL`
 
+### Railway Migration Recovery: `ChannelType` Already Exists
+
+If Railway fails on `prisma migrate deploy` with `ERROR: type "ChannelType" already exists`
+for migration `20260628030334_init`, the database was likely synced before Prisma
+recorded that migration as applied.
+
+Run the recovery helper against the Railway database:
+
+```bash
+npm run db:recover:20260628030334
+npx prisma migrate deploy
+```
+
+The helper only marks `20260628030334_init` as applied when every enum and table from
+that migration already exists. If it reports missing objects, do not mark the migration
+applied yet. Roll the database forward first:
+
+```bash
+npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --script > forward.sql
+npx prisma db execute --stdin --url "$DATABASE_URL" < forward.sql
+npx prisma migrate resolve --applied 20260628030334_init
+npx prisma migrate deploy
+```
+
 ### JWT Errors
 
 - Ensure `JWT_SECRET` is set and matches between services
