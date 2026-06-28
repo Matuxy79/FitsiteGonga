@@ -33,6 +33,9 @@ interface RawUser {
   display_name: string
   avatar_url?: string
   role?: 'CLIENT' | 'TRAINER' | 'ADMIN' | string
+  membership_tier?: 'FREE' | 'PAID' | string
+  subscription_status?: 'ACTIVE' | 'CANCELLED' | 'PAST_DUE' | 'EXPIRED' | string
+  trial_ends_at?: string
   fitness_level?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | string
   goals?: string[]
   created_at: string
@@ -51,15 +54,24 @@ const levelMap: Record<string, FitnessUser['fitness_level']> = {
   ADVANCED: 'ADVANCED',
 }
 
+const tierMap: Record<string, FitnessUser['membership_tier']> = {
+  FREE: 'FREE',
+  PAID: 'PAID',
+}
+
 function normalizeUser(raw: RawUser): FitnessUser {
   const normalizedRole = roleMap[raw.role?.toUpperCase() || ''] || 'CLIENT'
   const normalizedLevel = levelMap[raw.fitness_level?.toUpperCase() || ''] || 'BEGINNER'
+  const normalizedTier = tierMap[raw.membership_tier?.toUpperCase() || ''] || 'FREE'
   return {
     id: raw.id,
     email: raw.email,
     display_name: raw.display_name,
     avatar_url: raw.avatar_url,
     role: normalizedRole,
+    membership_tier: normalizedTier,
+    subscription_status: raw.subscription_status as any,
+    trial_ends_at: raw.trial_ends_at,
     fitness_level: normalizedLevel,
     goals: raw.goals || [],
     created_at: raw.created_at,

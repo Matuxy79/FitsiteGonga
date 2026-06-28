@@ -22,6 +22,7 @@ export interface JWTPayload {
   userId: string;
   email: string;
   role: string;
+  membership_tier: string;
 }
 
 export const authService = {

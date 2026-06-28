@@ -18,6 +18,9 @@ model User {
   display_name  String
   avatar_url    String?
   role          Role     @default(CLIENT)
+  membership_tier MembershipTier @default(FREE)
+  subscription_status SubscriptionStatus @default(ACTIVE)
+  trial_ends_at DateTime?
   fitness_level FitnessLevel @default(BEGINNER)
   goals         String[] @default([])
   created_at    DateTime @default(now())
@@ -51,6 +54,18 @@ model User {
   // Workout Planning
   workout_templates     WorkoutTemplate[]
   scheduled_workouts    ScheduledWorkout[]
+  workout_instances     WorkoutInstance[]
+  
+  // Programs
+  programs              Program[]
+  user_programs         UserProgram[]
+  
+  // Nutrition
+  meal_plans            MealPlan[]
+  nutrition_logs        NutritionLog[]
+  
+  // Channels
+  channels_created      Channel[]
   
   // Trainer Relationships
   trainer_relationships TrainerClient[] @relation("TrainerRole")
@@ -155,6 +170,8 @@ model Message {
   sender      User     @relation("MessageSender", fields: [sender_id], references: [id], onDelete: Cascade)
   
   channel_type  ChannelType  @default(GLOBAL)
+  channel_id    String?
+  channel       Channel?     @relation(fields: [channel_id], references: [id], onDelete: Cascade)
   squad_id      String?
   squad         Squad?       @relation(fields: [squad_id], references: [id], onDelete: Cascade)
   recipient_id  String?
@@ -177,6 +194,7 @@ model Message {
 
   @@index([sender_id])
   @@index([squad_id])
+  @@index([channel_id])
   @@index([recipient_id])
   @@index([channel_type])
   @@index([created_at(sort: Desc)])
@@ -220,6 +238,7 @@ model Squad {
 
   members     SquadMember[]
   messages    Message[]
+  channels    Channel[]
   invites     SquadInvite[]
   challenges  SquadChallenge[]
 
@@ -416,6 +435,8 @@ model WorkoutTemplate {
   updated_at  DateTime @updatedAt
 
   scheduled_workouts ScheduledWorkout[]
+  workout_instances WorkoutInstance[]
+  program_workouts  ProgramWorkout[]
 
   @@index([user_id, is_active])
   @@map("workout_templates")
@@ -441,6 +462,8 @@ model ScheduledWorkout {
   
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+
+  workout_instances WorkoutInstance[]
 
   @@index([user_id, scheduled_for])
   @@index([user_id, status])
@@ -478,6 +501,258 @@ model TrainerClient {
 }
 
 // =============================================================================
+// WORKOUT INSTANCES (LOGGED WORKOUTS)
+// =============================================================================
+
+model WorkoutInstance {
+  id              String   @id @default(uuid())
+  user_id         String
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  template_id     String?
+  template        WorkoutTemplate? @relation(fields: [template_id], references: [id], onDelete: SetNull)
+  
+  scheduled_workout_id String?
+  scheduled_workout ScheduledWorkout? @relation(fields: [scheduled_workout_id], references: [id], onDelete: SetNull)
+  
+  name            String
+  type            WorkoutType
+  started_at      DateTime @default(now())
+  completed_at    DateTime?
+  duration_seconds Int?
+  notes           String?
+  
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  exercises       ExerciseInstance[]
+
+  @@index([user_id, started_at(sort: Desc)])
+  @@index([user_id, completed_at])
+  @@map("workout_instances")
+}
+
+model ExerciseInstance {
+  id              String   @id @default(uuid())
+  workout_id      String
+  workout         WorkoutInstance @relation(fields: [workout_id], references: [id], onDelete: Cascade)
+  
+  exercise_id     String
+  exercise_name   String
+  order_index     Int      @default(0)
+  notes           String?
+  
+  sets            SetInstance[]
+
+  @@index([workout_id, order_index])
+  @@map("exercise_instances")
+}
+
+model SetInstance {
+  id              String   @id @default(uuid())
+  exercise_id     String
+  exercise        ExerciseInstance @relation(fields: [exercise_id], references: [id], onDelete: Cascade)
+  
+  set_number      Int
+  reps            Int?
+  weight          Float?
+  unit            WeightUnit @default(LBS)
+  rpe             Float?
+  duration_seconds Int?
+  distance        Float?
+  distance_unit   String?
+  is_completed    Boolean  @default(true)
+  notes           String?
+
+  @@index([exercise_id, set_number])
+  @@map("set_instances")
+}
+
+// =============================================================================
+// PROGRAMS
+// =============================================================================
+
+model Program {
+  id          String   @id @default(uuid())
+  user_id     String?  // null = admin/trainer-created public templates
+  user        User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  duration_weeks Int
+  difficulty  FitnessLevel @default(BEGINNER)
+  is_public   Boolean  @default(false)
+  is_active   Boolean  @default(true)
+  
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  weeks       ProgramWeek[]
+  enrollments UserProgram[]
+
+  @@index([user_id, is_public, is_active])
+  @@map("programs")
+}
+
+model ProgramWeek {
+  id          String   @id @default(uuid())
+  program_id  String
+  program     Program  @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  week_number Int
+  focus       String?
+  
+  workouts    ProgramWorkout[]
+
+  @@unique([program_id, week_number])
+  @@map("program_weeks")
+}
+
+model ProgramWorkout {
+  id          String   @id @default(uuid())
+  week_id     String
+  week        ProgramWeek @relation(fields: [week_id], references: [id], onDelete: Cascade)
+  
+  template_id String
+  template    WorkoutTemplate @relation(fields: [template_id], references: [id])
+  
+  day_of_week Int      // 0 = Sunday, 6 = Saturday
+  order_index Int      @default(0)
+  notes       String?
+
+  @@index([week_id, day_of_week])
+  @@map("program_workouts")
+}
+
+model UserProgram {
+  id          String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  program_id  String
+  program     Program  @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  
+  started_at  DateTime @default(now())
+  status      ProgramStatus @default(ACTIVE)
+  completed_at DateTime?
+  
+  @@unique([user_id, program_id])
+  @@index([user_id, status])
+  @@map("user_programs")
+}
+
+// =============================================================================
+// NUTRITION
+// =============================================================================
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+model Meal {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  meal_type   MealType
+  
+  calories    Int?
+  protein_g   Float?
+  carbs_g     Float?
+  fat_g       Float?
+  
+  image_url   String?
+  is_public   Boolean  @default(false)
+  featured_date DateTime? // meal of the day
+  created_by  String?
+  
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  meal_plan_entries MealPlanEntry[]
+  nutrition_logs    NutritionLog[]
+
+  @@index([is_public, featured_date])
+  @@index([meal_type])
+  @@map("meals")
+}
+
+model MealPlan {
+  id          String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  target_calories Int?
+  target_protein_g Int?
+  target_carbs_g Int?
+  target_fat_g Int?
+  
+  meals       MealPlanEntry[]
+  
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([user_id])
+  @@map("meal_plans")
+}
+
+model MealPlanEntry {
+  id          String   @id @default(uuid())
+  plan_id     String
+  plan        MealPlan @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+  meal_id     String
+  meal        Meal     @relation(fields: [meal_id], references: [id])
+  
+  day_of_week Int      // 0 = Sunday, 6 = Saturday
+  order_index Int      @default(0)
+
+  @@index([plan_id, day_of_week])
+  @@map("meal_plan_entries")
+}
+
+model NutritionLog {
+  id          String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  meal_id     String
+  meal        Meal     @relation(fields: [meal_id], references: [id])
+  
+  logged_at   DateTime @default(now())
+  notes       String?
+  
+  @@index([user_id, logged_at(sort: Desc)])
+  @@map("nutrition_logs")
+}
+
+// =============================================================================
+// COMMUNITY CHANNELS (DISCORD-LIKE)
+// =============================================================================
+
+model Channel {
+  id          String   @id @default(uuid())
+  squad_id    String
+  squad       Squad    @relation(fields: [squad_id], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  channel_type ChannelType @default(SQUAD)
+  
+  created_by  String
+  user        User     @relation(fields: [created_by], references: [id], onDelete: Cascade)
+  
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  messages    Message[]
+
+  @@index([squad_id, is_active])
+  @@map("channels")
+}
+
+// =============================================================================
 // ENUMS
 // =============================================================================
 
@@ -485,6 +760,18 @@ enum Role {
   CLIENT
   TRAINER
   ADMIN
+}
+
+enum MembershipTier {
+  FREE
+  PAID
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  EXPIRED
 }
 
 enum FitnessLevel {
@@ -528,6 +815,7 @@ enum ChannelType {
   SQUAD
   DIRECT
   TRAINER
+  TEXT
 }
 
 enum SquadVisibility {
@@ -594,6 +882,13 @@ enum WorkoutStatus {
   COMPLETED
   SKIPPED
   RESCHEDULED
+}
+
+enum ProgramStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  DROPPED
 }
 
 enum TrainerClientStatus {

@@ -1,5 +1,5 @@
 import prisma from '../db/client';
-import { User, Role, FitnessLevel } from '@prisma/client';
+import { User, Role, FitnessLevel, MembershipTier, SubscriptionStatus } from '@prisma/client';
 
 // User type without password_hash for safe returns
 export type UserWithoutPassword = Omit<User, 'password_hash'>;
@@ -42,6 +42,9 @@ export const userRepository = {
         display_name: true,
         avatar_url: true,
         role: true,
+        membership_tier: true,
+        subscription_status: true,
+        trial_ends_at: true,
         fitness_level: true,
         goals: true,
         created_at: true,
@@ -69,6 +72,9 @@ export const userRepository = {
         display_name: true,
         avatar_url: true,
         role: true,
+        membership_tier: true,
+        subscription_status: true,
+        trial_ends_at: true,
         fitness_level: true,
         goals: true,
         created_at: true,
@@ -90,6 +96,33 @@ export const userRepository = {
         display_name: true,
         avatar_url: true,
         role: true,
+        membership_tier: true,
+        subscription_status: true,
+        trial_ends_at: true,
+        fitness_level: true,
+        goals: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  },
+
+  /**
+   * Update membership tier (admin only)
+   */
+  async updateMembership(id: string, membership_tier: MembershipTier, subscription_status?: SubscriptionStatus): Promise<UserWithoutPassword> {
+    return prisma.user.update({
+      where: { id },
+      data: { membership_tier, subscription_status },
+      select: {
+        id: true,
+        email: true,
+        display_name: true,
+        avatar_url: true,
+        role: true,
+        membership_tier: true,
+        subscription_status: true,
+        trial_ends_at: true,
         fitness_level: true,
         goals: true,
         created_at: true,

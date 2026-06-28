@@ -6,6 +6,11 @@ import storageRoutes from './storageRoutes';
 import adminRoutes from './adminRoutes';
 import liftRoutes from './liftRoutes';
 import messageRoutes from './messageRoutes';
+import userRoutes from './userRoutes';
+import workoutRoutes from './workoutRoutes';
+import programRoutes from './programRoutes';
+import nutritionRoutes from './nutritionRoutes';
+import channelRoutes from './channelRoutes';
 import { s3Service } from '../services/s3Service';
 
 export const initRoutes = (app: Express) => {
@@ -16,6 +21,11 @@ export const initRoutes = (app: Express) => {
   app.use('/api/admin', adminRoutes);
   app.use('/api/lifts', liftRoutes);
   app.use('/api/messages', messageRoutes);
+  app.use('/api/users', userRoutes);
+  app.use('/api/workouts', workoutRoutes);
+  app.use('/api/programs', programRoutes);
+  app.use('/api/nutrition', nutritionRoutes);
+  app.use('/api/messages/squads/:squadId/channels', channelRoutes);
 
   // Media proxy: generate presigned download URL and redirect
   // Objects stay private, no ACL config needed

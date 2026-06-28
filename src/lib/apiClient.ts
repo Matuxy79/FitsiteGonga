@@ -130,6 +130,16 @@ export const apiClient = {
   },
 
   /**
+   * PATCH request
+   */
+  async patch<T>(endpoint: string, body?: any): Promise<T> {
+    return request<T>(endpoint, {
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  },
+
+  /**
    * DELETE request
    */
   async delete<T>(endpoint: string): Promise<T> {

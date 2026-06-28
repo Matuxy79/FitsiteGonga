@@ -69,7 +69,6 @@ export const s3Service = {
       Bucket: BUCKET_NAME!,
       Key: key,
       ContentType: contentType,
-      ACL: 'public-read',
       CacheControl: 'public, max-age=31536000, immutable',
     });
 
@@ -138,7 +137,6 @@ export const s3Service = {
       Key: key,
       Body: body,
       ContentType: contentType,
-      ACL: 'public-read',
       CacheControl: 'public, max-age=31536000, immutable',
     });
     await s3Client!.send(command);
