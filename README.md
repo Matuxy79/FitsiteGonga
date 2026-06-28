@@ -88,6 +88,28 @@ npm run test:e2e      # playwright
 npm run storybook     # storybook dev server
 ```
 
+### Seed local admin
+
+The app uses pseudo-email login credentials stored in the app database. These are not connected to Gmail unless a future mail provider is added.
+
+```bash
+cd backend
+$env:ADMIN_EMAIL="matuxynhoj@gmail.com"
+$env:ADMIN_PASSWORD="<set locally, do not commit>"
+npm run seed:admin
+```
+
+`ADMIN_PASSWORD` is intentionally read from the shell or `backend/.env` and should never be committed as plaintext.
+
+## Next Up
+
+- Add account tiers to the database: `USER`, `PAID`, and `ADMIN`.
+- Keep pseudo-email auth local to the app: email strings identify accounts, but no full Gmail integration is required.
+- Seed/maintain the primary admin account with `matuxynhoj@gmail.com` using the hashed admin seed script.
+- Add avatar upload/update flows for every tier, backed by the existing S3-compatible upload service.
+- Gate paid-only features in the API and UI after the tier column exists.
+- Restyle `http://localhost:3001/dashboard` to match the bright GongaFit frontpage: white/sky surfaces, coral/lime CTAs, rounded panels, real trainer media, and lighter navigation.
+
 ## Repo map
 
 - `src/app` - routes (`/`, `/dashboard`, `/admin`, `/reset-password`)
