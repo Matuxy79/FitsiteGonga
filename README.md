@@ -1,6 +1,6 @@
 # FitsiteGonga
 
-Discord-inspired fitness command center built with **Next.js 14 (App Router)** + **Tailwind**, backed by an **Express + Prisma + PostgreSQL** API (with **Socket.io** realtime + optional **AWS S3** uploads).
+Discord-inspired fitness command center built with **Next.js 14 (App Router)** + **Tailwind**, backed by an **Express + Prisma + PostgreSQL** API (with **Socket.io** realtime + optional **S3-compatible** uploads).
 
 ## Features
 
@@ -14,69 +14,72 @@ Discord-inspired fitness command center built with **Next.js 14 (App Router)** +
 ## Tech stack
 
 - **Frontend**: Next.js, React, TypeScript, Tailwind, Zustand, React Hook Form, Zod, Framer Motion
-- **Backend**: Node.js, Express, Prisma, PostgreSQL, JWT, Socket.io, AWS S3 (presigned uploads)
+- **Backend**: Node.js, Express, Prisma, PostgreSQL, JWT, Socket.io, S3-compatible object storage (Railway Object Storage / Tigris)
 - **Tooling**: ESLint, Prettier, Vitest, Playwright, Storybook
 
-## Quick start (frontend)
+## Quick start (full stack locally)
 
 ```bash
-# install deps
-npm ci
+# 1. Install dependencies and copy env templates
+npm run setup
 
-# configure env
-# (already present in this repo; change if you want local backend)
-notepad .env.local
+# 2. Start a local PostgreSQL database (Docker)
+docker compose up -d
 
-# run dev server
+# 3. Configure backend env
+code backend/.env   # or notepad backend/.env
+#    - DATABASE_URL defaults to local docker compose Postgres
+#    - set JWT_SECRET and JWT_REFRESH_SECRET (openssl rand -hex 32)
+
+# 4. Run migrations
+npm run db:migrate
+
+# 5. Start frontend + backend together
+npm run dev:all
+```
+
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:4000`
+- Backend health check: `http://localhost:4000/health`
+
+> Object storage (avatars/progress photos) is optional for local dev. If `RAILWAY_OBJECT_STORAGE_*` vars are not set, storage endpoints return a 503-style error instead of crashing.
+
+### Manual start (two terminals)
+
+```bash
+# Terminal 1 — frontend
 npm run dev
-```
 
-Open `http://localhost:3000`.
-
-### Frontend environment variables
-
-Create/modify `.env.local`:
-
-```env
-# Backend API URL (no trailing slash)
-NEXT_PUBLIC_API_URL="http://localhost:4000"
-
-# Optional: override Socket.io origin (otherwise defaults to NEXT_PUBLIC_API_URL)
-# NEXT_PUBLIC_SOCKET_URL="http://localhost:4000"
-# NEXT_PUBLIC_WS_URL="http://localhost:4000"
-```
-
-## Running the backend locally (optional)
-
-See `backend/README.md` for full details.
-
-```bash
+# Terminal 2 — backend
 cd backend
-npm ci
-copy .env.example .env
-
-# configure backend env (DATABASE_URL, JWT secrets, etc.)
-notepad .env
-
-# generate prisma + run migrations
-npm run prisma:migrate
-
-# start API (default: http://localhost:4000)
 npm run dev
 ```
 
-Then point the frontend to your local API:
+## Environment variables
+
+### Frontend (`cp .env.local.example .env.local`)
 
 ```env
-NEXT_PUBLIC_API_URL="http://localhost:4000"
+NEXT_PUBLIC_API_URL=http://localhost:4000
+# Optional overrides:
+# NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+# NEXT_PUBLIC_WS_URL=http://localhost:4000
 ```
+
+### Backend (`cp backend/.env.example backend/.env`)
+
+See `backend/.env.example` for the full list. The local defaults use Docker Compose Postgres on `localhost:5432`.
 
 ## Scripts
 
 ```bash
 npm run dev           # start Next.js dev server
-npm run build         # production build
-npm run start         # serve production build
+npm run dev:backend   # start backend dev server only
+npm run dev:all       # start frontend + backend together
+npm run setup         # install deps and copy env templates
+npm run db:migrate    # run Prisma migrations
+npm run db:studio     # open Prisma Studio
+npm run build         # production build (frontend)
 npm run lint          # eslint
 npm run type-check    # tsc (loads .env.local)
 npm run format        # prettier

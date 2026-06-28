@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { randomBytes, createHash } from 'crypto';
 import prisma from '../db/client';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
-import { passwordResetTokenRepository } from '../repositories/passwordResetTokenRepository';
-import { emailService } from '../services/emailService';
+import { passwordResetService } from '../services/passwordResetService';
 
 const router: Router = Router();
 
@@ -277,7 +275,7 @@ router.put('/users/:id/role', async (req, res) => {
 
 /**
  * POST /api/admin/users/:id/password-reset
- * Trigger a password reset email for a specific user.
+ * Create a manual password reset link for a specific user.
  */
 router.post('/users/:id/password-reset', async (req, res) => {
   try {
@@ -292,28 +290,13 @@ router.post('/users/:id/password-reset', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const rawToken = randomBytes(32).toString('hex');
-    const tokenHash = createHash('sha256').update(rawToken).digest('hex');
-
-    const ttlCandidate = Number(process.env.PASSWORD_RESET_TTL_MINUTES);
-    const ttlMinutes = Number.isFinite(ttlCandidate) && ttlCandidate > 0 ? ttlCandidate : 60;
-    const expiresAt = new Date(Date.now() + Math.max(5, ttlMinutes) * 60 * 1000);
-
-    await passwordResetTokenRepository.deleteActiveForUser(user.id);
-    await passwordResetTokenRepository.createForUser({
-      userId: user.id,
-      tokenHash,
-      expiresAt,
-    });
-
-    const frontendUrl = emailService.getFrontendUrl().replace(/\/$/, '');
-    const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
-
-    const sendResult = await emailService.sendPasswordResetEmail({ to: user.email, resetUrl });
+    const resetLink = await passwordResetService.createResetLinkForUser(user.id);
 
     res.json({
-      message: 'Password reset link created.',
-      delivered: sendResult.delivered,
+      message: 'Password reset link created. No email was sent.',
+      resetUrl: resetLink.resetUrl,
+      expiresAt: resetLink.expiresAt.toISOString(),
+      delivery: 'manual',
     });
   } catch (error: any) {
     if (error instanceof z.ZodError) {

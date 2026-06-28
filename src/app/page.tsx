@@ -1,66 +1,141 @@
-'use client';
+'use client'
 
-import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ShieldCheck,
-  Zap,
+  ArrowRight,
+  Bike,
   ChevronRight,
-  Upload,
-  Settings,
+  Dumbbell,
+  Eye,
+  EyeOff,
+  Flame,
+  HeartPulse,
+  Loader2,
+  LockKeyhole,
+  Mail,
+  Target,
+  Users,
   X,
-  Lock,
-  Loader2
-} from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
-import { AuthRepository } from '@/repositories/AuthRepository';
-import { getEmailSector, mapAuthErrorToToast, type FieldErrors } from '@/lib/authFeedback';
+} from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/useToast'
+import { AuthRepository } from '@/repositories/AuthRepository'
+import { getEmailSector, mapAuthErrorToToast, type FieldErrors } from '@/lib/authFeedback'
+import {
+  DEFAULT_HOMEPAGE_PEOPLE,
+  HOMEPAGE_PEOPLE_EVENT,
+  type HomepagePerson,
+  readHomepagePeople,
+} from '@/lib/gongafitHomepage'
 
-type AuthMode = 'login' | 'signup';
+type AuthMode = 'login' | 'signup'
 
-export default function ObsidianLanding() {
+const mascotImage = '/assets/gongafit/sun-mascot.png'
+
+const trainerSlides = [
+  {
+    imageUrl: '/assets/gongafit/trainers/trainer-05-duo.png',
+    title: 'Partner training',
+    body: 'Community workouts and support sessions.',
+  },
+  {
+    imageUrl: '/assets/gongafit/trainers/trainer-04.png',
+    title: 'Conditioning work',
+    body: 'Trainer-led progress shots and movement blocks.',
+  },
+  {
+    imageUrl: '/assets/gongafit/trainers/trainer-03.png',
+    title: 'Strength sessions',
+    body: 'Progress-focused lifting and physique coaching.',
+  },
+  {
+    imageUrl: '/assets/gongafit/trainers/trainer-02-protein.png',
+    title: 'Nutrition targets',
+    body: 'Protein and meal planning visuals for client goals.',
+  },
+  {
+    imageUrl: '/assets/gongafit/trainers/trainer-01.png',
+    title: 'Personal training',
+    body: 'Real coaching photos from the GongaFit trainer library.',
+  },
+]
+
+const workoutChips = [
+  { label: 'HIIT', Icon: Flame, color: '#ff6b5a', bg: '#fff0ec' },
+  { label: 'Strength', Icon: Dumbbell, color: '#a8d91f', bg: '#f5ffd9' },
+  { label: 'Yoga', Icon: HeartPulse, color: '#36b6d6', bg: '#e8f9ff' },
+  { label: 'Cycling', Icon: Bike, color: '#f2b84b', bg: '#fff6dc' },
+  { label: 'Community', Icon: Users, color: '#ff806f', bg: '#fff0ec' },
+]
+
+const toolHighlights = [
+  { title: 'Track progress', body: 'See stats and celebrate wins.', Icon: ArrowRight, color: '#9ee8ff' },
+  { title: 'Stay consistent', body: 'Build streaks and habits.', Icon: Target, color: '#d7fb48' },
+  { title: 'Train together', body: 'Move with friends.', Icon: Users, color: '#ffdd63' },
+]
+
+export default function GongaFitLanding() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black" />}>
-      <ObsidianLandingInner />
+    <Suspense fallback={<div className="min-h-screen bg-[#f7fbff]" />}>
+      <GongaFitLandingInner />
     </Suspense>
-  );
+  )
 }
 
-function ObsidianLandingInner() {
-  const [mode, setMode] = useState<AuthMode>('login');
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [bgImage, setBgImage] = useState(
-    'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop'
-  );
-  const [tempBgInput, setTempBgInput] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [codename, setCodename] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [capsLockOn, setCapsLockOn] = useState(false);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
-  const [redirecting, setRedirecting] = useState(false);
-  const [resetOpen, setResetOpen] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetSending, setResetSending] = useState(false);
-  const [resetSent, setResetSent] = useState(false);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const handledReasonRef = useRef(false);
-  const { login, register, loading, user } = useAuth();
-  const { toast } = useToast();
-  const isAdmin = user?.role === 'admin';
+function GongaFitLandingInner() {
+  const [mode, setMode] = useState<AuthMode>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [codename, setCodename] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const [capsLockOn, setCapsLockOn] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null)
+  const [redirecting, setRedirecting] = useState(false)
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSending, setResetSending] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [people, setPeople] = useState<HomepagePerson[]>(DEFAULT_HOMEPAGE_PEOPLE)
+  const [activeSlide, setActiveSlide] = useState(0)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const handledReasonRef = useRef(false)
+  const { login, register, loading, user } = useAuth()
+  const { toast } = useToast()
 
-  const isLockedOut = cooldownSeconds !== null && cooldownSeconds > 0;
+  const isLockedOut = cooldownSeconds !== null && cooldownSeconds > 0
+  const currentSlide = trainerSlides[activeSlide]
 
   useEffect(() => {
-    if (handledReasonRef.current) return;
-    const reason = searchParams.get('reason');
-    if (!reason) return;
+    setPeople(readHomepagePeople())
 
-    handledReasonRef.current = true;
+    const syncPeople = () => setPeople(readHomepagePeople())
+    window.addEventListener('storage', syncPeople)
+    window.addEventListener(HOMEPAGE_PEOPLE_EVENT, syncPeople)
+
+    return () => {
+      window.removeEventListener('storage', syncPeople)
+      window.removeEventListener(HOMEPAGE_PEOPLE_EVENT, syncPeople)
+    }
+  }, [])
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % trainerSlides.length)
+    }, 4500)
+
+    return () => window.clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    if (handledReasonRef.current) return
+    const reason = searchParams.get('reason')
+    if (!reason) return
+
+    handledReasonRef.current = true
 
     if (reason === 'session-expired') {
       toast({
@@ -68,72 +143,90 @@ function ObsidianLandingInner() {
         title: 'SESSION EXPIRED',
         message: 'Sign in again to continue.',
         sector: 'AUTH',
-      });
+      })
     } else if (reason === 'login-required') {
       toast({
         status: 'INFO',
         title: 'LOGIN REQUIRED',
-        message: 'Authenticate to access the command center.',
+        message: 'Authenticate to access GongaFit.',
         sector: 'AUTH',
-      });
+      })
     } else if (reason === 'signed-out') {
       toast({
         status: 'OK',
         title: 'SIGNED OUT',
-        message: 'Credentials cleared.',
+        message: 'You are safely signed out.',
         sector: 'AUTH',
-      });
+      })
     } else if (reason === 'password-reset') {
       toast({
         status: 'OK',
         title: 'PASSWORD UPDATED',
         message: 'Sign in with your new password.',
         sector: 'AUTH',
-      });
+      })
     }
 
-    router.replace('/');
-  }, [router, searchParams, toast]);
+    router.replace('/')
+  }, [router, searchParams, toast])
 
   useEffect(() => {
-    if (redirecting) return;
-    if (loading) return;
-    if (!user) return;
+    if (redirecting) return
+    if (loading) return
+    if (!user) return
 
     toast({
       status: 'INFO',
       title: 'SESSION ACTIVE',
-      message: 'Redirecting to command center...',
+      message: 'Opening your dashboard.',
       sector: 'AUTH',
-    });
+    })
 
-    setRedirecting(true);
-    router.replace('/dashboard');
-  }, [loading, redirecting, router, toast, user]);
+    setRedirecting(true)
+    router.replace('/dashboard')
+  }, [loading, redirecting, router, toast, user])
 
-  const handleAdminSave = () => {
-    if (tempBgInput) setBgImage(tempBgInput);
-    setIsAdminOpen(false);
-  };
+  useEffect(() => {
+    if (!isLockedOut) return
+    const interval = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev === null) return prev
+        if (prev <= 1) return null
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [isLockedOut])
+
+  const submitDisabled = useMemo(() => loading || redirecting || isLockedOut, [loading, redirecting, isLockedOut])
+
+  const clearFieldError = (field: keyof FieldErrors) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
 
   const openResetModal = () => {
-    setResetEmail(email.trim());
-    setResetSent(false);
-    setResetOpen(true);
-  };
+    setResetEmail(email.trim())
+    setResetSent(false)
+    setResetOpen(true)
+  }
 
   const handleSendReset = async () => {
-    if (resetSending) return;
+    if (resetSending) return
 
-    const trimmed = resetEmail.trim();
+    const trimmed = resetEmail.trim()
     if (!trimmed) {
       toast({
         status: 'WARN',
         title: 'EMAIL REQUIRED',
         message: 'Enter the email tied to your account.',
         sector: 'AUTH',
-      });
-      return;
+      })
+      return
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
@@ -142,553 +235,667 @@ function ObsidianLandingInner() {
         title: 'INVALID EMAIL',
         message: 'Enter a valid email address.',
         sector: 'AUTH',
-      });
-      return;
+      })
+      return
     }
 
     try {
-      setResetSending(true);
-      await AuthRepository.requestPasswordReset(trimmed);
-      setResetSent(true);
+      setResetSending(true)
+      await AuthRepository.requestPasswordReset(trimmed)
+      setResetSent(true)
       toast({
-        status: 'OK',
-        title: 'RESET LINK SENT',
-        message: 'If that email exists, check your inbox for a reset link.',
+        status: 'INFO',
+        title: 'EMAIL RESET DISABLED',
+        message: 'Contact an admin to generate a reset link.',
         sector: 'AUTH',
-      });
+      })
     } catch (error: any) {
-      const mapped = mapAuthErrorToToast({ mode: 'login', email: trimmed, error });
-      toast(mapped.toast);
+      const mapped = mapAuthErrorToToast({ mode: 'login', email: trimmed, error })
+      toast(mapped.toast)
     } finally {
-      setResetSending(false);
+      setResetSending(false)
     }
-  };
-
-  const submitDisabled = useMemo(() => {
-    return loading || redirecting || isLockedOut;
-  }, [loading, redirecting, isLockedOut]);
-
-  useEffect(() => {
-    if (!isLockedOut) return;
-    const interval = setInterval(() => {
-      setCooldownSeconds((prev) => {
-        if (prev === null) return prev;
-        if (prev <= 1) return null;
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isLockedOut]);
-
-  const clearFieldError = (field: keyof FieldErrors) => {
-    setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  };
+  }
 
   const validateInputs = (): { ok: true; email: string; password: string; codename: string } | { ok: false } => {
-    const nextErrors: FieldErrors = {};
+    const nextErrors: FieldErrors = {}
+    const trimmedEmail = email.trim()
+    const trimmedCodename = codename.trim()
 
-    const trimmedEmail = email.trim();
-    const trimmedCodename = codename.trim();
+    if (!trimmedEmail) nextErrors.email = 'Email is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) nextErrors.email = 'Enter a valid email address'
 
-    if (!trimmedEmail) nextErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) nextErrors.email = 'Enter a valid email address';
+    if (!password) nextErrors.password = 'Password is required'
+    else if (mode === 'signup' && password.length < 8) nextErrors.password = 'Password must be at least 8 characters'
 
-    if (!password) nextErrors.password = 'Password is required';
-    else if (mode === 'signup' && password.length < 8) nextErrors.password = 'Password must be at least 8 characters';
+    if (mode === 'signup' && !trimmedCodename) nextErrors.codename = 'Codename is required'
 
-    if (mode === 'signup' && !trimmedCodename) nextErrors.codename = 'Codename is required';
+    setFieldErrors(nextErrors)
 
-    setFieldErrors(nextErrors);
-
-    const firstError = nextErrors.email || nextErrors.password || nextErrors.codename;
+    const firstError = nextErrors.email || nextErrors.password || nextErrors.codename
     if (firstError) {
       toast({
         status: 'WARN',
         title: 'CHECK YOUR INPUTS',
         message: firstError,
         sector: 'AUTH',
-      });
-      return { ok: false };
+      })
+      return { ok: false }
     }
 
-    return { ok: true, email: trimmedEmail, password, codename: trimmedCodename };
-  };
+    return { ok: true, email: trimmedEmail, password, codename: trimmedCodename }
+  }
 
   const handleSubmit = async () => {
-    if (submitDisabled) return;
+    if (submitDisabled) return
 
-    const validated = validateInputs();
-    if (!validated.ok) return;
+    const validated = validateInputs()
+    if (!validated.ok) return
 
     try {
       if (mode === 'login') {
-        await login(validated.email, validated.password);
+        await login(validated.email, validated.password)
         toast({
           status: 'OK',
-          title: 'IDENTITY VERIFIED',
-          message: 'Access granted. Redirecting to command center...',
+          title: 'WELCOME BACK',
+          message: 'Opening your dashboard.',
           sector: 'AUTH',
-        });
+        })
       } else {
-        await register(validated.email, validated.password, validated.codename);
+        await register(validated.email, validated.password, validated.codename)
         toast({
           status: 'OK',
-          title: 'IDENTITY CONFIRMED',
-          message: 'Account created. Redirecting to command center...',
+          title: 'ACCOUNT READY',
+          message: 'Your GongaFit space is ready.',
           sector: getEmailSector(validated.email),
-        });
+        })
       }
-      setRedirecting(true);
-      router.push('/dashboard');
+      setRedirecting(true)
+      router.push('/dashboard')
     } catch (error: any) {
-      const mapped = mapAuthErrorToToast({ mode, email: validated.email, error });
+      const mapped = mapAuthErrorToToast({ mode, email: validated.email, error })
       if (mode === 'signup' && mapped.toast.title === 'OPERATIVE EXISTS') {
-        setMode('login');
-        setCodename('');
-        setCapsLockOn(false);
+        setMode('login')
+        setCodename('')
+        setCapsLockOn(false)
       }
-      if (mapped.fieldErrors) setFieldErrors((prev) => ({ ...prev, ...mapped.fieldErrors }));
-      if (mapped.retryAfterSeconds) setCooldownSeconds(mapped.retryAfterSeconds);
-      toast(mapped.toast);
+      if (mapped.fieldErrors) setFieldErrors((prev) => ({ ...prev, ...mapped.fieldErrors }))
+      if (mapped.retryAfterSeconds) setCooldownSeconds(mapped.retryAfterSeconds)
+      toast(mapped.toast)
     }
-  };
+  }
 
   const handleEnterSubmit = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') handleSubmit();
-  };
+    if (event.key === 'Enter') handleSubmit()
+  }
 
   return (
-    <div className="relative min-h-screen w-full bg-black overflow-hidden font-sans text-slate-200 selection:bg-emerald-500/50 selection:text-black">
-      <div
-        className="absolute inset-0 z-50 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")"
-        }}
-      />
-      <div className="absolute inset-0 z-0">
-        <motion.div
-          key={bgImage}
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5 }}
-          className="absolute inset-0 bg-cover bg-center grayscale contrast-[1.2] brightness-50"
-          style={{ backgroundImage: `url(${bgImage})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
-      </div>
-      <div className="relative z-10 w-full h-screen flex flex-col md:flex-row">
-        <div className="flex-1 flex flex-col justify-center px-8 md:px-20 lg:px-32 relative">
-          <div className="absolute top-10 left-8 md:left-20 flex items-center space-x-3 opacity-80">
-            <div className="w-10 h-10 bg-emerald-600 flex items-center justify-center transform -skew-x-12 border border-emerald-400/30">
-              <Zap className="text-black w-6 h-6 fill-current" />
-            </div>
-            <span className="font-black text-xl tracking-[0.3em] text-slate-400">
-              FITSITE<span className="text-emerald-500">GONGA</span>
-            </span>
-          </div>
-          <div className="space-y-2 mt-20 md:mt-0">
-            <motion.h1
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="text-6xl md:text-8xl lg:text-9xl font-black leading-[0.85] tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-slate-100 to-slate-600 drop-shadow-2xl"
-            >
-              DOMINATE.
-            </motion.h1>
-            <motion.h1
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-              className="text-6xl md:text-8xl lg:text-9xl font-black leading-[0.85] tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-slate-400 to-slate-800 drop-shadow-2xl"
-            >
-              NO EXCUSES.
-            </motion.h1>
-          </div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-8 max-w-md"
-          >
-            <div className="h-1 w-12 bg-emerald-500/60 rounded-full mb-4" />
-            <p className="text-xs font-mono text-slate-500 uppercase tracking-[0.4em] mb-2">
-              {'// Activity Log'}
-            </p>
-            <div className="space-y-3 text-sm">
-              <div>
-                <p className="text-slate-300 font-semibold">Realtime Progress Amplified</p>
-                <p className="text-slate-400 font-mono text-[11px]">
-                  `progressRoutes.ts` emits <span className="text-emerald-400">progress:new</span> after each log so other clients immediately see the new reps/metrics.
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-300 font-semibold">Challenge Lifecycle Flow</p>
-                <p className="text-slate-400 font-mono text-[11px]">
-                  `challengeRoutes.ts` broadcasts <span className="text-emerald-400">challenge:created/updated</span> and <span className="text-emerald-400">challenge:deleted</span> when trainers author new missions.
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-300 font-semibold">Progress Photos Staged</p>
-                <p className="text-slate-400 font-mono text-[11px]">
-                  `storageRoutes.ts` signs each upload to AWS S3, keeping photo metadata ready for the progress feed.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-          {isAdmin && (
-            <div className="absolute bottom-10 left-8 md:left-20">
-              <button
-                onClick={() => setIsAdminOpen(true)}
-                className="group flex items-center space-x-2 text-slate-700 hover:text-emerald-500 transition-colors"
-              >
-                <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
-                <span className="text-[10px] uppercase font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                  Admin Protocol
-                </span>
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="w-full md:w-[500px] h-full bg-zinc-900/95 backdrop-blur-xl border-l border-white/5 shadow-2xl flex flex-col relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[1px] h-full bg-gradient-to-b from-transparent via-emerald-500/20 to-transparent" />
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <div className="p-12 pb-8 pt-20">
-            <h2 className="text-2xl font-bold tracking-widest text-slate-200 uppercase flex items-center gap-3">
-              <ShieldCheck className="w-6 h-6 text-emerald-600" />
-              {mode === 'login' ? 'Identify' : 'Enlist'}
-            </h2>
-            <p className="text-xs font-mono text-slate-500 mt-2 uppercase tracking-wide">
-              {mode === 'login'
-                ? 'Present Credentials for Access.'
-                : 'Begin your initiation.'}
-            </p>
-          </div>
-          <div className="flex-1 px-12 space-y-8">
-            <div className="group">
-              <label className="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 group-focus-within:text-emerald-500 transition-colors">
-                Email
-              </label>
-              <div className="relative">
-                <input
-                  value={email}
-                  onChange={(event) => {
-                    setEmail(event.target.value);
-                    clearFieldError('email');
-                  }}
-                  onKeyDown={handleEnterSubmit}
-                  type="email"
-                  autoComplete="email"
-                  aria-invalid={fieldErrors.email ? true : undefined}
-                  className={`w-full bg-black/40 border-b-2 ${fieldErrors.email ? 'border-red-500' : 'border-slate-700'} text-slate-200 py-4 px-2 font-mono text-sm focus:outline-none focus:border-emerald-500 transition-all placeholder:text-slate-700`}
-                  placeholder="Email address"
-                />
-                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] opacity-0 group-focus-within:opacity-100 transition-opacity" />
-              </div>
-              {fieldErrors.email && (
-                <p className="mt-2 text-[10px] font-mono text-red-400 tracking-wide">
-                  {fieldErrors.email}
-                </p>
-              )}
-            </div>
-            <div className="group">
-              <label className="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 group-focus-within:text-emerald-500 transition-colors">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  value={password}
-                  onChange={(event) => {
-                    setPassword(event.target.value);
-                    clearFieldError('password');
-                  }}
-                  onKeyDown={(event) => {
-                    setCapsLockOn(event.getModifierState('CapsLock'));
-                    handleEnterSubmit(event);
-                  }}
-                  type="password"
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                  aria-invalid={fieldErrors.password ? true : undefined}
-                  className={`w-full bg-black/40 border-b-2 ${fieldErrors.password ? 'border-red-500' : 'border-slate-700'} text-slate-200 py-4 px-2 font-mono text-sm focus:outline-none focus:border-emerald-500 transition-all placeholder:text-slate-700`}
-                  placeholder="Password"
-                />
-                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] opacity-0 group-focus-within:opacity-100 transition-opacity" />
-              </div>
-              <div className="mt-2 space-y-1">
-                {capsLockOn && (
-                  <p className="text-[10px] font-mono text-amber-400 tracking-wide">
-                    CAPS LOCK IS ON
-                  </p>
-                )}
-                {mode === 'signup' && (
-                  <p className="text-[10px] font-mono text-slate-500 tracking-wide">
-                    Minimum 8 characters
-                  </p>
-                )}
-                {fieldErrors.password && (
-                  <p className="text-[10px] font-mono text-red-400 tracking-wide">
-                    {fieldErrors.password}
-                  </p>
-                )}
-                {mode === 'login' && (
-                  <div className="pt-1 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={openResetModal}
-                      className="text-[10px] font-mono text-slate-500 hover:text-emerald-300 tracking-[0.35em] uppercase transition-colors"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            <AnimatePresence>
-              {mode === 'signup' && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden group"
-                >
-                  <label className="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 group-focus-within:text-emerald-500 transition-colors">
-                    Codename
-                  </label>
-                  <div className="relative">
-                    <input
-                      value={codename}
-                      onChange={(event) => {
-                        setCodename(event.target.value);
-                        clearFieldError('codename');
-                      }}
-                      onKeyDown={handleEnterSubmit}
-                      type="text"
-                      autoComplete="nickname"
-                      aria-invalid={fieldErrors.codename ? true : undefined}
-                      className={`w-full bg-black/40 border-b-2 ${fieldErrors.codename ? 'border-red-500' : 'border-slate-700'} text-slate-200 py-4 px-2 font-mono text-sm focus:outline-none focus:border-emerald-500 transition-all placeholder:text-slate-700`}
-                      placeholder="Codename (display name)"
-                    />
-                    <div className="absolute bottom-0 left-0 w-full h-[1px] bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                  </div>
-                  {fieldErrors.codename && (
-                    <p className="mt-2 text-[10px] font-mono text-red-400 tracking-wide">
-                      {fieldErrors.codename}
-                    </p>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <div className="pt-8">
-              <button
-                onClick={handleSubmit}
-                disabled={submitDisabled}
-                className="w-full relative group overflow-hidden bg-slate-800 hover:bg-emerald-900 transition-all duration-300 h-16 clip-corner-br disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
-                <div className="absolute bottom-0 left-0 h-1 w-full bg-emerald-600 group-hover:h-full transition-all duration-300 opacity-20" />
-                <div className="relative z-10 flex items-center justify-between px-6 h-full border border-slate-700 group-hover:border-emerald-500/50 transition-colors">
-                  <span className="font-black text-lg tracking-widest uppercase text-slate-300 group-hover:text-white">
-                    {redirecting
-                      ? 'Redirecting...'
-                      : isLockedOut
-                        ? `Wait ${cooldownSeconds}s`
-                        : loading
-                          ? 'Processing...'
-                          : mode === 'login'
-                            ? 'Engage'
-                            : 'Initialize'}
-                  </span>
-                  {submitDisabled ? (
-                    <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
-                  ) : (
-                    <ChevronRight className="w-6 h-6 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-                  )}
-                </div>
-              </button>
-            </div>
-          </div>
-          <div className="p-8 border-t border-slate-800 bg-black/20">
-            <div className="flex justify-between items-center text-xs font-mono text-slate-500">
-              <button
-                onClick={() => {
-                  setMode((m) => (m === 'login' ? 'signup' : 'login'));
-                  setFieldErrors({});
-                  setCooldownSeconds(null);
-                  setCapsLockOn(false);
-                  setResetOpen(false);
-                  setResetSent(false);
-                }}
-                className="text-[10px] tracking-[0.6em] font-black uppercase px-3 py-2 border border-emerald-500/40 rounded-sm bg-white/5 hover:bg-emerald-500/10 transition-colors text-slate-100 shadow-[0_0_25px_rgba(16,185,129,0.25)] flex items-center gap-1"
-              >
-                {mode === 'login' ? 'NEW ACCOUNT' : 'BACK TO LOGIN'}
-              </button>
-              <span className="flex items-center gap-1">
-                <Lock className="w-3 h-3" /> SECURE
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <AnimatePresence>
-        {resetOpen && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-lg bg-zinc-900 border border-slate-700 p-8 rounded-none shadow-2xl relative"
-            >
+    <div className="min-h-screen overflow-hidden bg-[#f7fbff] text-[#172033] selection:bg-[#d7fb48] selection:text-[#172033]">
+      <main className="min-h-screen p-3 sm:p-5 lg:p-7">
+        <section className="relative min-h-[calc(100vh-1.5rem)] overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_24px_80px_rgba(35,96,136,0.18)] sm:min-h-[calc(100vh-2.5rem)] lg:min-h-[calc(100vh-3.5rem)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-[#effaff] to-[#b7efff]" />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentSlide.imageUrl}
+              src={currentSlide.imageUrl}
+              alt=""
+              initial={{ opacity: 0, scale: 1.03 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.55, ease: 'easeOut' }}
+              className="absolute bottom-0 right-0 top-0 hidden h-full w-[68%] object-cover object-center lg:block"
+            />
+          </AnimatePresence>
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-white via-white/90 to-white/16 lg:block" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#e6f8ff] to-transparent" />
+
+          <div className="relative z-10 flex min-h-[calc(100vh-1.5rem)] flex-col sm:min-h-[calc(100vh-2.5rem)] lg:min-h-[calc(100vh-3.5rem)]">
+            <header className="flex items-center justify-between gap-4 px-5 py-5 sm:px-8 lg:px-10">
               <button
                 type="button"
-                onClick={() => {
-                  setResetOpen(false);
-                  setResetSent(false);
-                }}
-                className="absolute top-4 right-4 text-slate-500 hover:text-white"
-                aria-label="Close password reset"
+                className="flex items-center gap-3"
+                aria-label="GongaFit home"
+                onClick={() => router.push('/')}
               >
-                <X className="w-6 h-6" />
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff5d4f] text-3xl font-black text-white shadow-[0_10px_20px_rgba(255,93,79,0.28)]">
+                  G
+                </span>
+                <span className="text-2xl font-black text-[#172033]">
+                  Gonga<span className="text-[#ff5d4f]">Fit</span>
+                </span>
               </button>
 
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
-                <ShieldCheck className="text-emerald-500 w-6 h-6" />
-                <h3 className="font-bold text-xl tracking-widest uppercase">Password Reset</h3>
-              </div>
+              <nav className="hidden items-center gap-8 text-sm font-black text-[#172033] lg:flex">
+                <span>Workouts</span>
+                <span>Programs</span>
+                <span>Community</span>
+                <span>Progress</span>
+              </nav>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                    Email
-                  </label>
-                  <input
-                    value={resetEmail}
-                    onChange={(event) => setResetEmail(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') handleSendReset();
-                    }}
-                    type="email"
-                    autoComplete="email"
-                    placeholder="Email address"
-                    className="w-full bg-black border border-slate-700 p-3 text-sm text-emerald-400 font-mono focus:outline-none focus:border-emerald-500"
-                  />
-                  <p className="text-[10px] text-slate-600 mt-2 font-mono">
-                    If the account exists, a reset link will be sent.
-                  </p>
-                </div>
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                className="hidden items-center gap-2 rounded-full bg-[#d7fb48] px-5 py-3 text-sm font-black text-[#172033] shadow-[0_12px_24px_rgba(111,153,7,0.22)] transition hover:-translate-y-0.5 hover:bg-[#cafa2d] sm:inline-flex"
+              >
+                Start training
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </header>
 
-                <button
-                  type="button"
-                  onClick={handleSendReset}
-                  disabled={resetSending}
-                  className="w-full bg-slate-800 border border-slate-700 hover:bg-emerald-900 hover:border-emerald-500/50 transition-colors px-4 py-3 text-xs font-black tracking-[0.4em] uppercase text-slate-100 disabled:opacity-60 disabled:cursor-not-allowed"
+            <div className="grid flex-1 auto-rows-max content-start items-start gap-6 px-5 pb-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-center lg:px-10 lg:pb-24">
+              <div className="max-w-4xl pt-5 lg:pt-0">
+                <motion.h1
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, ease: 'easeOut' }}
+                  className="max-w-3xl text-5xl font-black leading-[0.96] text-[#172033] sm:text-7xl lg:text-8xl"
                 >
-                  {resetSending ? 'SENDING...' : resetSent ? 'SEND AGAIN' : 'SEND RESET LINK'}
-                </button>
+                  Find your <span className="text-[#ff5d4f]">fun</span> fit
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.08, ease: 'easeOut' }}
+                  className="mt-4 max-w-xl text-lg font-medium leading-7 text-[#4b5870] sm:mt-6 sm:text-xl sm:leading-8"
+                >
+                  Move with coaches, friends, and goals that feel good.
+                </motion.p>
 
-                {resetSent && (
-                  <div className="border border-emerald-500/25 bg-emerald-500/5 p-3 text-[10px] text-emerald-300 font-mono tracking-[0.25em] uppercase">
-                    Check your inbox. Link expires soon.
-                  </div>
-                )}
+                <motion.div
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.14, ease: 'easeOut' }}
+                  className="mt-6 flex flex-wrap gap-3 sm:mt-8 sm:gap-4"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="inline-flex h-14 items-center gap-3 rounded-full bg-[#ff5d4f] px-6 text-base font-black text-white shadow-[0_16px_30px_rgba(255,93,79,0.3)] transition hover:-translate-y-0.5 hover:bg-[#ff4939]"
+                  >
+                    Start training
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode('login')}
+                    className="inline-flex h-14 items-center rounded-full border border-[#d7e4ee] bg-white/90 px-6 text-base font-black text-[#172033] shadow-[0_10px_24px_rgba(35,96,136,0.12)] transition hover:-translate-y-0.5 hover:border-[#ffb6ad]"
+                  >
+                    Log in
+                  </button>
+                </motion.div>
+
+                <div className="mt-10 hidden max-w-2xl grid-cols-3 gap-3 lg:grid">
+                  {people.map((person) => (
+                    <PersonCard key={person.id} person={person} />
+                  ))}
+                </div>
+
+                <div className="mt-6 hidden max-w-3xl flex-wrap gap-3 lg:flex">
+                  {workoutChips.map(({ label, Icon, color, bg }) => (
+                    <span
+                      key={label}
+                      className="inline-flex items-center gap-2 rounded-full border border-white bg-white/90 px-4 py-3 text-sm font-black text-[#172033] shadow-[0_10px_20px_rgba(35,96,136,0.12)]"
+                    >
+                      <span
+                        className="flex h-8 w-8 items-center justify-center rounded-full"
+                        style={{ backgroundColor: bg, color }}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      {label}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </motion.div>
+
+              <AuthPanel
+                mode={mode}
+                setMode={setMode}
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+                codename={codename}
+                setCodename={setCodename}
+                fieldErrors={fieldErrors}
+                clearFieldError={clearFieldError}
+                capsLockOn={capsLockOn}
+                setCapsLockOn={setCapsLockOn}
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                submitDisabled={submitDisabled}
+                redirecting={redirecting}
+                isLockedOut={isLockedOut}
+                cooldownSeconds={cooldownSeconds}
+                loading={loading}
+                handleSubmit={handleSubmit}
+                handleEnterSubmit={handleEnterSubmit}
+                openResetModal={openResetModal}
+              />
+
+              <div className="lg:hidden">
+                <TrainerSlideshow
+                  activeSlide={activeSlide}
+                  setActiveSlide={setActiveSlide}
+                  className="mb-5"
+                />
+                <div className="grid grid-cols-3 gap-3">
+                  {people.map((person) => (
+                    <PersonCard key={person.id} person={person} />
+                  ))}
+                </div>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {workoutChips.map(({ label, Icon, color, bg }) => (
+                    <span
+                      key={label}
+                      className="inline-flex items-center gap-2 rounded-full border border-white bg-white/90 px-4 py-3 text-sm font-black text-[#172033] shadow-[0_10px_20px_rgba(35,96,136,0.12)]"
+                    >
+                      <span
+                        className="flex h-8 w-8 items-center justify-center rounded-full"
+                        style={{ backgroundColor: bg, color }}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-32 right-[470px] z-20 hidden gap-2 lg:flex">
+              {trainerSlides.map((item, index) => (
+                <button
+                  key={item.imageUrl}
+                  type="button"
+                  onClick={() => setActiveSlide(index)}
+                  className={`h-2 rounded-full transition-all ${
+                    index === activeSlide ? 'w-8 bg-[#ff5d4f]' : 'w-2 bg-white/80 hover:bg-white'
+                  }`}
+                  aria-label={`Show ${item.title}`}
+                />
+              ))}
+            </div>
+
+            <div className="relative z-10 mx-5 mb-5 rounded-[28px] bg-white/92 px-6 py-6 shadow-[0_18px_44px_rgba(35,96,136,0.14)] sm:mx-8 lg:mx-10">
+              <div className="grid gap-5 lg:grid-cols-[1.2fr_repeat(3,1fr)] lg:items-center">
+                <h2 className="text-3xl font-black leading-tight text-[#172033]">
+                  All the tools to reach your goals
+                </h2>
+                {toolHighlights.map(({ title, body, Icon, color }) => (
+                  <div key={title} className="flex items-center gap-4">
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-[#172033]" style={{ backgroundColor: color }}>
+                      <Icon className="h-6 w-6" />
+                    </span>
+                    <div>
+                      <p className="font-black text-[#172033]">{title}</p>
+                      <p className="text-sm font-medium leading-5 text-[#657185]">{body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </section>
+      </main>
+
       <AnimatePresence>
-        {isAdmin && isAdminOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-lg bg-zinc-900 border border-slate-700 p-8 rounded-none shadow-2xl relative"
-            >
-              <button
-                onClick={() => setIsAdminOpen(false)}
-                className="absolute top-4 right-4 text-slate-500 hover:text-white"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
-                <Settings className="text-emerald-500 w-6 h-6" />
-                <h3 className="font-bold text-xl tracking-widest uppercase">Admin Command</h3>
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                    Global Background Source (URL)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      value={tempBgInput}
-                      onChange={(e) => setTempBgInput(e.target.value)}
-                      placeholder="https://..."
-                      className="flex-1 bg-black border border-slate-700 p-3 text-sm text-emerald-400 font-mono focus:outline-none focus:border-emerald-500"
-                    />
-                    <button className="bg-slate-800 p-3 border border-slate-700 hover:bg-slate-700">
-                      <Upload className="w-5 h-5 text-slate-300" />
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-600 mt-2">
-                    Paste a high-res image URL to override the facility backdrop.
-                  </p>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div
-                    className="h-16 bg-slate-800 cursor-pointer hover:ring-2 ring-emerald-500 bg-cover bg-center opacity-50 hover:opacity-100 transition-all"
-                    onClick={() =>
-                      setBgImage(
-                        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop'
-                      )
-                    }
-                    style={{
-                      backgroundImage:
-                        'url(https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop)'
-                    }}
-                  />
-                  <div
-                    className="h-16 bg-slate-800 cursor-pointer hover:ring-2 ring-emerald-500 bg-cover bg-center opacity-50 hover:opacity-100 transition-all"
-                    onClick={() =>
-                      setBgImage(
-                        'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop'
-                      )
-                    }
-                    style={{
-                      backgroundImage:
-                        'url(https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop)'
-                    }}
-                  />
-                  <div
-                    className="h-16 bg-slate-800 cursor-pointer hover:ring-2 ring-emerald-500 bg-cover bg-center opacity-50 hover:opacity-100 transition-all"
-                    onClick={() =>
-                      setBgImage(
-                        'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=2069&auto=format&fit=crop'
-                      )
-                    }
-                    style={{
-                      backgroundImage:
-                        'url(https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=2069&auto=format&fit=crop)'
-                    }}
-                  />
-                </div>
-              </div>
-              <button
-                onClick={handleAdminSave}
-                className="w-full mt-8 bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase py-4 tracking-widest transition-all"
-              >
-                Execute Update
-              </button>
-            </motion.div>
-          </div>
+        {resetOpen && (
+          <ResetModal
+            resetEmail={resetEmail}
+            setResetEmail={setResetEmail}
+            resetSending={resetSending}
+            resetSent={resetSent}
+            onClose={() => {
+              setResetOpen(false)
+              setResetSent(false)
+            }}
+            onSubmit={handleSendReset}
+          />
         )}
       </AnimatePresence>
     </div>
-  );
+  )
+}
+
+function PersonCard({ person }: { person: HomepagePerson }) {
+  return (
+    <div className="overflow-hidden rounded-2xl bg-white shadow-[0_14px_30px_rgba(35,96,136,0.18)]">
+      <div className="h-28 bg-[#effaff] sm:h-32 lg:h-24" style={{ backgroundColor: person.accent }}>
+        <img src={person.imageUrl} alt="" className="h-full w-full object-cover object-top" />
+      </div>
+      <div className="min-h-[72px] px-2 py-3 text-center sm:px-3">
+        <p className="text-sm font-black leading-tight text-[#172033] sm:text-base lg:text-lg">{person.name}</p>
+        <p className="mt-1 text-[11px] font-bold leading-tight text-[#657185] sm:text-xs">{person.role}</p>
+      </div>
+    </div>
+  )
+}
+
+function TrainerSlideshow({
+  activeSlide,
+  setActiveSlide,
+  className = '',
+  compact = false,
+}: {
+  activeSlide: number
+  setActiveSlide: (index: number) => void
+  className?: string
+  compact?: boolean
+}) {
+  const slide = trainerSlides[activeSlide]
+
+  return (
+    <div className={`overflow-hidden rounded-[24px] bg-white/92 shadow-[0_18px_44px_rgba(35,96,136,0.18)] backdrop-blur ${className}`}>
+      <div className={compact ? 'h-40' : 'h-56 sm:h-64'}>
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={slide.imageUrl}
+            src={slide.imageUrl}
+            alt=""
+            initial={{ opacity: 0, scale: 1.03 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className="h-full w-full object-cover object-top"
+          />
+        </AnimatePresence>
+      </div>
+      <div className="p-4">
+        <p className="text-base font-black text-[#172033]">{slide.title}</p>
+        {!compact && <p className="mt-1 text-sm font-medium leading-5 text-[#657185]">{slide.body}</p>}
+        <div className="mt-3 flex gap-2">
+          {trainerSlides.map((item, index) => (
+            <button
+              key={item.imageUrl}
+              type="button"
+              onClick={() => setActiveSlide(index)}
+              className={`h-2 rounded-full transition-all ${
+                index === activeSlide ? 'w-7 bg-[#ff5d4f]' : 'w-2 bg-[#d6e1ea] hover:bg-[#aab4c1]'
+              }`}
+              aria-label={`Show ${item.title}`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type AuthPanelProps = {
+  mode: AuthMode
+  setMode: (mode: AuthMode) => void
+  email: string
+  setEmail: (value: string) => void
+  password: string
+  setPassword: (value: string) => void
+  codename: string
+  setCodename: (value: string) => void
+  fieldErrors: FieldErrors
+  clearFieldError: (field: keyof FieldErrors) => void
+  capsLockOn: boolean
+  setCapsLockOn: (value: boolean) => void
+  showPassword: boolean
+  setShowPassword: (value: boolean) => void
+  submitDisabled: boolean
+  redirecting: boolean
+  isLockedOut: boolean
+  cooldownSeconds: number | null
+  loading: boolean
+  handleSubmit: () => void
+  handleEnterSubmit: (event: KeyboardEvent<HTMLInputElement>) => void
+  openResetModal: () => void
+}
+
+function AuthPanel({
+  mode,
+  setMode,
+  email,
+  setEmail,
+  password,
+  setPassword,
+  codename,
+  setCodename,
+  fieldErrors,
+  clearFieldError,
+  capsLockOn,
+  setCapsLockOn,
+  showPassword,
+  setShowPassword,
+  submitDisabled,
+  redirecting,
+  isLockedOut,
+  cooldownSeconds,
+  loading,
+  handleSubmit,
+  handleEnterSubmit,
+  openResetModal,
+}: AuthPanelProps) {
+  return (
+    <motion.aside
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: 0.1, ease: 'easeOut' }}
+      className="rounded-[30px] border border-white bg-white/95 p-6 shadow-[0_24px_70px_rgba(35,96,136,0.22)] backdrop-blur md:p-8"
+    >
+      <div className="mb-7 flex items-center justify-between gap-5">
+        <div>
+          <h2 className="text-4xl font-black text-[#172033]">{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
+          <p className="mt-2 text-base font-medium text-[#657185]">
+            {mode === 'login' ? "Welcome back. Let's get you moving." : 'Create your GongaFit account.'}
+          </p>
+        </div>
+        <img src={mascotImage} alt="" className="h-20 w-20 rounded-3xl object-cover shadow-[0_12px_24px_rgba(255,190,35,0.25)]" />
+      </div>
+
+      <div className="space-y-4">
+        <label className="block text-sm font-black text-[#172033]">
+          Email
+          <span
+            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-white px-4 ${
+              fieldErrors.email ? 'border-[#ff5d4f]' : 'border-[#d6e1ea]'
+            }`}
+          >
+            <Mail className="h-5 w-5 text-[#657185]" />
+            <input
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                clearFieldError('email')
+              }}
+              onKeyDown={handleEnterSubmit}
+              type="email"
+              autoComplete="email"
+              aria-invalid={fieldErrors.email ? true : undefined}
+              placeholder="you@example.com"
+              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#172033] outline-none placeholder:text-[#aab4c1]"
+            />
+          </span>
+        </label>
+        {fieldErrors.email && <p className="-mt-2 text-xs font-bold text-[#ff5d4f]">{fieldErrors.email}</p>}
+
+        <label className="block text-sm font-black text-[#172033]">
+          Password
+          <span
+            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-white px-4 ${
+              fieldErrors.password ? 'border-[#ff5d4f]' : 'border-[#d6e1ea]'
+            }`}
+          >
+            <LockKeyhole className="h-5 w-5 text-[#657185]" />
+            <input
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value)
+                clearFieldError('password')
+              }}
+              onKeyDown={(event) => {
+                setCapsLockOn(event.getModifierState('CapsLock'))
+                handleEnterSubmit(event)
+              }}
+              type={showPassword ? 'text' : 'password'}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              aria-invalid={fieldErrors.password ? true : undefined}
+              placeholder="Enter your password"
+              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#172033] outline-none placeholder:text-[#aab4c1]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-[#657185] transition hover:text-[#172033]"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </span>
+        </label>
+
+        {(fieldErrors.password || capsLockOn || mode === 'login') && (
+          <div className="-mt-2 flex items-start justify-between gap-3">
+            <div>
+              {fieldErrors.password && <p className="text-xs font-bold text-[#ff5d4f]">{fieldErrors.password}</p>}
+              {capsLockOn && <p className="text-xs font-bold text-[#f2a51f]">Caps lock is on</p>}
+            </div>
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={openResetModal}
+                className="shrink-0 text-xs font-black text-[#ff5d4f] transition hover:text-[#df3e31]"
+              >
+                Forgot password?
+              </button>
+            )}
+          </div>
+        )}
+
+        <AnimatePresence initial={false}>
+          {mode === 'signup' && (
+            <motion.label
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="block overflow-hidden text-sm font-black text-[#172033]"
+            >
+              Display name
+              <span
+                className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-white px-4 ${
+                  fieldErrors.codename ? 'border-[#ff5d4f]' : 'border-[#d6e1ea]'
+                }`}
+              >
+                <Users className="h-5 w-5 text-[#657185]" />
+                <input
+                  value={codename}
+                  onChange={(event) => {
+                    setCodename(event.target.value)
+                    clearFieldError('codename')
+                  }}
+                  onKeyDown={handleEnterSubmit}
+                  type="text"
+                  autoComplete="nickname"
+                  aria-invalid={fieldErrors.codename ? true : undefined}
+                  placeholder="Your name"
+                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#172033] outline-none placeholder:text-[#aab4c1]"
+                />
+              </span>
+              {fieldErrors.codename && <p className="mt-2 text-xs font-bold text-[#ff5d4f]">{fieldErrors.codename}</p>}
+            </motion.label>
+          )}
+        </AnimatePresence>
+
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitDisabled}
+          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#ff5d4f] text-base font-black text-white shadow-[0_14px_28px_rgba(255,93,79,0.32)] transition hover:-translate-y-0.5 hover:bg-[#ff4939] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {redirecting
+            ? 'Opening...'
+            : isLockedOut
+              ? `Wait ${cooldownSeconds}s`
+              : loading
+                ? 'Working...'
+                : mode === 'login'
+                  ? 'Log in'
+                  : 'Create account'}
+          {submitDisabled ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
+        </button>
+
+        <div className="flex items-center justify-center gap-2 pt-2 text-sm font-semibold text-[#657185]">
+          <span>{mode === 'login' ? 'New here?' : 'Already moving?'}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setMode(mode === 'login' ? 'signup' : 'login')
+              setCodename('')
+            }}
+            className="font-black text-[#ff5d4f] transition hover:text-[#df3e31]"
+          >
+            {mode === 'login' ? 'Sign up' : 'Log in'}
+          </button>
+        </div>
+      </div>
+    </motion.aside>
+  )
+}
+
+type ResetModalProps = {
+  resetEmail: string
+  setResetEmail: (value: string) => void
+  resetSending: boolean
+  resetSent: boolean
+  onClose: () => void
+  onSubmit: () => void
+}
+
+function ResetModal({ resetEmail, setResetEmail, resetSending, resetSent, onClose, onSubmit }: ResetModalProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#172033]/60 p-4 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 18, scale: 0.98 }}
+        className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_24px_70px_rgba(23,32,51,0.24)]"
+      >
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-3xl font-black text-[#172033]">Password reset</h3>
+            <p className="mt-2 text-sm font-medium text-[#657185]">Email delivery is disabled for now.</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-full p-2 text-[#657185] transition hover:bg-[#f1f6fb] hover:text-[#172033]" aria-label="Close password reset">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <label className="block text-sm font-black text-[#172033]">
+          Email
+          <input
+            value={resetEmail}
+            onChange={(event) => setResetEmail(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') onSubmit()
+            }}
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            className="mt-2 h-12 w-full rounded-2xl border border-[#d6e1ea] bg-white px-4 text-sm font-semibold text-[#172033] outline-none placeholder:text-[#aab4c1] focus:border-[#ff5d4f]"
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={resetSending}
+          className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#172033] text-sm font-black text-white transition hover:bg-[#26334d] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {resetSending ? 'Checking...' : resetSent ? 'Request again' : 'Request reset help'}
+          {resetSending && <Loader2 className="h-4 w-4 animate-spin" />}
+        </button>
+
+        {resetSent && (
+          <p className="mt-4 rounded-2xl bg-[#f5ffd9] px-4 py-3 text-sm font-bold text-[#4b6500]">
+            Contact an admin to generate a reset link.
+          </p>
+        )}
+      </motion.div>
+    </div>
+  )
 }

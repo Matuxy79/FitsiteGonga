@@ -1,11 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
-import { randomBytes, createHash } from 'crypto';
+import { createHash } from 'crypto';
 import { userRepository } from '../repositories/userRepository';
-import { passwordResetTokenRepository } from '../repositories/passwordResetTokenRepository';
 import { authService } from '../services/authService';
-import { emailService } from '../services/emailService';
 import { authenticateJWT } from '../middleware/authMiddleware';
 import prisma from '../db/client';
 
@@ -113,14 +111,14 @@ router.post('/register', registerLimiter, async (req, res) => {
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -175,14 +173,14 @@ router.post('/login', loginLimiter, async (req, res) => {
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -236,7 +234,7 @@ router.post('/refresh', async (req, res) => {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 15 * 60 * 1000,
     });
 
@@ -277,42 +275,14 @@ router.get('/me', authenticateJWT, async (req, res) => {
 
 /**
  * POST /api/auth/forgot-password
- * Request password reset email (always responds 200 to prevent account enumeration)
+ * Email-based password reset delivery is disabled.
  */
 router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
   try {
-    const validated = forgotPasswordSchema.parse(req.body);
-    const email = validated.email.trim();
-
-    const user = await userRepository.findByEmail(email);
-
-    if (user) {
-      const rawToken = randomBytes(32).toString('hex');
-      const tokenHash = createHash('sha256').update(rawToken).digest('hex');
-
-      const ttlCandidate = Number(process.env.PASSWORD_RESET_TTL_MINUTES);
-      const ttlMinutes = Number.isFinite(ttlCandidate) && ttlCandidate > 0 ? ttlCandidate : 60;
-      const expiresAt = new Date(Date.now() + Math.max(5, ttlMinutes) * 60 * 1000);
-
-      await passwordResetTokenRepository.deleteActiveForUser(user.id);
-      await passwordResetTokenRepository.createForUser({
-        userId: user.id,
-        tokenHash,
-        expiresAt,
-      });
-
-      const frontendUrl = emailService.getFrontendUrl().replace(/\/$/, '');
-      const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
-
-      try {
-        await emailService.sendPasswordResetEmail({ to: user.email, resetUrl });
-      } catch (error) {
-        console.error('Forgot password email failed:', error);
-      }
-    }
+    forgotPasswordSchema.parse(req.body);
 
     res.json({
-      message: 'If that email exists, a reset link has been sent.',
+      message: 'Password reset email delivery is disabled. Contact an admin for a reset link.',
     });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
@@ -325,7 +295,7 @@ router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
 
 /**
  * POST /api/auth/reset-password
- * Reset password using emailed token
+ * Reset password using a valid reset token.
  */
 router.post('/reset-password', resetPasswordLimiter, async (req, res) => {
   try {
@@ -381,5 +351,3 @@ router.post('/reset-password', resetPasswordLimiter, async (req, res) => {
 });
 
 export default router;
-
-
