@@ -54,6 +54,28 @@ export interface ProgressLog {
   challenge?: Challenge;
 }
 
+export interface ProgressReaction {
+  id: string;
+  reaction: string;
+  user_id?: string;
+}
+
+export interface ProgressEntryProps {
+  log: ProgressLog;
+  user: User;
+  onReact: (reaction: string) => void;
+  onComment: (comment: string) => void;
+  canEdit?: boolean;
+  reactions?: ProgressReaction[];
+}
+
+export interface ProgressFeedProps {
+  logs: ProgressLog[];
+  onReact: (logId: string, reaction: string) => void;
+  onComment: (logId: string, comment: string) => void;
+  currentUserId: string;
+}
+
 // -----------------------------------------------------------------------------
 // ACHIEVEMENTS
 // -----------------------------------------------------------------------------

@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../db/client';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
-import { passwordResetService } from '../services/passwordResetService';
 
 const router: Router = Router();
 
@@ -270,40 +269,6 @@ router.put('/users/:id/role', async (req, res) => {
     }
     console.error('Admin update role error:', error);
     res.status(500).json({ error: 'Failed to update role' });
-  }
-});
-
-/**
- * POST /api/admin/users/:id/password-reset
- * Create a manual password reset link for a specific user.
- */
-router.post('/users/:id/password-reset', async (req, res) => {
-  try {
-    const { id } = userIdParamsSchema.parse(req.params);
-
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: { id: true, email: true },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const resetLink = await passwordResetService.createResetLinkForUser(user.id);
-
-    res.json({
-      message: 'Password reset link created. No email was sent.',
-      resetUrl: resetLink.resetUrl,
-      expiresAt: resetLink.expiresAt.toISOString(),
-      delivery: 'manual',
-    });
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation error', details: error.errors });
-    }
-    console.error('Admin password reset error:', error);
-    res.status(500).json({ error: 'Failed to request password reset' });
   }
 });
 

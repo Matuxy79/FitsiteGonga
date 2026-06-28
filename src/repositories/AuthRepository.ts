@@ -40,20 +40,20 @@ interface RawUser {
 }
 
 const roleMap: Record<string, FitnessUser['role']> = {
-  CLIENT: 'client',
-  TRAINER: 'trainer',
-  ADMIN: 'admin',
+  CLIENT: 'CLIENT',
+  TRAINER: 'TRAINER',
+  ADMIN: 'ADMIN',
 }
 
 const levelMap: Record<string, FitnessUser['fitness_level']> = {
-  BEGINNER: 'beginner',
-  INTERMEDIATE: 'intermediate',
-  ADVANCED: 'advanced',
+  BEGINNER: 'BEGINNER',
+  INTERMEDIATE: 'INTERMEDIATE',
+  ADVANCED: 'ADVANCED',
 }
 
 function normalizeUser(raw: RawUser): FitnessUser {
-  const normalizedRole = roleMap[raw.role?.toUpperCase() || ''] || 'client'
-  const normalizedLevel = levelMap[raw.fitness_level?.toUpperCase() || ''] || 'beginner'
+  const normalizedRole = roleMap[raw.role?.toUpperCase() || ''] || 'CLIENT'
+  const normalizedLevel = levelMap[raw.fitness_level?.toUpperCase() || ''] || 'BEGINNER'
   return {
     id: raw.id,
     email: raw.email,
@@ -129,11 +129,4 @@ export const AuthRepository = {
     return normalizeUser(payload.user)
   },
 
-  async requestPasswordReset(email: string): Promise<{ message: string }> {
-    return apiClient.post<{ message: string }>('/api/auth/forgot-password', { email })
-  },
-
-  async resetPassword(params: { token: string; password: string }): Promise<{ message: string }> {
-    return apiClient.post<{ message: string }>('/api/auth/reset-password', params)
-  },
 }

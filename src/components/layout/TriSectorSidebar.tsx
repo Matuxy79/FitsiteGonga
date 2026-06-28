@@ -263,7 +263,7 @@ export function TriSectorSidebar({
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-                // {currentSector.code}
+                {'//'} {currentSector.code}
               </div>
               <div 
                 className="mt-2 text-sm font-black tracking-[0.35em] uppercase"
@@ -497,7 +497,7 @@ export function TriSectorSidebar({
         {/* Status Footer */}
         <div className="mt-auto p-4 border-t border-white/5">
           <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-            // STATUS
+            {'// STATUS'}
           </div>
           <div className="mt-2 flex items-center justify-between text-xs font-mono">
             <span className="text-slate-500">OPERATOR</span>

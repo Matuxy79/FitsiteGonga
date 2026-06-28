@@ -2,17 +2,17 @@ import apiClient from '@/lib/apiClient'
 import type { ProgressLog } from '@/types/fitness'
 
 const categoryFromApi: Record<string, string> = {
-  STRENGTH: 'strength',
-  CARDIO: 'cardio',
-  NUTRITION: 'nutrition',
-  CUSTOM: 'custom',
+  STRENGTH: 'STRENGTH',
+  CARDIO: 'CARDIO',
+  NUTRITION: 'NUTRITION',
+  CUSTOM: 'CUSTOM',
 }
 
 const typeFromApi: Record<string, string> = {
-  DURATION: 'duration',
-  REPETITION: 'repetition',
-  DISTANCE: 'distance',
-  CUSTOM: 'custom',
+  DURATION: 'DURATION',
+  REPETITION: 'REPETITION',
+  DISTANCE: 'DISTANCE',
+  CUSTOM: 'CUSTOM',
 }
 
 function normalizeProgressLog(raw: any): ProgressLog {

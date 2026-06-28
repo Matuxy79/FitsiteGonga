@@ -35,9 +35,9 @@ export function ProgressInput({ challenge, onLogProgress, disabled = false }: Pr
     }
   }
 
-  const quickValues = challenge.type === 'duration' 
+  const quickValues = challenge.type === 'DURATION'
     ? [15, 30, 45, 60, 90] 
-    : challenge.type === 'distance'
+    : challenge.type === 'DISTANCE'
     ? [1, 2, 3, 5, 10]
     : [5, 10, 15, 20, 25]
 

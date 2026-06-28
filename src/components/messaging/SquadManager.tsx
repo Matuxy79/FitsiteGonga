@@ -163,7 +163,7 @@ export function SquadManager({
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-              // ALPHA SQUADS
+              {'// ALPHA SQUADS'}
             </div>
             <h2 className="mt-1 text-lg font-bold text-slate-100 tracking-wide">
               {view === 'create' ? 'Create Squad' : view === 'discover' ? 'Discover Squads' : 'Your Squads'}

@@ -4,6 +4,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const nextConfig = {
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
   images: {
     domains: ['localhost'],
     remotePatterns: [

@@ -10,31 +10,31 @@ type ApiCreateChallengePayload = Omit<CreateChallengePayload, 'category' | 'type
 }
 
 const categoryFromApi: Record<string, CategoryIn> = {
-  STRENGTH: 'strength',
-  CARDIO: 'cardio',
-  NUTRITION: 'nutrition',
-  CUSTOM: 'custom',
+  STRENGTH: 'STRENGTH',
+  CARDIO: 'CARDIO',
+  NUTRITION: 'NUTRITION',
+  CUSTOM: 'CUSTOM',
 }
 
 const typeFromApi: Record<string, TypeIn> = {
-  DURATION: 'duration',
-  REPETITION: 'repetition',
-  DISTANCE: 'distance',
-  CUSTOM: 'custom',
+  DURATION: 'DURATION',
+  REPETITION: 'REPETITION',
+  DISTANCE: 'DISTANCE',
+  CUSTOM: 'CUSTOM',
 }
 
 const categoryToApi: Record<CategoryIn, string> = {
-  strength: 'STRENGTH',
-  cardio: 'CARDIO',
-  nutrition: 'NUTRITION',
-  custom: 'CUSTOM',
+  STRENGTH: 'STRENGTH',
+  CARDIO: 'CARDIO',
+  NUTRITION: 'NUTRITION',
+  CUSTOM: 'CUSTOM',
 }
 
 const typeToApi: Record<TypeIn, string> = {
-  duration: 'DURATION',
-  repetition: 'REPETITION',
-  distance: 'DISTANCE',
-  custom: 'CUSTOM',
+  DURATION: 'DURATION',
+  REPETITION: 'REPETITION',
+  DISTANCE: 'DISTANCE',
+  CUSTOM: 'CUSTOM',
 }
 
 function normalizeChallenge(raw: any): Challenge {
@@ -43,8 +43,8 @@ function normalizeChallenge(raw: any): Challenge {
 
   return {
     ...raw,
-    category: categoryFromApi[categoryKey] || 'custom',
-    type: typeFromApi[typeKey] || 'custom',
+    category: categoryFromApi[categoryKey] || 'CUSTOM',
+    type: typeFromApi[typeKey] || 'CUSTOM',
   }
 }
 

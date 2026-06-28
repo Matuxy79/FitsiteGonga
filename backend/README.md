@@ -39,7 +39,6 @@ See `.env.example` for required variables:
 - `DATABASE_URL` - PostgreSQL connection string
 - `JWT_SECRET` - Secret for access tokens (32+ chars)
 - `JWT_REFRESH_SECRET` - Secret for refresh tokens
-- `PASSWORD_RESET_TTL_MINUTES` - Password reset link expiry (minutes, default: 60)
 - `RAILWAY_OBJECT_STORAGE_ENDPOINT` - S3-compatible object storage endpoint (e.g. `https://your-project.railway.app`)
 - `RAILWAY_OBJECT_STORAGE_ACCESS_KEY_ID` - Object storage access key
 - `RAILWAY_OBJECT_STORAGE_SECRET_ACCESS_KEY` - Object storage secret key
@@ -83,8 +82,6 @@ npm start
 - `POST /api/auth/refresh` - Refresh access token
 - `POST /api/auth/logout` - Logout user
 - `GET /api/auth/me` - Get current user
-- `POST /api/auth/forgot-password` - Return password-reset guidance; email delivery is disabled
-- `POST /api/auth/reset-password` - Reset password using token
 
 ### Challenges
 
