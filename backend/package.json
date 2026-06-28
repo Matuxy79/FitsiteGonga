@@ -11,6 +11,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "db:recover:20260628030334": "node scripts/recover-20260628030334.js",
     "seed:admin": "ts-node scripts/seed-admin.ts",
     "test": "vitest"
   },

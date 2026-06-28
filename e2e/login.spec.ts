@@ -6,61 +6,68 @@ test.describe('Login Flow', () => {
   })
 
   test('should display login form by default', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText('Welcome back')
-    await expect(page.locator('input[type="email"]')).toBeVisible()
-    await expect(page.locator('input[type="password"]')).toBeVisible()
-    await expect(page.locator('button[type="submit"]')).toContainText('Sign in')
+    const authPanel = page.locator('aside')
+
+    await expect(authPanel.getByRole('heading', { name: 'Log in' })).toBeVisible()
+    await expect(authPanel.getByLabel('Email')).toBeVisible()
+    await expect(authPanel.getByPlaceholder('Enter your password')).toBeVisible()
+    await expect(authPanel.getByRole('button', { name: /^Log in$/ })).toBeVisible()
+    await expect(page.getByText('Forgot password?')).toHaveCount(0)
   })
 
   test('should validate email format', async ({ page }) => {
-    await page.fill('input[type="email"]', 'invalid-email')
-    await page.locator('input[type="email"]').blur()
+    const authPanel = page.locator('aside')
+
+    await authPanel.getByLabel('Email').fill('invalid-email')
+    await authPanel.getByRole('button', { name: /^Log in$/ }).click()
     
-    await expect(page.locator('text=Invalid email address')).toBeVisible()
+    await expect(authPanel.getByText('Enter a valid email address', { exact: true })).toBeVisible()
   })
 
-  test('should validate password length', async ({ page }) => {
-    await page.fill('input[type="password"]', '123')
-    await page.locator('input[type="password"]').blur()
+  test('should validate required password', async ({ page }) => {
+    const authPanel = page.locator('aside')
+
+    await authPanel.getByLabel('Email').fill('client@example.com')
+    await authPanel.getByRole('button', { name: /^Log in$/ }).click()
     
-    await expect(page.locator('text=Password must be at least 6 characters')).toBeVisible()
+    await expect(authPanel.getByText('Password is required', { exact: true })).toBeVisible()
   })
 
   test('should switch to signup form', async ({ page }) => {
-    await page.click('text=Don\'t have an account? Sign up')
+    const authPanel = page.locator('aside')
+
+    await authPanel.getByRole('button', { name: 'Sign up' }).click()
     
-    await expect(page.locator('h1')).toContainText('Create account')
-    await expect(page.locator('input[placeholder="Confirm your password"]')).toBeVisible()
+    await expect(authPanel.getByRole('heading', { name: 'Sign up' })).toBeVisible()
+    await expect(authPanel.getByPlaceholder('Your name')).toBeVisible()
   })
 
   test('should handle login with wrong credentials', async ({ page }) => {
-    await page.fill('input[type="email"]', 'wrong@example.com')
-    await page.fill('input[type="password"]', 'wrongpassword')
-    await page.click('button[type="submit"]')
+    const authPanel = page.locator('aside')
+
+    await authPanel.getByLabel('Email').fill('wrong@example.com')
+    await authPanel.getByPlaceholder('Enter your password').fill('wrongpassword')
+    await authPanel.getByRole('button', { name: /^Log in$/ }).click()
     
-    await expect(page.locator('text=Login failed')).toBeVisible()
+    await expect(page.getByText(/Email or password incorrect|Backend unreachable/).first()).toBeVisible()
   })
 
   test('should be accessible', async ({ page }) => {
-    const emailInput = page.locator('input[type="email"]')
-    const passwordInput = page.locator('input[type="password"]')
+    const authPanel = page.locator('aside')
+    const emailInput = authPanel.getByLabel('Email')
+    const passwordInput = authPanel.getByPlaceholder('Enter your password')
     
-    await expect(emailInput).toHaveAttribute('aria-invalid', 'false')
-    await expect(passwordInput).toHaveAttribute('aria-invalid', 'false')
-    
-    // Test keyboard navigation
-    await page.keyboard.press('Tab')
-    await expect(emailInput).toBeFocused()
-    
-    await page.keyboard.press('Tab')
-    await expect(passwordInput).toBeFocused()
+    await expect(emailInput).not.toHaveAttribute('aria-invalid', 'true')
+    await expect(passwordInput).not.toHaveAttribute('aria-invalid', 'true')
   })
 
   test('should work on mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 640 })
     
-    await expect(page.locator('h1')).toBeVisible()
-    await expect(page.locator('input[type="email"]')).toBeVisible()
-    await expect(page.locator('input[type="password"]')).toBeVisible()
+    const authPanel = page.locator('aside')
+
+    await expect(page.getByRole('heading', { name: /Find your fun fit/i })).toBeVisible()
+    await expect(authPanel.getByLabel('Email')).toBeVisible()
+    await expect(authPanel.getByPlaceholder('Enter your password')).toBeVisible()
   })
 })

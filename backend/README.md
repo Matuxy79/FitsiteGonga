@@ -39,7 +39,6 @@ See `.env.example` for required variables:
 - `DATABASE_URL` - PostgreSQL connection string
 - `JWT_SECRET` - Secret for access tokens (32+ chars)
 - `JWT_REFRESH_SECRET` - Secret for refresh tokens
-- `PASSWORD_RESET_TTL_MINUTES` - Password reset link expiry (minutes, default: 60)
 - `RAILWAY_OBJECT_STORAGE_ENDPOINT` - S3-compatible object storage endpoint (e.g. `https://your-project.railway.app`)
 - `RAILWAY_OBJECT_STORAGE_ACCESS_KEY_ID` - Object storage access key
 - `RAILWAY_OBJECT_STORAGE_SECRET_ACCESS_KEY` - Object storage secret key
@@ -83,8 +82,6 @@ npm start
 - `POST /api/auth/refresh` - Refresh access token
 - `POST /api/auth/logout` - Logout user
 - `GET /api/auth/me` - Get current user
-- `POST /api/auth/forgot-password` - Return password-reset guidance; email delivery is disabled
-- `POST /api/auth/reset-password` - Reset password using token
 
 ### Challenges
 
@@ -204,6 +201,30 @@ npm test
 - Verify `DATABASE_URL` format: `postgresql://user:pass@host:5432/dbname`
 - Check Railway PostgreSQL service is running
 - Test connection: `psql $DATABASE_URL`
+
+### Railway Migration Recovery: `ChannelType` Already Exists
+
+If Railway fails on `prisma migrate deploy` with `ERROR: type "ChannelType" already exists`
+for migration `20260628030334_init`, the database was likely synced before Prisma
+recorded that migration as applied.
+
+Run the recovery helper against the Railway database:
+
+```bash
+npm run db:recover:20260628030334
+npx prisma migrate deploy
+```
+
+The helper only marks `20260628030334_init` as applied when every enum and table from
+that migration already exists. If it reports missing objects, do not mark the migration
+applied yet. Roll the database forward first:
+
+```bash
+npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --script > forward.sql
+npx prisma db execute --stdin --url "$DATABASE_URL" < forward.sql
+npx prisma migrate resolve --applied 20260628030334_init
+npx prisma migrate deploy
+```
 
 ### JWT Errors
 

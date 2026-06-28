@@ -27,7 +27,6 @@ model User {
   challenges_created Challenge[] @relation("ChallengeCreator")
   progress_logs      ProgressLog[]
   user_achievements  UserAchievement[]
-  password_reset_tokens PasswordResetToken[]
 
   // Messaging
   messages_sent         Message[]         @relation("MessageSender")
@@ -60,21 +59,6 @@ model User {
   @@index([email])
   @@index([role])
   @@map("users")
-}
-
-model PasswordResetToken {
-  id         String   @id @default(uuid())
-  user_id    String
-  token_hash String   @unique
-  expires_at DateTime
-  used_at    DateTime?
-  created_at DateTime @default(now())
-
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([expires_at])
-  @@map("password_reset_tokens")
 }
 
 // =============================================================================

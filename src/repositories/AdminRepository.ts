@@ -29,13 +29,6 @@ export interface AdminActivity {
   timestamp: string
 }
 
-export interface PasswordResetLinkResponse {
-  message: string
-  resetUrl: string
-  expiresAt: string
-  delivery: 'manual'
-}
-
 function extractPayload<T>(response: any): T {
   return (response?.data || response) as T
 }
@@ -75,9 +68,5 @@ export const AdminRepository = {
   async updateUserRole(userId: string, role: AdminRole): Promise<AdminUser> {
     const response = await apiClient.put<{ data: AdminUser }>(`/api/admin/users/${userId}/role`, { role })
     return extractPayload(response)
-  },
-
-  async resetUserPassword(userId: string): Promise<PasswordResetLinkResponse> {
-    return apiClient.post<PasswordResetLinkResponse>(`/api/admin/users/${userId}/password-reset`)
   },
 }

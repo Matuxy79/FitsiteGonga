@@ -348,7 +348,6 @@ export interface Squad {
 }
 
 // Transform backend snake_case to frontend camelCase
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformMessage(raw: any): Message {
   return {
     id: raw.id,

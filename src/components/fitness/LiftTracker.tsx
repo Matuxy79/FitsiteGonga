@@ -217,7 +217,7 @@ export function LiftTracker({
         <div className="flex items-start justify-between">
           <div>
             <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-              // ACTIVE_LIFT
+              {'// ACTIVE_LIFT'}
             </div>
             <h1 className="mt-1 text-xl font-black tracking-[0.2em] uppercase text-slate-100">
               {exercise.name}

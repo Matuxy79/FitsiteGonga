@@ -12,7 +12,6 @@ import {
   Search,
   MoreHorizontal,
   UserCog,
-  Key,
   Ban,
   TrendingUp,
   Clock,
@@ -127,12 +126,6 @@ function UserRow({ user, onAction }: { user: AdminUser, onAction: (action: strin
                 className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-zinc-800 flex items-center gap-2"
               >
                 <UserCog className="w-4 h-4" /> Change Role
-              </button>
-              <button 
-                onClick={() => { onAction('reset', user); setMenuOpen(false) }}
-                className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-zinc-800 flex items-center gap-2"
-              >
-                <Key className="w-4 h-4" /> Reset Password
               </button>
               <button 
                 onClick={() => { onAction('disable', user); setMenuOpen(false) }}
@@ -331,26 +324,6 @@ export default function AdminDashboard() {
   const handleUserAction = async (action: string, targetUser: AdminUser) => {
     if (action === 'role') {
       setRoleModalUser(targetUser)
-    } else if (action === 'reset') {
-      if (confirm(`Create a manual password reset link for ${targetUser.email}? No email will be sent.`)) {
-        try {
-          const result = await AdminRepository.resetUserPassword(targetUser.id)
-          let copied = false
-          if (navigator.clipboard) {
-            copied = await navigator.clipboard
-              .writeText(result.resetUrl)
-              .then(() => true)
-              .catch(() => false)
-          }
-
-          const expiresAt = new Date(result.expiresAt).toLocaleString()
-          alert(
-            `${result.message}\n\n${copied ? 'Link copied to clipboard.' : 'Copy this link manually:'}\n${result.resetUrl}\n\nExpires: ${expiresAt}`
-          )
-        } catch (err) {
-          alert('Failed to create password reset link')
-        }
-      }
     } else if (action === 'disable') {
       alert(`[TODO] Disable user ${targetUser.email}`)
     }

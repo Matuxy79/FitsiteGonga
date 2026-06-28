@@ -1,655 +1,640 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { io, Socket } from 'socket.io-client'
-import { AnimatePresence } from 'framer-motion'
-import { AppLayout } from '@/components/layout/AppLayout'
-import { TriSectorSidebar, SectorId, PanelId, ActiveLift, Squad } from '@/components/layout/TriSectorSidebar'
-import { GlobalChat } from '@/components/messaging/GlobalChat'
-import { SquadManager } from '@/components/messaging/SquadManager'
-import { ActiveLiftTracker, TrackedLift as ComponentTrackedLift, SetLogEntry } from '@/components/fitness/ActiveLiftTracker'
-import { LiftTracker } from '@/components/fitness/LiftTracker'
-import { ExercisePicker } from '@/components/fitness/ExercisePicker'
-import { WeekPlanner, WorkoutTemplate, ScheduledWorkout } from '@/components/fitness/WeekPlanner'
-import { EXERCISE_MAP } from '@/lib/exercises'
-import { useChallengeController } from '@/controllers/useChallengeController'
-import { useAuth } from '@/hooks/useAuth'
+import { useEffect, useMemo, useState, type ComponentType, type FormEvent, type ReactNode } from 'react'
 import {
-  useTrackedLifts,
-  useLiftSession,
-  useSquads,
-  TrackedLift as HookTrackedLift,
-} from '@/hooks'
+  Activity,
+  Apple,
+  BarChart3,
+  Bell,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  Crown,
+  Dumbbell,
+  Flame,
+  Heart,
+  Image as ImageIcon,
+  LineChart,
+  LockKeyhole,
+  LogOut,
+  MessageCircle,
+  MoreHorizontal,
+  Search,
+  Send,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Trophy,
+  Users,
+  Zap,
+  type LucideProps,
+} from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
-// =============================================================================
-// MAIN DASHBOARD COMPONENT
-// =============================================================================
+type TierId = 'free' | 'paid' | 'admin'
+
+type DashboardPost = {
+  id: string
+  author: string
+  role: string
+  avatar: string
+  location: string
+  time: string
+  content: string
+  imageUrl?: string
+  likes: number
+  replies: number
+  tag: string
+  stats?: Array<{ label: string; value: string }>
+}
+
+const navItems = [
+  { label: 'Dashboard', icon: Activity, active: true },
+  { label: 'Workouts', icon: Dumbbell },
+  { label: 'Programs', icon: CalendarDays },
+  { label: 'Nutrition', icon: Apple },
+  { label: 'Progress', icon: LineChart },
+  { label: 'Community', icon: Users },
+  { label: 'Challenges', icon: Trophy },
+  { label: 'Settings', icon: Settings },
+]
+
+type IconComponent = ComponentType<LucideProps>
+
+const tierOptions: Array<{ id: TierId; label: string; icon: IconComponent }> = [
+  { id: 'free', label: 'Free', icon: Users },
+  { id: 'paid', label: 'Paid', icon: Crown },
+  { id: 'admin', label: 'Admin', icon: ShieldCheck },
+]
+
+const tierCopy: Record<TierId, { headline: string; subline: string; cta: string; benefits: string[] }> = {
+  free: {
+    headline: 'Your tier: Free',
+    subline: 'Start tracking and join the global community.',
+    cta: 'Upgrade',
+    benefits: ['Community feed', 'Three tracked workouts', 'Basic progress circles', 'Public challenges'],
+  },
+  paid: {
+    headline: 'Your tier: Paid',
+    subline: 'Premium training, deeper stats, and live sessions.',
+    cta: 'Manage plan',
+    benefits: ['Unlimited workouts', 'Advanced progress analytics', 'Nutrition plans', 'Priority support', 'Live classes'],
+  },
+  admin: {
+    headline: 'Admin view',
+    subline: 'Manage members, content, and community health.',
+    cta: 'Review reports',
+    benefits: ['User management', 'Content moderation', 'Community reports', 'System analytics', 'Announcements'],
+  },
+}
+
+const seedPosts: DashboardPost[] = [
+  {
+    id: 'post-run',
+    author: 'FitLisa',
+    role: 'Paid member',
+    avatar: '/assets/gongafit/trainers/card-strength-coaching.png',
+    location: 'London, UK',
+    time: '2h ago',
+    content: 'Early morning conditioning complete. Clear head, steady pace, and a new weekly streak.',
+    imageUrl: '/assets/gongafit/trainers/trainer-05-duo.png',
+    likes: 128,
+    replies: 24,
+    tag: 'Wins',
+    stats: [
+      { label: 'Distance', value: '8.12 km' },
+      { label: 'Time', value: '47:32' },
+      { label: 'Pace', value: '5:51/km' },
+      { label: 'Calories', value: '612 kcal' },
+    ],
+  },
+  {
+    id: 'post-strength',
+    author: 'StrengthMode',
+    role: 'Coach',
+    avatar: '/assets/gongafit/trainers/trainer-03.png',
+    location: 'Austin, USA',
+    time: '4h ago',
+    content: 'Lower-body strength day. Squats, lunges, and consistency. What was your workout today?',
+    imageUrl: '/assets/gongafit/trainers/trainer-04.png',
+    likes: 96,
+    replies: 31,
+    tag: 'Workouts',
+    stats: [
+      { label: 'Back squat', value: '4 x 10' },
+      { label: 'Walking lunge', value: '3 x 12' },
+      { label: 'Leg press', value: '4 x 12' },
+      { label: 'Calf raises', value: '4 x 15' },
+    ],
+  },
+]
+
+const progressMetrics = [
+  { label: 'Workouts', value: '4/5', hint: 'sessions', color: '#ff5d4f' },
+  { label: 'Activity', value: '278', hint: 'mins', color: '#b8ec16' },
+  { label: 'Steps', value: '18,240', hint: 'steps', color: '#ee4fa3' },
+  { label: 'Calories', value: '2,145', hint: 'kcal', color: '#c75fb4' },
+]
+
+const pulseMetrics = [
+  { label: 'Members online', value: '1,248' },
+  { label: 'Workouts today', value: '3,642' },
+  { label: 'Posts today', value: '412' },
+  { label: 'Countries', value: '68' },
+]
+
+const liveClasses = [
+  {
+    title: 'HIIT Burn',
+    coach: 'Coach Mia',
+    meta: 'Live now',
+    imageUrl: '/assets/gongafit/trainers/trainer-02-protein.png',
+    live: true,
+  },
+  {
+    title: 'Strength Basics',
+    coach: 'Coach Marcus',
+    meta: 'Tomorrow, 7:00 PM',
+    imageUrl: '/assets/gongafit/trainers/trainer-01.png',
+    live: false,
+  },
+]
+
+const adminActions = [
+  { label: 'Manage users', icon: Users },
+  { label: 'Manage content', icon: ShieldCheck },
+  { label: 'Community reports', icon: MessageCircle },
+  { label: 'System analytics', icon: BarChart3 },
+]
+
+function initials(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
 
 export default function Dashboard() {
-  const { user, loading: authLoading, logout } = useAuth()
-  const router = useRouter()
-
-  // Sector/Panel state
-  const [activeSector, setActiveSector] = useState<SectorId>('forge')
-  const [activePanel, setActivePanel] = useState<PanelId>('active-lifts')
-  const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null)
-  const [selectedLiftId, setSelectedLiftId] = useState<string | null>(null)
-  const [selectedSquadId, setSelectedSquadId] = useState<string | null>(null)
-
-  // Modal state
-  const [showExercisePicker, setShowExercisePicker] = useState(false)
-  const [showLiftTracker, setShowLiftTracker] = useState(false)
-  const [liftTrackerExercise, setLiftTrackerExercise] = useState<any>(null)
-
-  // Socket state
-  const [socket, setSocket] = useState<Socket | null>(null)
-
-  // ==========================================================================
-  // HOOKS - Using CORRECT return value names
-  // ==========================================================================
-  
-  // useTrackedLifts returns: { lifts, loading, error, loadLifts, addLift, updateLift, removeLift, reorderLifts }
-  const { 
-    lifts,                    // ✅ CORRECT (was: trackedLifts)
-    loading: liftsLoading, 
-    error: liftsError,
-    loadLifts,                // ✅ CORRECT (was: refreshLifts)
-    addLift,                  // ✅ CORRECT (was: addTrackedLift)
-    updateLift,
-    removeLift,               // ✅ CORRECT (was: removeTrackedLift)
-  } = useTrackedLifts()
-  
-  // useLiftSession returns: { history, loading, saving, loadHistory, logSet, logSession, deleteSet }
-  const { 
-    history: sessionHistory,
-    loading: sessionLoading,
-    saving: sessionSaving,
-    logSet,
-    logSession,               // ✅ CORRECT (was: saveSession)
-  } = useLiftSession(selectedLiftId || '')
-  
-  // useSquads returns: { squads, loading, loadSquads, createSquad, joinSquad, leaveSquad, inviteToSquad }
-  const { 
-    squads, 
-    loading: squadsLoading, 
-    loadSquads,
-    createSquad, 
-    joinSquad, 
-    leaveSquad,
-    inviteToSquad,
-  } = useSquads()
-
-  // Challenge controller
-  const { loading: loadingChallenges, challenges } = useChallengeController()
-
-  // User profile data (for metrics)
-  const [userProfile, setUserProfile] = useState({
-    bodyweight: 180,
-    gender: 'male' as 'male' | 'female',
-    unit: 'lbs' as 'lbs' | 'kg'
-  })
-
-  // Week planner data (placeholder for now)
-  const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplate[]>([])
-  const [scheduledWorkouts, setScheduledWorkouts] = useState<ScheduledWorkout[]>([])
-
-  // ==========================================================================
-  // STUB FUNCTIONS for features not yet in hooks
-  // ==========================================================================
-  
-  // These will be implemented when backend supports them
-  const pendingInvites: any[] = []  // TODO: Add to useSquads hook
-  const acceptInvite = async (inviteId: string) => {
-    console.log('TODO: Accept invite:', inviteId)
-  }
-  const declineInvite = async (inviteId: string) => {
-    console.log('TODO: Decline invite:', inviteId)
-  }
-
-  // ==========================================================================
-  // AUTH REDIRECT
-  // ==========================================================================
-  
-  useEffect(() => {
-    if (!authLoading && !user) {
-      const hasStoredToken = typeof window !== 'undefined' && !!localStorage.getItem('accessToken')
-      const reason = hasStoredToken ? 'session-expired' : 'login-required'
-      router.replace(`/?reason=${reason}`)
-    }
-  }, [authLoading, user, router])
-
-  // ==========================================================================
-  // SOCKET CONNECTION
-  // ==========================================================================
+  const { user, loading, logout } = useAuth()
+  const [activeTier, setActiveTier] = useState<TierId>('paid')
+  const [composerText, setComposerText] = useState('')
+  const [posts, setPosts] = useState<DashboardPost[]>(seedPosts)
 
   useEffect(() => {
-    if (!user) return
+    if (user?.role === 'ADMIN') setActiveTier('admin')
+    else if (user?.role === 'TRAINER') setActiveTier('paid')
+  }, [user?.role])
 
-    const token = localStorage.getItem('accessToken')
-    if (!token) return
+  const memberName = user?.display_name || 'Tuxbirb'
+  const memberEmail = user?.email || 'demo@gongafit.local'
+  const memberRole = user?.role || 'CLIENT'
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000'
-    
-    const newSocket = io(wsUrl, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-    })
+  const welcomeText = useMemo(() => {
+    if (loading) return 'Loading your training space...'
+    return `Welcome back, ${memberName}. Let's crush your goals today.`
+  }, [loading, memberName])
 
-    newSocket.on('connect', () => {
-      console.log('🔌 Socket connected')
-    })
+  const handleShare = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const trimmed = composerText.trim()
+    if (!trimmed) return
 
-    newSocket.on('disconnect', (reason) => {
-      console.log('❌ Socket disconnected:', reason)
-    })
-
-    setSocket(newSocket)
-
-    return () => {
-      newSocket.disconnect()
-    }
-  }, [user])
-
-  // Auto-select first lift
-  useEffect(() => {
-    if (!selectedLiftId && lifts.length > 0) {
-      setSelectedLiftId(lifts[0].id)
-    }
-  }, [selectedLiftId, lifts])
-
-  // ==========================================================================
-  // HANDLERS
-  // ==========================================================================
-
-  const handleSectorChange = (sector: SectorId) => {
-    setActiveSector(sector)
-    const defaultPanels: Record<SectorId, PanelId> = {
-      nexus: 'global-feed',
-      forge: 'active-lifts',
-      identity: 'profile',
-    }
-    setActivePanel(defaultPanels[sector])
-  }
-
-  const handlePanelChange = (panel: PanelId) => {
-    setActivePanel(panel)
+    setPosts((current) => [
+      {
+        id: `post-${Date.now()}`,
+        author: memberName,
+        role: activeTier === 'admin' ? 'Admin' : activeTier === 'paid' ? 'Paid member' : 'Free member',
+        avatar: user?.avatar_url || '',
+        location: 'GongaFit',
+        time: 'Just now',
+        content: trimmed,
+        likes: 0,
+        replies: 0,
+        tag: 'Community',
+      },
+      ...current,
+    ])
+    setComposerText('')
   }
 
   const handleLogout = async () => {
     await logout()
-    router.replace('/?reason=signed-out')
   }
-
-  const handleAddLift = () => {
-    setShowExercisePicker(true)
-  }
-
-  const handleExerciseSelect = async (exercise: any, config: any) => {
-    await addLift({
-      exerciseId: exercise.id,
-      exerciseName: exercise.name,
-      workingWeight: config.workingWeight,
-      workingUnit: config.unit?.toUpperCase() || 'LBS',
-      goalWeight: config.goalWeight,
-      goalDate: config.goalDate,
-    })
-    setShowExercisePicker(false)
-    loadLifts()  // Refresh list
-  }
-
-  const handleLiftSelect = (liftId: string) => {
-    setSelectedLiftId(liftId)
-  }
-
-  const handleOpenLiftTracker = (lift: ComponentTrackedLift) => {
-    const exercise = EXERCISE_MAP.get(lift.exerciseId)
-    if (exercise) {
-      setLiftTrackerExercise({
-        ...exercise,
-        workingWeight: lift.workingWeight,
-        workingUnit: lift.workingUnit,
-        liftId: lift.id,
-      })
-      setShowLiftTracker(true)
-    }
-  }
-
-  const handleLogSet = async (liftId: string, setData: Omit<SetLogEntry, 'id' | 'loggedAt' | 'estimated1RM' | 'isPR'>) => {
-    await logSet({
-      weight: setData.weight,
-      reps: setData.reps,
-      unit: (setData.unit?.toUpperCase() || 'LBS') as 'LBS' | 'KG',
-      rpe: setData.rpe,
-      isWarmup: setData.isWarmup,
-    })
-    loadLifts()  // Refresh to show updated stats
-  }
-
-  const handleUpdateGoal = async (liftId: string, goalWeight: number, goalDate?: string) => {
-    await updateLift(liftId, { goalWeight, goalDate })
-    loadLifts()
-  }
-
-  const handleChallengeSelect = (challengeId: string) => {
-    setSelectedChallengeId(challengeId)
-  }
-
-  const handleCreateSquad = async (data: any) => {
-    await createSquad(data)
-  }
-
-  const handleSelectSquad = (squadId: string) => {
-    setSelectedSquadId(squadId)
-  }
-
-  // Week planner handlers (placeholder)
-  const handleScheduleWorkout = async (date: string, templateId: string, isRecurring: boolean) => {
-    console.log('Schedule workout:', date, templateId, isRecurring)
-  }
-
-  const handleUpdateWorkout = async (workoutId: string, updates: Partial<ScheduledWorkout>) => {
-    console.log('Update workout:', workoutId, updates)
-  }
-
-  const handleDeleteWorkout = async (workoutId: string) => {
-    console.log('Delete workout:', workoutId)
-  }
-
-  const handleStartWorkout = (workoutId: string) => {
-    console.log('Start workout:', workoutId)
-  }
-
-  const handleCreateTemplate = () => {
-    console.log('Create template')
-  }
-
-  // ==========================================================================
-  // TRANSFORM DATA FOR COMPONENTS
-  // ==========================================================================
-
-  // Convert lifts to ActiveLift format for sidebar
-  const activeLiftsForSidebar: ActiveLift[] = lifts.map(lift => ({
-    id: lift.id,
-    exerciseId: lift.exerciseId,
-    exerciseName: lift.exerciseName,
-    workingWeight: lift.workingWeight,
-    workingUnit: (lift.workingUnit?.toLowerCase() || 'lbs') as 'lbs' | 'kg',
-    lastSet: lift.lastSet?.formatted || 'No sets',
-    oneRepMax: lift.oneRepMax || 0,
-    goalWeight: lift.goalWeight,
-    trend: lift.trend,
-  }))
-
-  // Transform for ActiveLiftTracker component (different interface)
-  const liftsForTracker: ComponentTrackedLift[] = lifts.map(lift => ({
-    id: lift.id,
-    exerciseId: lift.exerciseId,
-    exerciseName: lift.exerciseName,
-    workingWeight: lift.workingWeight,
-    workingUnit: (lift.workingUnit?.toLowerCase() || 'lbs') as 'lbs' | 'kg',
-    oneRepMax: lift.oneRepMax,
-    goalWeight: lift.goalWeight,
-    goalDate: lift.goalDate,
-    trend: lift.trend,
-    lastSet: lift.lastSet?.formatted || null,
-    totalSets: lift.totalSets,
-    lastWorkoutDate: lift.lastSet?.date || null,
-    personalRecord: lift.bestSet?.estimated1RM || null,
-    recentSets: [],  // TODO: Fetch from history endpoint
-  }))
-
-  // Convert squads for sidebar
-  const squadsForSidebar: Squad[] = squads.map(s => ({
-    id: s.id,
-    name: s.name,
-    memberCount: s.memberCount || 0,
-    unreadCount: s.unreadCount || 0,
-  }))
-
-  // Already tracked exercise IDs for picker
-  const alreadyTrackedIds = lifts.map(l => l.exerciseId)
-
-  // ==========================================================================
-  // RENDER: MAIN CONTENT BASED ON SECTOR/PANEL
-  // ==========================================================================
-
-  const renderMainContent = () => {
-    // NEXUS SECTOR
-    if (activeSector === 'nexus') {
-      if (activePanel === 'global-feed') {
-        return (
-          <GlobalChat
-            currentUser={{
-              id: user?.id || '',
-              displayName: user?.display_name || 'User',
-              avatarUrl: user?.avatar_url || null,
-              role: user?.role || 'CLIENT',
-            }}
-          />
-        )
-      }
-
-      if (activePanel === 'trainer-link') {
-        return (
-          <div className="h-full flex items-center justify-center bg-zinc-950">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🎯</div>
-              <h2 className="text-xl font-bold text-cyan-400 mb-2">Trainer Link</h2>
-              <p className="text-slate-500">Connect with certified trainers</p>
-              <p className="text-xs text-slate-600 mt-4">Coming soon...</p>
-            </div>
-          </div>
-        )
-      }
-
-      if (activePanel === 'squads') {
-        return (
-          <SquadManager
-            squads={squads}
-            pendingInvites={pendingInvites}
-            currentUserId={user?.id || ''}
-            onCreateSquad={handleCreateSquad}
-            onJoinSquad={joinSquad}
-            onLeaveSquad={leaveSquad}
-            onInviteUser={(squadId, userId) => inviteToSquad(squadId, userId)}
-            onAcceptInvite={acceptInvite}
-            onDeclineInvite={declineInvite}
-            onSelectSquad={handleSelectSquad}
-          />
-        )
-      }
-    }
-
-    // FORGE SECTOR
-    if (activeSector === 'forge') {
-      if (activePanel === 'active-lifts') {
-        return (
-          <ActiveLiftTracker
-            lifts={liftsForTracker}
-            selectedLiftId={selectedLiftId}
-            userBodyweight={userProfile.bodyweight}
-            userGender={userProfile.gender}
-            onSelectLift={handleLiftSelect}
-            onAddLift={handleAddLift}
-            onLogSet={handleLogSet}
-            onUpdateGoal={handleUpdateGoal}
-          />
-        )
-      }
-
-      if (activePanel === 'week-planner') {
-        return (
-          <WeekPlanner
-            templates={workoutTemplates}
-            scheduledWorkouts={scheduledWorkouts}
-            currentDate={new Date()}
-            onScheduleWorkout={handleScheduleWorkout}
-            onUpdateWorkout={handleUpdateWorkout}
-            onDeleteWorkout={handleDeleteWorkout}
-            onStartWorkout={handleStartWorkout}
-            onCreateTemplate={handleCreateTemplate}
-          />
-        )
-      }
-
-      if (activePanel === 'challenges') {
-        const selectedChallenge = challenges.find(c => c.id === selectedChallengeId)
-        
-        return (
-          <div className="h-full flex flex-col bg-zinc-950">
-            <div className="p-4 border-b border-white/5">
-              <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-                // CHALLENGES
-              </div>
-              <h1 className="mt-1 text-lg font-bold text-yellow-400 tracking-wide">
-                {selectedChallenge ? selectedChallenge.name.toUpperCase() : 'SELECT A CHALLENGE'}
-              </h1>
-            </div>
-            {selectedChallenge ? (
-              <div className="flex-1 p-4">
-                <div className="bg-zinc-900/50 rounded-xl p-6 border border-white/5">
-                  <div className="text-xs text-slate-500 uppercase tracking-wider">
-                    {selectedChallenge.category}
-                  </div>
-                  <h2 className="text-xl font-bold text-slate-200 mt-2">
-                    {selectedChallenge.name}
-                  </h2>
-                  <p className="text-slate-400 mt-2">
-                    {selectedChallenge.description}
-                  </p>
-                  <div className="mt-4 flex items-center gap-4">
-                    <div>
-                      <div className="text-xs text-slate-500">Goal</div>
-                      <div className="text-lg font-bold text-emerald-400">
-                        {selectedChallenge.goal_value} {selectedChallenge.goal_unit}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">🏆</div>
-                  <p className="text-slate-500">Select a challenge from the sidebar</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )
-      }
-    }
-
-    // IDENTITY SECTOR
-    if (activeSector === 'identity') {
-      if (activePanel === 'profile') {
-        return (
-          <div className="h-full flex flex-col bg-zinc-950">
-            <div className="p-4 border-b border-white/5">
-              <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em]">
-                // IDENTITY
-              </div>
-              <h1 className="mt-1 text-lg font-bold text-cyan-400 tracking-wide">
-                PROFILE
-              </h1>
-            </div>
-            <div className="flex-1 p-4">
-              <div className="bg-zinc-900/50 rounded-xl p-6 border border-white/5">
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-3xl font-bold text-black">
-                    {user?.display_name?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-200">
-                      {user?.display_name || 'User'}
-                    </h2>
-                    <p className="text-slate-500">{user?.email}</p>
-                    <span className="inline-block mt-2 px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full uppercase tracking-wider">
-                      {user?.role || 'Client'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Profile Stats */}
-                <div className="mt-6 grid grid-cols-3 gap-4">
-                  <div className="bg-black/30 rounded-lg p-4">
-                    <div className="text-xs text-slate-500 uppercase tracking-wider">Tracked Lifts</div>
-                    <div className="text-2xl font-bold text-purple-400 mt-1">{lifts.length}</div>
-                  </div>
-                  <div className="bg-black/30 rounded-lg p-4">
-                    <div className="text-xs text-slate-500 uppercase tracking-wider">Squads</div>
-                    <div className="text-2xl font-bold text-emerald-400 mt-1">{squads.length}</div>
-                  </div>
-                  <div className="bg-black/30 rounded-lg p-4">
-                    <div className="text-xs text-slate-500 uppercase tracking-wider">Challenges</div>
-                    <div className="text-2xl font-bold text-yellow-400 mt-1">{challenges.length}</div>
-                  </div>
-                </div>
-
-                {/* Body Profile */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-medium text-slate-300 mb-3">Body Profile</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs text-slate-500">Bodyweight ({userProfile.unit})</label>
-                      <input
-                        type="number"
-                        value={userProfile.bodyweight}
-                        onChange={(e) => setUserProfile(p => ({ ...p, bodyweight: parseInt(e.target.value) || 0 }))}
-                        className="mt-1 w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-slate-100 focus:border-cyan-500/50 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-500">Gender</label>
-                      <select
-                        value={userProfile.gender}
-                        onChange={(e) => setUserProfile(p => ({ ...p, gender: e.target.value as 'male' | 'female' }))}
-                        className="mt-1 w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-slate-100 focus:border-cyan-500/50 focus:outline-none"
-                      >
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-      }
-
-      if (activePanel === 'friends') {
-        return (
-          <div className="h-full flex items-center justify-center bg-zinc-950">
-            <div className="text-center">
-              <div className="text-6xl mb-4">👋</div>
-              <h2 className="text-xl font-bold text-cyan-400 mb-2">Friends & Invites</h2>
-              <p className="text-slate-500">Manage your connections</p>
-              <p className="text-xs text-slate-600 mt-4">Coming soon...</p>
-            </div>
-          </div>
-        )
-      }
-
-      if (activePanel === 'settings') {
-        return (
-          <div className="h-full flex items-center justify-center bg-zinc-950">
-            <div className="text-center">
-              <div className="text-6xl mb-4">⚙️</div>
-              <h2 className="text-xl font-bold text-cyan-400 mb-2">Settings & Security</h2>
-              <p className="text-slate-500">Customize your experience</p>
-              <p className="text-xs text-slate-600 mt-4">Coming soon...</p>
-            </div>
-          </div>
-        )
-      }
-    }
-
-    return null
-  }
-
-  // ==========================================================================
-  // LOADING STATE
-  // ==========================================================================
-
-  if (authLoading || loadingChallenges) {
-    return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-          <p className="text-slate-300 font-mono text-sm tracking-[0.2em] uppercase">
-            Initializing command center...
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) return null
-
-  // ==========================================================================
-  // MAIN RENDER
-  // ==========================================================================
 
   return (
-    <>
-      <AppLayout
-        west={
-          <TriSectorSidebar
-            operator={user}
-            challenges={challenges}
-            activeLifts={activeLiftsForSidebar}
-            squads={squadsForSidebar}
-            activeSector={activeSector}
-            activePanel={activePanel}
-            selectedChallengeId={selectedChallengeId}
-            selectedLiftId={selectedLiftId}
-            onSectorChange={handleSectorChange}
-            onPanelChange={handlePanelChange}
-            onChallengeSelect={handleChallengeSelect}
-            onLiftSelect={handleLiftSelect}
-            onAddLift={handleAddLift}
-            onCreateSquad={() => setActivePanel('squads')}
-            onLogout={handleLogout}
-          />
-        }
-      >
-        {renderMainContent()}
-      </AppLayout>
-
-      {/* ================================================================== */}
-      {/* MODALS */}
-      {/* ================================================================== */}
-
-      {/* Exercise Picker Modal */}
-      <AnimatePresence>
-        {showExercisePicker && (
-          <ExercisePicker
-            isOpen={showExercisePicker}
-            onClose={() => setShowExercisePicker(false)}
-            onSelect={handleExerciseSelect}
-            alreadyTracked={alreadyTrackedIds}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Lift Tracker Modal */}
-      <AnimatePresence>
-        {showLiftTracker && liftTrackerExercise && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-zinc-950 border border-white/10 rounded-xl overflow-hidden">
-              <LiftTracker
-                exercise={liftTrackerExercise}
-                userBodyWeight={userProfile.bodyweight}
-                userGender={userProfile.gender}
-                previousBest={null}
-                workingWeight={liftTrackerExercise.workingWeight}
-                workingUnit={liftTrackerExercise.workingUnit}
-                onSaveSession={async (sessionData) => {
-                  // Use logSession from hook (correct name)
-                  if (selectedLiftId && sessionData.sets && sessionData.sets.length > 0) {
-                    await logSession({
-                      exerciseId: liftTrackerExercise.id,
-                      sets: sessionData.sets,
-                      notes: sessionData.notes,
-                      startTime: sessionData.startTime || new Date().toISOString(),
-                      endTime: new Date().toISOString(),
-                    })
-                  }
-                  setShowLiftTracker(false)
-                  setLiftTrackerExercise(null)
-                  loadLifts()
-                }}
-                onClose={() => {
-                  setShowLiftTracker(false)
-                  setLiftTrackerExercise(null)
-                }}
-              />
+    <div className="min-h-screen bg-[#f4fbff] text-[#172033]">
+      <div className="mx-auto flex min-h-screen max-w-[1800px]">
+        <aside className="hidden w-[264px] shrink-0 flex-col border-r border-[#dbeaf3] bg-white px-4 py-6 xl:flex">
+          <div className="flex items-center gap-3 px-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff5d4f] text-2xl font-black text-white shadow-[0_12px_26px_rgba(255,93,79,0.25)]">
+              G
+            </div>
+            <div className="text-3xl font-black tracking-[-0.02em]">
+              Gonga<span className="text-[#ff5d4f]">Fit</span>
             </div>
           </div>
+
+          <nav className="mt-8 space-y-1.5">
+            {navItems.map(({ label, icon: Icon, active }) => (
+              <button
+                key={label}
+                type="button"
+                className={`flex h-12 w-full items-center gap-3 rounded-2xl px-4 text-sm font-black transition ${
+                  active
+                    ? 'bg-[#ff5d4f] text-white shadow-[0_14px_26px_rgba(255,93,79,0.28)]'
+                    : 'text-[#46546a] hover:bg-[#f1f8fc] hover:text-[#172033]'
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                {label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="mt-auto rounded-3xl border border-[#dbeaf3] bg-white p-3 shadow-[0_16px_40px_rgba(35,96,136,0.10)]">
+            <div className="flex items-center gap-3">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt="" className="h-12 w-12 rounded-2xl object-cover" />
+              ) : (
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#172033] text-sm font-black text-white">
+                  {initials(memberName)}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black">{memberName}</p>
+                <p className="truncate text-xs font-bold text-[#83a400]">{tierCopy[activeTier].headline.replace('Your tier: ', '')}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="mt-4 flex h-10 w-full items-center justify-between rounded-2xl border border-[#e3edf4] px-3 text-xs font-black text-[#657185] transition hover:border-[#ffb6ad] hover:text-[#ff5d4f]"
+            >
+              Log out
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        </aside>
+
+        <main className="min-w-0 flex-1 px-4 py-4 sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-20 -mx-4 mb-5 border-b border-white/80 bg-[#f4fbff]/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-3 xl:hidden">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#ff5d4f] text-xl font-black text-white">
+                    G
+                  </div>
+                  <div className="text-2xl font-black">
+                    Gonga<span className="text-[#ff5d4f]">Fit</span>
+                  </div>
+                </div>
+                <h1 className="mt-2 text-3xl font-black tracking-[-0.03em] text-[#172033] xl:mt-0 xl:text-4xl">
+                  Dashboard
+                </h1>
+                <p className="mt-1 text-sm font-semibold text-[#657185]">{welcomeText}</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex rounded-2xl border border-[#cfdee8] bg-white p-1 shadow-[0_10px_30px_rgba(35,96,136,0.10)]">
+                  {tierOptions.map(({ id, label, icon: Icon }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setActiveTier(id)}
+                      className={`flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-black transition ${
+                        activeTier === id ? 'bg-[#d7fb48] text-[#172033]' : 'text-[#657185] hover:bg-[#f4fbff]'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <button type="button" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#172033] shadow-[0_10px_26px_rgba(35,96,136,0.10)]">
+                  <Search className="h-5 w-5" />
+                </button>
+                <button type="button" className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#172033] shadow-[0_10px_26px_rgba(35,96,136,0.10)]">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#ff5d4f]" />
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <div className="grid gap-5 lg:grid-cols-[304px_minmax(0,1fr)] 2xl:grid-cols-[304px_minmax(0,1fr)_368px]">
+            <section className="order-2 space-y-5 lg:order-1">
+              <Panel className="p-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e9f8ff] text-[#172033]">
+                    <Activity className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black">Community pulse</h2>
+                    <p className="text-xs font-semibold text-[#657185]">What is happening in GongaFit.</p>
+                  </div>
+                </div>
+                <div className="mt-5 space-y-3">
+                  {pulseMetrics.map((metric) => (
+                    <div key={metric.label} className="flex items-center justify-between text-sm">
+                      <span className="font-semibold text-[#657185]">{metric.label}</span>
+                      <span className="rounded-lg bg-[#f4fbff] px-2.5 py-1 font-black">{metric.value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 flex h-16 items-end gap-2">
+                  {[24, 30, 48, 36, 46, 33, 55, 68].map((height, index) => (
+                    <span
+                      key={index}
+                      className="flex-1 rounded-t-full bg-[#b8ec16]"
+                      style={{ height: `${height}%` }}
+                    />
+                  ))}
+                </div>
+                <button type="button" className="mt-5 h-12 w-full rounded-2xl border border-[#dbeaf3] text-sm font-black text-[#46546a] transition hover:border-[#ffb6ad] hover:text-[#ff5d4f]">
+                  View community feed
+                </button>
+              </Panel>
+
+              <Panel className="p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-lg font-black">Your progress</h2>
+                  <button type="button" className="flex items-center gap-1 text-xs font-black text-[#657185]">
+                    This week
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {progressMetrics.map((metric) => (
+                    <div key={metric.label} className="rounded-3xl border border-[#e3edf4] bg-white p-4">
+                      <div
+                        className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-[7px] bg-white"
+                        style={{ borderColor: metric.color }}
+                      >
+                        <div className="text-center">
+                          <p className="text-lg font-black">{metric.value}</p>
+                          <p className="text-[10px] font-bold text-[#657185]">{metric.hint}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-center text-xs font-black text-[#657185]">{metric.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <button type="button" className="mt-4 h-12 w-full rounded-2xl border border-[#dbeaf3] text-sm font-black text-[#46546a] transition hover:border-[#b8ec16] hover:text-[#6f8f00]">
+                  View progress
+                </button>
+              </Panel>
+            </section>
+
+            <section className="order-1 min-w-0 rounded-[28px] bg-white p-4 shadow-[0_20px_60px_rgba(35,96,136,0.12)] sm:p-5 lg:order-2">
+              <div className="flex flex-col gap-3 border-b border-[#e3edf4] pb-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e9f8ff] text-[#172033]">
+                    <MessageCircle className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black tracking-[-0.02em]">Global Community</h2>
+                    <p className="text-sm font-semibold text-[#657185]">Share, inspire, and grow together.</p>
+                  </div>
+                </div>
+                <button type="button" className="flex h-10 items-center justify-center gap-2 rounded-2xl border border-[#e3edf4] px-4 text-sm font-black text-[#46546a]">
+                  <Flame className="h-4 w-4 text-[#ff5d4f]" />
+                  Top
+                </button>
+              </div>
+
+              <form onSubmit={handleShare} className="mt-5 rounded-3xl border border-[#dbeaf3] bg-white p-3">
+                <div className="flex items-start gap-3">
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="" className="h-11 w-11 rounded-2xl object-cover" />
+                  ) : (
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#172033] text-xs font-black text-white">
+                      {initials(memberName)}
+                    </div>
+                  )}
+                  <textarea
+                    value={composerText}
+                    onChange={(event) => setComposerText(event.target.value)}
+                    placeholder="Share progress, ask a question, or motivate the community..."
+                    rows={3}
+                    className="min-h-[72px] flex-1 resize-none rounded-2xl bg-[#f8fcff] px-4 py-3 text-sm font-semibold text-[#172033] outline-none placeholder:text-[#8d9aaa]"
+                  />
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap gap-2 text-xs font-black text-[#657185]">
+                    <ComposerTool icon={ImageIcon} label="Photo" />
+                    <ComposerTool icon={Zap} label="Workout" />
+                    <ComposerTool icon={BarChart3} label="Poll" />
+                    <ComposerTool icon={Sparkles} label="Feeling" />
+                  </div>
+                  <button
+                    type="submit"
+                    className="flex h-11 items-center gap-2 rounded-2xl bg-[#ff5d4f] px-5 text-sm font-black text-white shadow-[0_12px_24px_rgba(255,93,79,0.28)] transition hover:bg-[#ff4939]"
+                  >
+                    Share progress
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
+              </form>
+
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {['All Posts', 'Following', 'Workouts', 'Nutrition', 'Wins'].map((tab, index) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    className={`h-10 rounded-2xl px-4 text-sm font-black transition ${
+                      index === 0 ? 'bg-[#ff5d4f] text-white' : 'text-[#657185] hover:bg-[#f4fbff] hover:text-[#172033]'
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-5 space-y-4">
+                {posts.map((post) => (
+                  <CommunityPost key={post.id} post={post} />
+                ))}
+              </div>
+            </section>
+
+            <section className="order-3 space-y-5 lg:col-span-2 2xl:col-span-1">
+              <Panel className="p-5">
+                <h2 className="text-xl font-black">{tierCopy[activeTier].headline}</h2>
+                <p className="mt-1 text-sm font-bold text-[#83a400]">{tierCopy[activeTier].subline}</p>
+                <div className="mt-5 space-y-3">
+                  {tierCopy[activeTier].benefits.map((benefit) => (
+                    <div key={benefit} className="flex items-center gap-3 text-sm font-bold text-[#46546a]">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d7fb48] text-[#172033]">
+                        <Check className="h-3.5 w-3.5" />
+                      </span>
+                      {benefit}
+                    </div>
+                  ))}
+                </div>
+                <button className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#d7fb48] text-sm font-black text-[#172033] transition hover:bg-[#cafa2d]">
+                  {tierCopy[activeTier].cta}
+                  {activeTier === 'free' ? <Crown className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                </button>
+              </Panel>
+
+              <Panel className="p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-black">Live & Upcoming</h2>
+                  <button type="button" className="text-xs font-black text-[#657185]">View all</button>
+                </div>
+                <div className="space-y-4">
+                  {liveClasses.map((item) => (
+                    <div key={item.title} className="grid grid-cols-[112px_minmax(0,1fr)] gap-3">
+                      <div className="relative h-24 overflow-hidden rounded-2xl bg-[#e9f8ff]">
+                        <img src={item.imageUrl} alt="" className="h-full w-full object-cover object-top" />
+                        <span className={`absolute left-2 top-2 rounded-lg px-2 py-1 text-[10px] font-black text-white ${item.live ? 'bg-[#ff5d4f]' : 'bg-[#b8ec16] !text-[#172033]'}`}>
+                          {item.live ? 'LIVE' : 'SOON'}
+                        </span>
+                      </div>
+                      <div className="min-w-0 py-1">
+                        <h3 className="truncate text-sm font-black">{item.title}</h3>
+                        <p className="mt-1 text-xs font-semibold text-[#657185]">with {item.coach}</p>
+                        <p className="mt-2 text-xs font-bold text-[#46546a]">{item.meta}</p>
+                        <button className={`mt-3 h-9 rounded-xl px-4 text-xs font-black ${item.live ? 'bg-[#ff5d4f] text-white' : 'border border-[#dbeaf3] text-[#46546a]'}`}>
+                          {item.live ? 'Join Live' : 'Remind me'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+
+              <Panel className="p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-black">Admin quick actions</h2>
+                  <span className="flex items-center gap-1 rounded-xl bg-[#e9f8ff] px-3 py-1.5 text-xs font-black text-[#46546a]">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Admin
+                  </span>
+                </div>
+                <div className={activeTier === 'admin' ? 'grid grid-cols-2 gap-3' : 'relative grid grid-cols-2 gap-3'}>
+                  {adminActions.map(({ label, icon: Icon }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      disabled={activeTier !== 'admin'}
+                      className="flex min-h-[58px] items-center justify-center gap-2 rounded-2xl border border-[#e3edf4] bg-white px-3 text-xs font-black text-[#46546a] transition hover:border-[#ffb6ad] hover:text-[#ff5d4f] disabled:opacity-45"
+                    >
+                      <Icon className="h-4 w-4 text-[#ff5d4f]" />
+                      {label}
+                    </button>
+                  ))}
+                  {activeTier !== 'admin' && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/70 backdrop-blur-[2px]">
+                      <div className="flex items-center gap-2 rounded-2xl bg-[#172033] px-4 py-2 text-xs font-black text-white">
+                        <LockKeyhole className="h-4 w-4" />
+                        Switch to Admin
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Panel>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+function Panel({ className, children }: { className?: string; children: ReactNode }) {
+  return (
+    <div className={`rounded-[28px] border border-white bg-white shadow-[0_20px_60px_rgba(35,96,136,0.12)] ${className || ''}`}>
+      {children}
+    </div>
+  )
+}
+
+function ComposerTool({ icon: Icon, label }: { icon: IconComponent; label: string }) {
+  return (
+    <button type="button" className="flex h-9 items-center gap-2 rounded-xl px-3 transition hover:bg-[#f4fbff] hover:text-[#172033]">
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
+  )
+}
+
+function CommunityPost({ post }: { post: DashboardPost }) {
+  return (
+    <article className="rounded-[26px] border border-[#dbeaf3] bg-white p-4 shadow-[0_14px_34px_rgba(35,96,136,0.08)]">
+      <div className="flex items-start gap-3">
+        {post.avatar ? (
+          <img src={post.avatar} alt="" className="h-11 w-11 rounded-2xl object-cover object-top" />
+        ) : (
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#172033] text-xs font-black text-white">
+            {initials(post.author)}
+          </div>
         )}
-      </AnimatePresence>
-    </>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-black">{post.author}</h3>
+            <span className="rounded-full bg-[#d7fb48] px-2 py-0.5 text-[10px] font-black text-[#172033]">{post.role}</span>
+            <span className="text-xs font-bold text-[#8d9aaa]">{post.time}</span>
+            <span className="text-xs font-bold text-[#8d9aaa]">{post.location}</span>
+          </div>
+          <p className="mt-2 text-sm font-semibold leading-6 text-[#46546a]">{post.content}</p>
+        </div>
+        <button type="button" className="rounded-xl p-2 text-[#8d9aaa] transition hover:bg-[#f4fbff] hover:text-[#172033]">
+          <MoreHorizontal className="h-5 w-5" />
+        </button>
+      </div>
+
+      {(post.imageUrl || post.stats) && (
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.25fr)_220px]">
+          {post.imageUrl && (
+            <div className="h-60 overflow-hidden rounded-3xl bg-[#e9f8ff] sm:h-72 lg:h-56">
+              <img src={post.imageUrl} alt="" className="h-full w-full object-cover object-top" />
+            </div>
+          )}
+          {post.stats && (
+            <div className="rounded-3xl bg-[#e9f8ff] p-4">
+              <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-[#657185]">{post.tag}</p>
+              <div className="space-y-3">
+                {post.stats.map((stat) => (
+                  <div key={stat.label} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="font-bold text-[#46546a]">{stat.label}</span>
+                    <span className="font-black text-[#172033]">{stat.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <button type="button" className="flex items-center gap-2 text-sm font-black text-[#ff5d4f]">
+            <Heart className="h-5 w-5 fill-current" />
+            {post.likes}
+          </button>
+          <button type="button" className="flex items-center gap-2 text-sm font-black text-[#657185]">
+            <MessageCircle className="h-5 w-5" />
+            {post.replies}
+          </button>
+        </div>
+        <div className="hidden -space-x-2 sm:flex">
+          {['A', 'M', 'J', 'K', 'T'].map((letter, index) => (
+            <span
+              key={`${letter}-${index}`}
+              className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#172033] text-[10px] font-black text-white"
+            >
+              {letter}
+            </span>
+          ))}
+          <span className="flex h-7 items-center rounded-full border-2 border-white bg-[#f4fbff] px-2 text-[10px] font-black text-[#657185]">
+            +{post.likes > 10 ? 16 : 1}
+          </span>
+        </div>
+      </div>
+    </article>
   )
 }

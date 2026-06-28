@@ -4,7 +4,7 @@ Discord-inspired fitness command center built with **Next.js 14 (App Router)** +
 
 ## Features
 
-- Auth flow: sign up / sign in / forgot password / reset password
+- Auth flow: sign up / sign in with app-local pseudo-email credentials
 - Tri-sector dashboard:
   - **Nexus**: global chat + squads
   - **Forge**: lift tracking + week planner
@@ -112,7 +112,7 @@ npm run seed:admin
 
 ## Repo map
 
-- `src/app` - routes (`/`, `/dashboard`, `/admin`, `/reset-password`)
+- `src/app` - routes (`/`, `/dashboard`, `/admin`)
 - `src/components` - UI + feature components
 - `src/hooks`, `src/repositories`, `src/controllers` - data + state layer
 - `src/lib` - `apiClient`, `socketClient`, `metric-engine`, exercise DB

@@ -17,11 +17,9 @@ import {
   Mail,
   Target,
   Users,
-  X,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
-import { AuthRepository } from '@/repositories/AuthRepository'
 import { getEmailSector, mapAuthErrorToToast, type FieldErrors } from '@/lib/authFeedback'
 import {
   DEFAULT_HOMEPAGE_PEOPLE,
@@ -94,10 +92,6 @@ function GongaFitLandingInner() {
   const [showPassword, setShowPassword] = useState(false)
   const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null)
   const [redirecting, setRedirecting] = useState(false)
-  const [resetOpen, setResetOpen] = useState(false)
-  const [resetEmail, setResetEmail] = useState('')
-  const [resetSending, setResetSending] = useState(false)
-  const [resetSent, setResetSent] = useState(false)
   const [people, setPeople] = useState<HomepagePerson[]>(DEFAULT_HOMEPAGE_PEOPLE)
   const [activeSlide, setActiveSlide] = useState(0)
   const router = useRouter()
@@ -158,13 +152,6 @@ function GongaFitLandingInner() {
         message: 'You are safely signed out.',
         sector: 'AUTH',
       })
-    } else if (reason === 'password-reset') {
-      toast({
-        status: 'OK',
-        title: 'PASSWORD UPDATED',
-        message: 'Sign in with your new password.',
-        sector: 'AUTH',
-      })
     }
 
     router.replace('/')
@@ -207,54 +194,6 @@ function GongaFitLandingInner() {
       delete next[field]
       return next
     })
-  }
-
-  const openResetModal = () => {
-    setResetEmail(email.trim())
-    setResetSent(false)
-    setResetOpen(true)
-  }
-
-  const handleSendReset = async () => {
-    if (resetSending) return
-
-    const trimmed = resetEmail.trim()
-    if (!trimmed) {
-      toast({
-        status: 'WARN',
-        title: 'EMAIL REQUIRED',
-        message: 'Enter the email tied to your account.',
-        sector: 'AUTH',
-      })
-      return
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      toast({
-        status: 'WARN',
-        title: 'INVALID EMAIL',
-        message: 'Enter a valid email address.',
-        sector: 'AUTH',
-      })
-      return
-    }
-
-    try {
-      setResetSending(true)
-      await AuthRepository.requestPasswordReset(trimmed)
-      setResetSent(true)
-      toast({
-        status: 'INFO',
-        title: 'EMAIL RESET DISABLED',
-        message: 'Contact an admin to generate a reset link.',
-        sector: 'AUTH',
-      })
-    } catch (error: any) {
-      const mapped = mapAuthErrorToToast({ mode: 'login', email: trimmed, error })
-      toast(mapped.toast)
-    } finally {
-      setResetSending(false)
-    }
   }
 
   const validateInputs = (): { ok: true; email: string; password: string; codename: string } | { ok: false } => {
@@ -470,7 +409,6 @@ function GongaFitLandingInner() {
                 loading={loading}
                 handleSubmit={handleSubmit}
                 handleEnterSubmit={handleEnterSubmit}
-                openResetModal={openResetModal}
               />
 
               <div className="lg:hidden">
@@ -538,22 +476,6 @@ function GongaFitLandingInner() {
           </div>
         </section>
       </main>
-
-      <AnimatePresence>
-        {resetOpen && (
-          <ResetModal
-            resetEmail={resetEmail}
-            setResetEmail={setResetEmail}
-            resetSending={resetSending}
-            resetSent={resetSent}
-            onClose={() => {
-              setResetOpen(false)
-              setResetSent(false)
-            }}
-            onSubmit={handleSendReset}
-          />
-        )}
-      </AnimatePresence>
     </div>
   )
 }
@@ -644,7 +566,6 @@ type AuthPanelProps = {
   loading: boolean
   handleSubmit: () => void
   handleEnterSubmit: (event: KeyboardEvent<HTMLInputElement>) => void
-  openResetModal: () => void
 }
 
 function AuthPanel({
@@ -669,7 +590,6 @@ function AuthPanel({
   loading,
   handleSubmit,
   handleEnterSubmit,
-  openResetModal,
 }: AuthPanelProps) {
   return (
     <motion.aside
@@ -749,21 +669,12 @@ function AuthPanel({
           </span>
         </label>
 
-        {(fieldErrors.password || capsLockOn || mode === 'login') && (
+        {(fieldErrors.password || capsLockOn) && (
           <div className="-mt-2 flex items-start justify-between gap-3">
             <div>
               {fieldErrors.password && <p className="text-xs font-bold text-[#ff5d4f]">{fieldErrors.password}</p>}
               {capsLockOn && <p className="text-xs font-bold text-[#f2a51f]">Caps lock is on</p>}
             </div>
-            {mode === 'login' && (
-              <button
-                type="button"
-                onClick={openResetModal}
-                className="shrink-0 text-xs font-black text-[#ff5d4f] transition hover:text-[#df3e31]"
-              >
-                Forgot password?
-              </button>
-            )}
           </div>
         )}
 
@@ -834,68 +745,5 @@ function AuthPanel({
         </div>
       </div>
     </motion.aside>
-  )
-}
-
-type ResetModalProps = {
-  resetEmail: string
-  setResetEmail: (value: string) => void
-  resetSending: boolean
-  resetSent: boolean
-  onClose: () => void
-  onSubmit: () => void
-}
-
-function ResetModal({ resetEmail, setResetEmail, resetSending, resetSent, onClose, onSubmit }: ResetModalProps) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#172033]/60 p-4 backdrop-blur-sm">
-      <motion.div
-        initial={{ opacity: 0, y: 18, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 18, scale: 0.98 }}
-        className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_24px_70px_rgba(23,32,51,0.24)]"
-      >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-3xl font-black text-[#172033]">Password reset</h3>
-            <p className="mt-2 text-sm font-medium text-[#657185]">Email delivery is disabled for now.</p>
-          </div>
-          <button type="button" onClick={onClose} className="rounded-full p-2 text-[#657185] transition hover:bg-[#f1f6fb] hover:text-[#172033]" aria-label="Close password reset">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <label className="block text-sm font-black text-[#172033]">
-          Email
-          <input
-            value={resetEmail}
-            onChange={(event) => setResetEmail(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') onSubmit()
-            }}
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            className="mt-2 h-12 w-full rounded-2xl border border-[#d6e1ea] bg-white px-4 text-sm font-semibold text-[#172033] outline-none placeholder:text-[#aab4c1] focus:border-[#ff5d4f]"
-          />
-        </label>
-
-        <button
-          type="button"
-          onClick={onSubmit}
-          disabled={resetSending}
-          className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#172033] text-sm font-black text-white transition hover:bg-[#26334d] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {resetSending ? 'Checking...' : resetSent ? 'Request again' : 'Request reset help'}
-          {resetSending && <Loader2 className="h-4 w-4 animate-spin" />}
-        </button>
-
-        {resetSent && (
-          <p className="mt-4 rounded-2xl bg-[#f5ffd9] px-4 py-3 text-sm font-bold text-[#4b6500]">
-            Contact an admin to generate a reset link.
-          </p>
-        )}
-      </motion.div>
-    </div>
   )
 }
