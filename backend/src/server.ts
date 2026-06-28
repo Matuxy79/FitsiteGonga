@@ -14,14 +14,32 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 4000;
 
-// Trust Railway's reverse proxy (required for rate-limiting + real IPs)
-app.set('trust proxy', 1);
+// Trust reverse proxy only in production (Railway, etc.)
+if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1);
+}
 
 // Security middleware
 app.use(helmet());
 app.use(compression({ level: 6, threshold: 1024 }));
+
+// CORS: allow configured origins; in development also allow any localhost port
+const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const corsOrigin = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  if (!origin) return callback(null, true);
+  if (configuredOrigins.includes(origin)) return callback(null, true);
+  if (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+    return callback(null, true);
+  }
+  callback(new Error(`CORS blocked origin: ${origin}`));
+};
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: corsOrigin,
   credentials: true,
 }));
 app.use(rateLimit({

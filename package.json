@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:all": "concurrently -n FE,BE -c blue,green \"npm run dev\" \"npm run dev:backend\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -13,7 +15,10 @@
     "build-storybook": "storybook build",
     "format": "prettier --write .",
     "type-check": "dotenv -e .env.local -- tsc -p tsconfig.json --noEmit",
-    "analyze": "cross-env ANALYZE=true next build"
+    "analyze": "cross-env ANALYZE=true next build",
+    "setup": "npm install && cd backend && npm install && cd .. && cp backend/.env.example backend/.env && cp .env.local.example .env.local",
+    "db:migrate": "cd backend && npx prisma migrate dev",
+    "db:studio": "cd backend && npx prisma studio"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -46,6 +51,7 @@
     "@types/react": "^18.2.31",
     "@types/react-dom": "^18.2.14",
     "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "dotenv-cli": "^7.3.0",
     "eslint": "^8.52.0",

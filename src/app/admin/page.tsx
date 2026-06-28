@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { AdminRepository, type AdminStats, type AdminUser, type AdminActivity } from '@/repositories/AdminRepository'
+import HomepagePeopleEditor from '@/components/admin/HomepagePeopleEditor'
 
 // ============================================
 // COMPONENTS
@@ -245,6 +246,7 @@ function RoleChangeModal({
 export default function AdminDashboard() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const userRole = String(user?.role ?? '').toUpperCase()
   
   // Data states
   const [stats, setStats] = useState<AdminStats | null>(null)
@@ -330,12 +332,23 @@ export default function AdminDashboard() {
     if (action === 'role') {
       setRoleModalUser(targetUser)
     } else if (action === 'reset') {
-      if (confirm(`Send password reset to ${targetUser.email}?`)) {
+      if (confirm(`Create a manual password reset link for ${targetUser.email}? No email will be sent.`)) {
         try {
           const result = await AdminRepository.resetUserPassword(targetUser.id)
-          alert(result.message)
+          let copied = false
+          if (navigator.clipboard) {
+            copied = await navigator.clipboard
+              .writeText(result.resetUrl)
+              .then(() => true)
+              .catch(() => false)
+          }
+
+          const expiresAt = new Date(result.expiresAt).toLocaleString()
+          alert(
+            `${result.message}\n\n${copied ? 'Link copied to clipboard.' : 'Copy this link manually:'}\n${result.resetUrl}\n\nExpires: ${expiresAt}`
+          )
         } catch (err) {
-          alert('Failed to initiate password reset')
+          alert('Failed to create password reset link')
         }
       }
     } else if (action === 'disable') {
@@ -376,7 +389,7 @@ export default function AdminDashboard() {
     return null
   }
   
-  if (user.role !== 'admin') {
+  if (userRole !== 'ADMIN') {
     router.replace('/dashboard')
     return null
   }
@@ -429,7 +442,7 @@ export default function AdminDashboard() {
             </button>
             <span className="text-slate-500">Logged in as</span>
             <span className="text-emerald-400 font-mono">{user?.email}</span>
-            <RoleBadge role={user?.role?.toUpperCase() || 'CLIENT'} />
+            <RoleBadge role={userRole || 'CLIENT'} />
           </div>
         </div>
       </header>
@@ -465,6 +478,8 @@ export default function AdminDashboard() {
             />
           </div>
         </section>
+
+        <HomepagePeopleEditor />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* User Management Table */}

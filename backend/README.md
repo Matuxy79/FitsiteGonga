@@ -9,7 +9,7 @@ Express.js backend API for FitsiteGonga, hosted on Railway with PostgreSQL and A
 - **Database**: PostgreSQL (via Prisma ORM)
 - **Authentication**: JWT + bcrypt
 - **Real-time**: Socket.io
-- **File Storage**: AWS S3 (presigned URLs)
+- **File Storage**: S3-compatible object storage (Railway Object Storage / Tigris, presigned URLs)
 - **Validation**: Zod
 
 ## Setup
@@ -40,15 +40,13 @@ See `.env.example` for required variables:
 - `JWT_SECRET` - Secret for access tokens (32+ chars)
 - `JWT_REFRESH_SECRET` - Secret for refresh tokens
 - `PASSWORD_RESET_TTL_MINUTES` - Password reset link expiry (minutes, default: 60)
-- `RESEND_API_KEY` - Resend API key (optional; if unset, reset links are logged)
-- `RESEND_FROM_EMAIL` - From address for reset emails (optional)
-- `AWS_REGION` - AWS region (e.g., us-east-1)
-- `AWS_ACCESS_KEY_ID` - AWS access key
-- `AWS_SECRET_ACCESS_KEY` - AWS secret key
-- `AWS_S3_BUCKET_NAME` - S3 bucket name
-- `FRONTEND_URL` - Frontend URL for CORS
-- `PORT` - Server port (default: 3000)
-- `NODE_ENV` - Set to `production` in deployments so cookies are marked secure
+- `RAILWAY_OBJECT_STORAGE_ENDPOINT` - S3-compatible object storage endpoint (e.g. `https://your-project.railway.app`)
+- `RAILWAY_OBJECT_STORAGE_ACCESS_KEY_ID` - Object storage access key
+- `RAILWAY_OBJECT_STORAGE_SECRET_ACCESS_KEY` - Object storage secret key
+- `RAILWAY_OBJECT_STORAGE_BUCKET_NAME` - Object storage bucket name
+- `FRONTEND_URL` - Frontend URL for CORS (comma-separated for multiple origins)
+- `PORT` - Server port (default: 4000)
+- `NODE_ENV` - Set to `production` in deployments so cookies are marked secure and CORS is strict
 
 ### Database Setup
 
@@ -85,7 +83,7 @@ npm start
 - `POST /api/auth/refresh` - Refresh access token
 - `POST /api/auth/logout` - Logout user
 - `GET /api/auth/me` - Get current user
-- `POST /api/auth/forgot-password` - Send password reset email
+- `POST /api/auth/forgot-password` - Return password-reset guidance; email delivery is disabled
 - `POST /api/auth/reset-password` - Reset password using token
 
 ### Challenges
@@ -151,7 +149,8 @@ All protected endpoints require JWT token in:
 1. Connect GitHub repository
 2. Add PostgreSQL service
 3. Set environment variables
-4. Deploy
+4. (Optional) Add `backend/railway.json` to make build/start commands explicit
+5. Deploy
 
 Railway will automatically:
 
@@ -212,11 +211,12 @@ npm test
 - Check token expiry (15 minutes for access token)
 - Verify httpOnly cookie settings in production
 
-### S3 Upload Failures
+### Object Storage Upload Failures
 
-- Verify AWS credentials in environment variables
-- Check S3 bucket permissions
-- Ensure IAM user has `PutObject` permission
+- Verify `RAILWAY_OBJECT_STORAGE_*` credentials in environment variables
+- Check object storage bucket permissions
+- Ensure the access key has `PutObject` permission
+- In local development, storage endpoints return 503 when object storage is not configured; this is expected
 
 ### Socket.io Connection Issues
 
