@@ -36,7 +36,7 @@ function dateKey(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function isToday(d) {
+function isToday(d: Date) {
   return dateKey(d) === dateKey(new Date());
 }
 
@@ -46,11 +46,11 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-function formatDayName(d) {
+function formatDayName(d: Date) {
   return DAY_NAMES[d.getDay()];
 }
 
-function formatFullDate(d) {
+function formatFullDate(d: Date) {
   return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
