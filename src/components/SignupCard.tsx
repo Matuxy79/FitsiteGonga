@@ -9,7 +9,7 @@ import { FormField } from '@/components/ui/FormField'
 import { useToast } from '@/hooks/useToast'
 import Button from '@/components/ui/Button'
 import { AuthRepository } from '@/repositories/AuthRepository'
-import { generateErrorRef } from '@/lib/utils'
+import { mapAuthErrorToToast } from '@/lib/authFeedback'
 
 interface SignupCardProps {
   onSuccess: () => void
@@ -54,15 +54,9 @@ export function SignupCard({ onSuccess, onSwitchToLogin }: SignupCardProps) {
       }, 2000)
     } catch (error) {
       setFormState('error')
-      const errorRef = generateErrorRef()
-      
-      toast({
-        title: 'Signup failed',
-        description: `Something went wrong (REF-${errorRef})`,
-        variant: 'destructive'
-      })
-      
-      console.error('Signup error:', error, `REF-${errorRef}`)
+      const mapped = mapAuthErrorToToast({ mode: 'signup', email: data.email, error })
+      toast(mapped.toast)
+      console.error('Signup error:', error)
     }
   }
 

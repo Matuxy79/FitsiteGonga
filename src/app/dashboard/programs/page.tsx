@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ProgramRepository, type Program, type CalendarEvent } from '@/repositories/ProgramRepository'
 import { WorkoutRepository, type WorkoutTemplate } from '@/repositories/WorkoutRepository'
 import { useToast } from '@/providers/ToastProvider'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, Loader2, Crown, Check, X, Clock, Dumbbell, Flame, Heart, Zap, Moon, Play, Trash2 } from 'lucide-react'
 import { WORKOUT_TYPE_CONFIG, getWorkoutTypeConfig } from '@/lib/workoutTypes'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -58,8 +59,8 @@ export default function ProgramsPage() {
       const [p, mp] = await Promise.all([ProgramRepository.listPrograms(), ProgramRepository.getMyPrograms()])
       setPrograms(p)
       setMyPrograms(mp)
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to load programs', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'load your programs' }))
     }
   }
 
@@ -104,8 +105,8 @@ export default function ProgramsPage() {
       await WorkoutRepository.updateSchedule(eventId, { status: 'COMPLETED' })
       toast({ title: 'Workout marked complete!', variant: 'success' })
       loadCalendar()
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to update workout', variant: 'destructive' })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'update this workout' }))
     } finally {
       setActionLoading(false)
     }
@@ -117,8 +118,8 @@ export default function ProgramsPage() {
       await WorkoutRepository.updateSchedule(eventId, { status: 'SKIPPED' })
       toast({ title: 'Workout skipped', variant: 'success' })
       loadCalendar()
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to skip workout', variant: 'destructive' })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'skip this workout' }))
     } finally {
       setActionLoading(false)
     }
@@ -130,8 +131,8 @@ export default function ProgramsPage() {
       await WorkoutRepository.deleteSchedule(eventId)
       toast({ title: 'Workout removed', variant: 'success' })
       loadCalendar()
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to delete workout', variant: 'destructive' })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'delete this workout' }))
     } finally {
       setActionLoading(false)
     }
@@ -148,8 +149,8 @@ export default function ProgramsPage() {
       toast({ title: 'Workout scheduled!', variant: 'success' })
       loadCalendar()
       setShowDayPanel(false)
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to schedule workout', variant: 'destructive' })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'schedule this workout' }))
     } finally {
       setActionLoading(false)
     }
@@ -280,8 +281,8 @@ export default function ProgramsPage() {
                       toast({ title: 'Enrolled', variant: "success" })
                       loadPrograms()
                       loadCalendar()
-                    } catch (err: any) {
-                      toast({ title: err.error || 'Failed to enroll', variant: "destructive" })
+                    } catch (err) {
+                      toast(mapApiErrorToToast(err, { action: 'enroll in this program' }))
                     }
                   }}
                 />
@@ -397,8 +398,8 @@ function CreateProgramModal({ templates, onClose, onCreated }: { templates: Work
       })
       toast({ title: 'Program created', variant: "success" })
       onCreated()
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to create program', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'create this program' }))
     } finally {
       setSaving(false)
     }

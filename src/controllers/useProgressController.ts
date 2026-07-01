@@ -5,6 +5,7 @@ import { ProgressRepository, type CreateProgressLogDTO } from '@/repositories/Pr
 import { toProgressVM, type ProgressLogViewModel } from '@/viewmodels'
 import type { ProgressLog } from '@/types/fitness'
 import { useToast } from '@/hooks/useToast'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
 
 export function useProgressController(challengeId?: string) {
   const [loading, setLoading] = useState(false)
@@ -21,11 +22,11 @@ export function useProgressController(challengeId?: string) {
       setProgressLogs(logs)
     } catch (err: any) {
       setError(err?.message || 'Failed to load progress')
-      console.error('Error loading progress:', err)
+      toast(mapApiErrorToToast(err, { action: 'load your progress' }))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [toast])
 
   // Log new progress entry
   const logProgress = useCallback(async (payload: CreateProgressLogDTO) => {
@@ -47,11 +48,7 @@ export function useProgressController(challengeId?: string) {
       return newLog
     } catch (err: any) {
       setError(err?.message || 'Failed to log progress')
-      toast({
-        title: 'Error logging progress',
-        description: err?.message || 'Something went wrong',
-        variant: 'destructive'
-      })
+      toast(mapApiErrorToToast(err, { action: 'log this progress entry' }))
       throw err
     } finally {
       setLoading(false)
@@ -80,11 +77,7 @@ export function useProgressController(challengeId?: string) {
       return updatedLog
     } catch (err: any) {
       setError(err?.message || 'Failed to update progress')
-      toast({
-        title: 'Error updating progress',
-        description: err?.message || 'Something went wrong',
-        variant: 'destructive'
-      })
+      toast(mapApiErrorToToast(err, { action: 'update this progress entry' }))
       throw err
     } finally {
       setLoading(false)
@@ -109,11 +102,7 @@ export function useProgressController(challengeId?: string) {
       })
     } catch (err: any) {
       setError(err?.message || 'Failed to delete progress')
-      toast({
-        title: 'Error deleting progress',
-        description: err?.message || 'Something went wrong',
-        variant: 'destructive'
-      })
+      toast(mapApiErrorToToast(err, { action: 'delete this progress entry' }))
       throw err
     } finally {
       setLoading(false)

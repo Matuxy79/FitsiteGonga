@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { UserRepository } from '@/repositories/UserRepository'
 import { Camera, ShieldCheck, Crown, Users, Loader2 } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
 
 function initials(name: string) {
   return name
@@ -54,8 +55,8 @@ export default function SettingsPage() {
       await UserRepository.uploadAvatar(file)
       await refreshUser()
       toast({ title: 'Avatar uploaded', variant: "success" })
-    } catch (err: any) {
-      toast({ title: err.message || 'Failed to upload avatar', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'upload your avatar' }))
     } finally {
       setUploading(false)
     }
@@ -75,8 +76,8 @@ export default function SettingsPage() {
       })
       await refreshUser()
       toast({ title: 'Profile updated', variant: "success" })
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to update profile', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'update your profile' }))
     } finally {
       setSaving(false)
     }

@@ -20,6 +20,8 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/useToast'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
 import { AdminRepository, type AdminStats, type AdminUser, type AdminActivity } from '@/repositories/AdminRepository'
 import HomepagePeopleEditor from '@/components/admin/HomepagePeopleEditor'
 
@@ -239,6 +241,7 @@ function RoleChangeModal({
 export default function AdminDashboard() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { toast } = useToast()
   const userRole = String(user?.role ?? '').toUpperCase()
   
   // Data states
@@ -268,11 +271,13 @@ export default function AdminDashboard() {
       console.error('Failed to load stats:', err)
       if (err.status === 403) {
         setError('Access denied. Admin privileges required.')
+      } else {
+        toast(mapApiErrorToToast(err, { action: 'load admin stats' }))
       }
     } finally {
       setLoadingStats(false)
     }
-  }, [])
+  }, [toast])
 
   // Load users
   const loadUsers = useCallback(async () => {
@@ -285,10 +290,11 @@ export default function AdminDashboard() {
       setUsers(data.users)
     } catch (err: any) {
       console.error('Failed to load users:', err)
+      toast(mapApiErrorToToast(err, { action: 'load users' }))
     } finally {
       setLoadingUsers(false)
     }
-  }, [searchQuery, roleFilter])
+  }, [searchQuery, roleFilter, toast])
 
   // Load activity
   const loadActivity = useCallback(async () => {
@@ -298,10 +304,11 @@ export default function AdminDashboard() {
       setActivity(data)
     } catch (err: any) {
       console.error('Failed to load activity:', err)
+      toast(mapApiErrorToToast(err, { action: 'load recent activity' }))
     } finally {
       setLoadingActivity(false)
     }
-  }, [])
+  }, [toast])
 
   // Initial load
   useEffect(() => {
@@ -336,11 +343,12 @@ export default function AdminDashboard() {
     setRoleChangeLoading(true)
     try {
       await AdminRepository.updateUserRole(roleModalUser.id, newRole)
+      toast({ status: 'OK', title: 'ROLE UPDATED', message: `${roleModalUser.email} is now ${newRole}.`, sector: 'ADMIN' })
       setRoleModalUser(null)
       loadUsers() // Refresh list
       loadStats() // Refresh stats in case role counts changed
     } catch (err) {
-      alert('Failed to update role')
+      toast(mapApiErrorToToast(err, { action: 'update this user\'s role' }))
     } finally {
       setRoleChangeLoading(false)
     }

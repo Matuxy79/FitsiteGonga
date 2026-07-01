@@ -1,5 +1,5 @@
-import type { ApiError } from '@/lib/apiClient'
 import type { TerminalNotification } from '@/providers/ToastProvider'
+import { isApiError, mapApiErrorToToast, getRetryAfterSeconds as getRetryAfterSecondsShared } from '@/lib/apiFeedback'
 
 export type AuthMode = 'login' | 'signup'
 export type AuthField = 'email' | 'password' | 'codename'
@@ -10,9 +10,7 @@ export function getEmailSector(email: string): string {
   return domain.toUpperCase()
 }
 
-export function isApiError(error: unknown): error is ApiError {
-  return typeof error === 'object' && error !== null && 'error' in error
-}
+export { isApiError }
 
 export function extractFieldErrors(details: unknown): FieldErrors {
   if (!Array.isArray(details)) return {}
@@ -40,10 +38,7 @@ function firstFieldError(fieldErrors: FieldErrors): string | undefined {
   return fieldErrors.email || fieldErrors.password || fieldErrors.codename
 }
 
-export function getRetryAfterSeconds(error: ApiError): number | undefined {
-  const candidate = error?.meta?.retryAfterSeconds
-  return typeof candidate === 'number' && Number.isFinite(candidate) ? candidate : undefined
-}
+export const getRetryAfterSeconds = getRetryAfterSecondsShared
 
 export function mapAuthErrorToToast(params: {
   mode: AuthMode
@@ -53,32 +48,15 @@ export function mapAuthErrorToToast(params: {
   const sector = params.email ? getEmailSector(params.email) : 'AUTH'
 
   if (!isApiError(params.error)) {
-    return {
-      toast: {
-        status: 'ERROR',
-        title: 'AUTHENTICATION FAILED',
-        message: 'Unexpected error. Please try again.',
-        sector: 'AUTH',
-      },
-    }
+    return { toast: mapApiErrorToToast(params.error, { sector: 'AUTH' }) }
   }
 
   const apiError = params.error
   const status = apiError.status
 
+  // Generic connection-level failures (network/CORS) — shared copy, no auth-specific override needed.
   if (status === 0) {
-    const message =
-      process.env.NODE_ENV === 'production'
-        ? "Can't reach GongaFit right now. This is usually temporary — please try again in a moment."
-        : 'Backend unreachable. Start the server and try again.'
-    return {
-      toast: {
-        status: 'ERROR',
-        title: 'CONNECTION LOST',
-        message,
-        sector: 'SYSTEM',
-      },
-    }
+    return { toast: mapApiErrorToToast(apiError, { sector: 'SYSTEM' }) }
   }
 
   if (status === 429) {
@@ -148,12 +126,6 @@ export function mapAuthErrorToToast(params: {
     }
   }
 
-  return {
-    toast: {
-      status: 'ERROR',
-      title: 'AUTHENTICATION FAILED',
-      message: apiError.error || apiError.message || 'Authentication protocol failed',
-      sector: 'AUTH',
-    },
-  }
+  // Fall back to the shared generic mapping (403/404/unknown statuses).
+  return { toast: mapApiErrorToToast(apiError, { sector: 'AUTH' }) }
 }

@@ -23,8 +23,10 @@ import {
   Award,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { 
-  calculateOneRepMax, 
+import { useToast } from '@/hooks/useToast'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
+import {
+  calculateOneRepMax,
   calculateVolumeMetrics, 
   getWeightForReps,
   getStrengthLevel,
@@ -90,6 +92,8 @@ export function LiftTracker({
   onSaveSession,
   onClose,
 }: LiftTrackerProps) {
+  const { toast } = useToast()
+
   // Session state
   const [sets, setSets] = useState<ActiveSet[]>([])
   const [sessionStartTime] = useState(new Date())
@@ -201,6 +205,7 @@ export function LiftTracker({
       })
     } catch (error) {
       console.error('Failed to save session:', error)
+      toast(mapApiErrorToToast(error, { action: 'save this lift session' }))
     } finally {
       setIsSaving(false)
     }

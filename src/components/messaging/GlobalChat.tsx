@@ -21,6 +21,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useGlobalFeed, useMediaUpload, type Message } from '@/hooks'
+import { useToast } from '@/hooks/useToast'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
 
 // -----------------------------------------------------------------------------
 // TYPES
@@ -55,6 +57,7 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
   } = useGlobalFeed()
 
   const { upload, uploading, progress } = useMediaUpload()
+  const { toast } = useToast()
 
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -111,6 +114,7 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
       scrollToBottom()
     } catch (error) {
       console.error('Failed to send:', error)
+      toast(mapApiErrorToToast(error, { action: 'send this message' }))
     } finally {
       setSending(false)
     }
@@ -132,6 +136,7 @@ export function GlobalChat({ currentUser }: GlobalChatProps) {
         remoteUrls.current[blobUrl] = url
       } catch (error) {
         console.error('Upload failed:', error)
+        toast(mapApiErrorToToast(error, { action: 'upload this file' }))
         setPendingMedia(prev => prev.filter(u => u !== blobUrl))
         URL.revokeObjectURL(blobUrl)
       }

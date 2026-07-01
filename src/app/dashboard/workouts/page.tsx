@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { WorkoutRepository, type WorkoutTemplate, type TemplateExercise, type WorkoutInstance } from '@/repositories/WorkoutRepository'
 import { ALL_EXERCISES, EXERCISE_MAP, type Exercise } from '@/lib/exercises'
 import { useToast } from '@/providers/ToastProvider'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
 import {
   Dumbbell,
   Library,
@@ -39,8 +40,8 @@ export default function WorkoutsPage() {
       ])
       setTemplates(t)
       setInstances(i.instances)
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to load workouts', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'load your workouts' }))
     } finally {
       setLoading(false)
     }
@@ -107,8 +108,8 @@ function LibraryView({ templates, isPaid, onChange }: { templates: WorkoutTempla
       await WorkoutRepository.deleteTemplate(id)
       toast({ title: 'Template deleted', variant: "success" })
       onChange()
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to delete', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'delete this template' }))
     }
   }
 
@@ -250,8 +251,8 @@ function BuilderView({ templates, isPaid, onSaved }: { templates: WorkoutTemplat
       setExercises([])
       setIsPublic(false)
       onSaved()
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to save template', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'save this template' }))
     } finally {
       setSaving(false)
     }
@@ -492,8 +493,8 @@ function LogView({ templates, onLogged }: { templates: WorkoutTemplate[]; onLogg
       setTimer(0)
       setRunning(false)
       onLogged()
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to log workout', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'log this workout' }))
     } finally {
       setSaving(false)
     }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { NutritionRepository, type Meal, type MealType } from '@/repositories/NutritionRepository'
 import { useToast } from '@/providers/ToastProvider'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
 import { Apple, Loader2, Plus, Camera } from 'lucide-react'
 
 function mediaUrl(key?: string) {
@@ -33,8 +34,8 @@ export default function NutritionPage() {
       setMeal(m)
       setMeals(ml)
       setSummary(s)
-    } catch (err: any) {
-      toast({ title: err.error || 'Failed to load nutrition', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'load your nutrition data' }))
     } finally {
       setLoading(false)
     }
@@ -182,8 +183,8 @@ function MealForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => vo
       toast({ title: 'Meal posted', variant: "success" })
       onSaved()
       onClose()
-    } catch (err: any) {
-      toast({ title: err.message || 'Failed to post meal', variant: "destructive" })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'post this meal' }))
     } finally {
       setSaving(false)
     }
