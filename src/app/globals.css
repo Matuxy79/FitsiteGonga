@@ -8,89 +8,89 @@
   }
 
   body {
-    background: #1e1f22;
-    color: #dcddde;
+    background: #fdf6e3;
+    color: #002b36;
   }
 }
 
 @layer components {
-  /* Discord-inspired background patterns */
+  /* Solarized Light background patterns */
   .discord-bg {
-    background: #1e1f22;
+    background: #fdf6e3;
     background-image:
-      radial-gradient(circle at 20% 80%, rgba(88, 101, 242, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(88, 101, 242, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(88, 101, 242, 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 20% 80%, rgba(38, 139, 210, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(38, 139, 210, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(38, 139, 210, 0.04) 0%, transparent 50%);
   }
 
   .discord-bg-pattern {
-    background: #1e1f22;
+    background: #fdf6e3;
     background-image:
-      linear-gradient(rgba(88, 101, 242, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(88, 101, 242, 0.03) 1px, transparent 1px);
+      linear-gradient(rgba(38, 139, 210, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(38, 139, 210, 0.04) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
-  /* Discord-style scrollbars */
+  /* Solarized scrollbars */
   .discord-scrollbar::-webkit-scrollbar {
     width: 8px;
   }
 
   .discord-scrollbar::-webkit-scrollbar-track {
-    background: #2f3136;
+    background: #eee8d5;
   }
 
   .discord-scrollbar::-webkit-scrollbar-thumb {
-    background: #202225;
+    background: #93a1a1;
     border-radius: 4px;
   }
 
   .discord-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #4f545c;
+    background: #657b83;
   }
 
-  /* Discord-style focus rings */
+  /* Focus rings */
   .discord-focus {
-    @apply focus:outline-none focus:ring-2 focus:ring-discord-accent focus:ring-offset-2 focus:ring-offset-discord-darkest;
+    @apply focus:outline-none focus:ring-2 focus:ring-discord-accent focus:ring-offset-2 focus:ring-offset-sol-base3;
   }
 
-  /* Discord-style buttons */
+  /* Buttons */
   .discord-button {
-    @apply inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-discord-accent focus:ring-offset-2 focus:ring-offset-discord-darkest disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-discord-accent focus:ring-offset-2 focus:ring-offset-sol-base3 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .discord-button-primary {
-    @apply discord-button bg-discord-accent text-white hover:bg-discord-accent/90 active:bg-discord-accent/80;
+    @apply discord-button bg-sol-blue text-sol-base3 hover:bg-sol-blue/90 active:bg-sol-blue/80;
   }
 
   .discord-button-secondary {
-    @apply discord-button bg-discord-medium text-white hover:bg-discord-medium/80 active:bg-discord-medium/70;
+    @apply discord-button bg-sol-base2 text-sol-base03 hover:bg-sol-base2/80 active:bg-sol-base2/70;
   }
 
   .discord-button-subtle {
-    @apply discord-button bg-transparent text-discord-light hover:bg-discord-medium active:bg-discord-medium/80;
+    @apply discord-button bg-transparent text-sol-base01 hover:bg-sol-base2 active:bg-sol-base2/80;
   }
 
   .discord-button-danger {
-    @apply discord-button bg-discord-error text-white hover:bg-discord-error/90 active:bg-discord-error/80;
+    @apply discord-button bg-sol-red text-sol-base3 hover:bg-sol-red/90 active:bg-sol-red/80;
   }
 
-  /* Discord-style cards */
+  /* Cards */
   .discord-card {
-    @apply bg-discord-dark border border-discord-darker rounded-lg shadow-lg;
+    @apply bg-sol-base2 border border-sol-base1/30 rounded-lg shadow-sm;
   }
 
   .discord-card-hover {
-    @apply discord-card hover:bg-discord-medium hover:border-discord-medium transition-colors duration-200;
+    @apply discord-card hover:bg-sol-base3 hover:border-sol-base1/50 transition-colors duration-200;
   }
 
-  /* Discord-style inputs */
+  /* Inputs */
   .discord-input {
-    @apply w-full bg-discord-dark text-discord-light placeholder-discord-muted border border-discord-medium rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-discord-accent focus:border-discord-accent transition-colors duration-200;
+    @apply w-full bg-sol-base3 text-sol-base03 placeholder-sol-base1 border border-sol-base1/40 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sol-blue focus:border-sol-blue transition-colors duration-200;
   }
 
   .discord-input-error {
-    @apply discord-input border-discord-error focus:ring-discord-error focus:border-discord-error;
+    @apply discord-input border-sol-red focus:ring-sol-red focus:border-sol-red;
   }
 }
 
@@ -123,44 +123,44 @@
     animation: glow 2s ease-in-out infinite alternate;
   }
 
-  /* Discord-style text gradients */
+  /* Text gradients – solarized flavored */
   .text-gradient-discord {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-discord-accent;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sol-base03 to-sol-blue;
   }
 
   .text-gradient-success {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-discord-success to-green-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sol-green to-sol-cyan;
   }
 
   .text-gradient-warning {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-discord-warning to-yellow-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sol-yellow to-sol-orange;
   }
 
   .text-gradient-error {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-discord-error to-red-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sol-red to-sol-orange;
   }
 
-  /* Discord-style shadows */
+  /* Shadows */
   .shadow-discord {
     box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      0 4px 6px -1px rgba(0, 43, 54, 0.08),
+      0 2px 4px -1px rgba(0, 43, 54, 0.04);
   }
 
   .shadow-discord-lg {
     box-shadow:
-      0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      0 10px 15px -3px rgba(0, 43, 54, 0.08),
+      0 4px 6px -2px rgba(0, 43, 54, 0.04);
   }
 
   .shadow-discord-xl {
     box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      0 20px 25px -5px rgba(0, 43, 54, 0.08),
+      0 10px 10px -5px rgba(0, 43, 54, 0.03);
   }
 
   .shadow-discord-glow {
-    box-shadow: 0 0 20px rgba(88, 101, 242, 0.3);
+    box-shadow: 0 0 20px rgba(38, 139, 210, 0.25);
   }
 }
 
@@ -223,9 +223,9 @@
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 5px rgba(88, 101, 242, 0.2);
+    box-shadow: 0 0 5px rgba(38, 139, 210, 0.15);
   }
   to {
-    box-shadow: 0 0 20px rgba(88, 101, 242, 0.4);
+    box-shadow: 0 0 20px rgba(38, 139, 210, 0.3);
   }
 }

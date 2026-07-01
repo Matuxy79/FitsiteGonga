@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import {
   Activity,
@@ -49,22 +49,28 @@ function avatarUrl(key?: string | null) {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth()
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await logout()
+    router.replace('/?reason=signed-out')
+  }
 
   const tierLabel = user?.role === 'ADMIN' ? 'Admin' : user?.membership_tier === 'PAID' ? 'Paid' : 'Free'
   const TierIcon = user?.role === 'ADMIN' ? ShieldCheck : user?.membership_tier === 'PAID' ? Crown : Users
   const tierClass =
     user?.role === 'ADMIN'
-      ? 'bg-[#d7fb48] text-black'
+      ? 'bg-[#859900] text-[#fdf6e3]'
       : user?.membership_tier === 'PAID'
-      ? 'bg-[#ff5d4f] text-white'
-      : 'bg-white text-gray-700 border border-gray-200'
+      ? 'bg-[#dc322f] text-[#fdf6e3]'
+      : 'bg-[#eee8d5] text-[#657b83] border border-[#93a1a1]/40'
 
   return (
-    <div className="min-h-screen bg-[#f4f6f8] text-gray-900">
+    <div className="min-h-screen bg-[#fdf6e3] text-[#002b36]">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-100 p-6 flex flex-col z-20">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-[#eee8d5] border-r border-[#93a1a1]/30 p-6 flex flex-col z-20">
         <Link href="/dashboard" className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 rounded-xl bg-[#ff5d4f] flex items-center justify-center text-white font-bold text-lg">G</div>
+          <div className="w-10 h-10 rounded-xl bg-[#dc322f] flex items-center justify-center text-white font-bold text-lg">G</div>
           <span className="text-xl font-bold tracking-tight">GongaFit</span>
         </Link>
 
@@ -77,8 +83,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-colors ${
                   isActive
-                    ? 'bg-[#ff5d4f] text-white shadow-md shadow-[#ff5d4f]/20'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-[#dc322f] text-white shadow-md shadow-[#dc322f]/20'
+                    : 'text-[#657b83] hover:bg-[#fdf6e3] hover:text-[#002b36]'
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -88,10 +94,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="pt-6 border-t border-gray-100">
+        <div className="pt-6 border-t border-[#93a1a1]/30">
           <button
-            onClick={logout}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-2xl text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-2xl text-sm font-semibold text-[#657b83] hover:bg-[#fdf6e3] hover:text-[#002b36] transition-colors"
           >
             <LogOut className="w-5 h-5" />
             Sign out
@@ -102,27 +108,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <div className="ml-64">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-[#f4f6f8]/80 backdrop-blur-md px-8 py-4 flex items-center justify-between">
+        <header className="sticky top-0 z-10 bg-[#fdf6e3]/80 backdrop-blur-md px-8 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Dashboard</h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[#657b83]">
               {loading ? 'Loading your training space...' : `Welcome back, ${user?.display_name || 'athlete'}. Let's crush your goals today.`}
             </p>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#93a1a1]" />
               <input
                 type="text"
                 placeholder="Search"
-                className="pl-9 pr-4 py-2 rounded-full bg-white border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30 w-48"
+                className="pl-9 pr-4 py-2 rounded-full bg-[#fdf6e3] border border-[#93a1a1]/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#dc322f]/30 w-48"
               />
             </div>
 
-            <button className="relative p-2.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">
+            <button className="relative p-2.5 rounded-full bg-[#eee8d5] border border-[#93a1a1]/40 text-[#657b83] hover:bg-[#fdf6e3]">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#ff5d4f] rounded-full" />
+              <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#dc322f] rounded-full" />
             </button>
 
             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${tierClass}`}>
@@ -132,12 +138,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <Link
               href="/dashboard/settings"
-              className="flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full bg-[#eee8d5] border border-[#93a1a1]/40 hover:bg-[#fdf6e3] transition-colors"
             >
               {user?.avatar_url ? (
                 <img src={avatarUrl(user.avatar_url)} alt="" className="w-8 h-8 rounded-full object-cover" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ff5d4f] to-[#ff8a80] flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#dc322f] to-[#cb4b16] flex items-center justify-center text-white text-xs font-bold">
                   {initials(user?.display_name || 'GF')}
                 </div>
               )}

@@ -61,22 +61,22 @@ const trainerSlides = [
 ]
 
 const workoutChips = [
-  { label: 'HIIT', Icon: Flame, color: '#ff6b5a', bg: '#fff0ec' },
-  { label: 'Strength', Icon: Dumbbell, color: '#a8d91f', bg: '#f5ffd9' },
-  { label: 'Yoga', Icon: HeartPulse, color: '#36b6d6', bg: '#e8f9ff' },
-  { label: 'Cycling', Icon: Bike, color: '#f2b84b', bg: '#fff6dc' },
-  { label: 'Community', Icon: Users, color: '#ff806f', bg: '#fff0ec' },
+  { label: 'HIIT', Icon: Flame, color: '#dc322f', bg: '#fce4e1' },
+  { label: 'Strength', Icon: Dumbbell, color: '#859900', bg: '#e8f5c8' },
+  { label: 'Yoga', Icon: HeartPulse, color: '#2aa198', bg: '#d5eff7' },
+  { label: 'Cycling', Icon: Bike, color: '#b58900', bg: '#f5e6c4' },
+  { label: 'Community', Icon: Users, color: '#cb4b16', bg: '#fce4e1' },
 ]
 
 const toolHighlights = [
-  { title: 'Track progress', body: 'See stats and celebrate wins.', Icon: ArrowRight, color: '#9ee8ff' },
-  { title: 'Stay consistent', body: 'Build streaks and habits.', Icon: Target, color: '#d7fb48' },
-  { title: 'Train together', body: 'Move with friends.', Icon: Users, color: '#ffdd63' },
+  { title: 'Track progress', body: 'See stats and celebrate wins.', Icon: ArrowRight, color: '#268bd2' },
+  { title: 'Stay consistent', body: 'Build streaks and habits.', Icon: Target, color: '#859900' },
+  { title: 'Train together', body: 'Move with friends.', Icon: Users, color: '#b58900' },
 ]
 
 export default function GongaFitLanding() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#f7fbff]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#fdf6e3]" />}>
       <GongaFitLandingInner />
     </Suspense>
   )
@@ -269,10 +269,10 @@ function GongaFitLandingInner() {
   }
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#f7fbff] text-[#172033] selection:bg-[#d7fb48] selection:text-[#172033]">
+    <div className="min-h-screen overflow-hidden bg-[#fdf6e3] text-[#002b36] selection:bg-[#b58900] selection:text-[#fdf6e3]">
       <main className="min-h-screen p-3 sm:p-5 lg:p-7">
-        <section className="relative min-h-[calc(100vh-1.5rem)] overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_24px_80px_rgba(35,96,136,0.18)] sm:min-h-[calc(100vh-2.5rem)] lg:min-h-[calc(100vh-3.5rem)]">
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-[#effaff] to-[#b7efff]" />
+        <section className="relative min-h-[calc(100vh-1.5rem)] overflow-hidden rounded-[28px] border border-[#eee8d5]/80 bg-[#fdf6e3] shadow-[0_24px_80px_rgba(0,43,54,0.18)] sm:min-h-[calc(100vh-2.5rem)] lg:min-h-[calc(100vh-3.5rem)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#fdf6e3] via-[#eee8d5] to-[#eee8d5]" />
           <AnimatePresence mode="wait">
             <motion.img
               key={currentSlide.imageUrl}
@@ -285,8 +285,8 @@ function GongaFitLandingInner() {
               className="absolute bottom-0 right-0 top-0 hidden h-full w-[68%] object-cover object-center lg:block"
             />
           </AnimatePresence>
-          <div className="absolute inset-0 hidden bg-gradient-to-r from-white via-white/90 to-white/16 lg:block" />
-          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#e6f8ff] to-transparent" />
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-[#fdf6e3] via-[#fdf6e3]/90 to-[#fdf6e3]/16 lg:block" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#eee8d5] to-transparent" />
 
           <div className="relative z-10 flex min-h-[calc(100vh-1.5rem)] flex-col sm:min-h-[calc(100vh-2.5rem)] lg:min-h-[calc(100vh-3.5rem)]">
             <header className="flex items-center justify-between gap-4 px-5 py-5 sm:px-8 lg:px-10">
@@ -296,15 +296,15 @@ function GongaFitLandingInner() {
                 aria-label="GongaFit home"
                 onClick={() => router.push('/')}
               >
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff5d4f] text-3xl font-black text-white shadow-[0_10px_20px_rgba(255,93,79,0.28)]">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#dc322f] text-3xl font-black text-white shadow-[0_10px_20px_rgba(220,50,47,0.28)]">
                   G
                 </span>
-                <span className="text-2xl font-black text-[#172033]">
-                  Gonga<span className="text-[#ff5d4f]">Fit</span>
+                <span className="text-2xl font-black text-[#002b36]">
+                  Gonga<span className="text-[#dc322f]">Fit</span>
                 </span>
               </button>
 
-              <nav className="hidden items-center gap-8 text-sm font-black text-[#172033] lg:flex">
+              <nav className="hidden items-center gap-8 text-sm font-black text-[#002b36] lg:flex">
                 <span>Workouts</span>
                 <span>Programs</span>
                 <span>Community</span>
@@ -314,7 +314,7 @@ function GongaFitLandingInner() {
               <button
                 type="button"
                 onClick={() => setMode('signup')}
-                className="hidden items-center gap-2 rounded-full bg-[#d7fb48] px-5 py-3 text-sm font-black text-[#172033] shadow-[0_12px_24px_rgba(111,153,7,0.22)] transition hover:-translate-y-0.5 hover:bg-[#cafa2d] sm:inline-flex"
+                className="hidden items-center gap-2 rounded-full bg-[#859900] px-5 py-3 text-sm font-black text-[#002b36] shadow-[0_12px_24px_rgba(133,153,0,0.22)] transition hover:-translate-y-0.5 hover:bg-[#859900] sm:inline-flex"
               >
                 Start training
                 <ChevronRight className="h-4 w-4" />
@@ -327,15 +327,15 @@ function GongaFitLandingInner() {
                   initial={{ opacity: 1, y: 0 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.55, ease: 'easeOut' }}
-                  className="max-w-3xl text-5xl font-black leading-[0.96] text-[#172033] sm:text-7xl lg:text-8xl"
+                  className="max-w-3xl text-5xl font-black leading-[0.96] text-[#002b36] sm:text-7xl lg:text-8xl"
                 >
-                  Find your <span className="text-[#ff5d4f]">fun</span> fit
+                  Find your <span className="text-[#dc322f]">fun</span> fit
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 1, y: 0 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.55, delay: 0.08, ease: 'easeOut' }}
-                  className="mt-4 max-w-xl text-lg font-medium leading-7 text-[#4b5870] sm:mt-6 sm:text-xl sm:leading-8"
+                  className="mt-4 max-w-xl text-lg font-medium leading-7 text-[#586e75] sm:mt-6 sm:text-xl sm:leading-8"
                 >
                   Move with coaches, friends, and goals that feel good.
                 </motion.p>
@@ -349,7 +349,7 @@ function GongaFitLandingInner() {
                   <button
                     type="button"
                     onClick={() => setMode('signup')}
-                    className="inline-flex h-14 items-center gap-3 rounded-full bg-[#ff5d4f] px-6 text-base font-black text-white shadow-[0_16px_30px_rgba(255,93,79,0.3)] transition hover:-translate-y-0.5 hover:bg-[#ff4939]"
+                    className="inline-flex h-14 items-center gap-3 rounded-full bg-[#dc322f] px-6 text-base font-black text-white shadow-[0_16px_30px_rgba(220,50,47,0.3)] transition hover:-translate-y-0.5 hover:bg-[#cb4b16]"
                   >
                     Start training
                     <ArrowRight className="h-5 w-5" />
@@ -357,7 +357,7 @@ function GongaFitLandingInner() {
                   <button
                     type="button"
                     onClick={() => setMode('login')}
-                    className="inline-flex h-14 items-center rounded-full border border-[#d7e4ee] bg-white/90 px-6 text-base font-black text-[#172033] shadow-[0_10px_24px_rgba(35,96,136,0.12)] transition hover:-translate-y-0.5 hover:border-[#ffb6ad]"
+                    className="inline-flex h-14 items-center rounded-full border border-[#93a1a1] bg-[#eee8d5]/90 px-6 text-base font-black text-[#002b36] shadow-[0_10px_24px_rgba(0,43,54,0.10)] transition hover:-translate-y-0.5 hover:border-[#dc322f]"
                   >
                     Log in
                   </button>

@@ -38,10 +38,10 @@ function SectionCard({
   action?: { label: string; href: string }
 }) {
   return (
-    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col h-full">
+    <div className="bg-[#eee8d5] rounded-3xl p-6 border border-[#93a1a1]/30 shadow-sm flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#ff5d4f]/10 text-[#ff5d4f] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-[#dc322f]/10 text-[#dc322f] flex items-center justify-center">
             <Icon className="w-5 h-5" />
           </div>
           <h2 className="font-bold text-lg">{title}</h2>
@@ -49,7 +49,7 @@ function SectionCard({
         {action && (
           <Link
             href={action.href}
-            className="text-xs font-bold text-[#ff5d4f] hover:text-[#e54d3f] flex items-center gap-1"
+            className="text-xs font-bold text-[#dc322f] hover:text-[#cb4b16] flex items-center gap-1"
           >
             <Plus className="w-3.5 h-3.5" />
             {action.label}
@@ -59,7 +59,7 @@ function SectionCard({
       <div className="flex-1">{children}</div>
       <Link
         href={href}
-        className="mt-4 text-sm font-semibold text-gray-500 hover:text-gray-900 flex items-center gap-1"
+        className="mt-4 text-sm font-semibold text-[#657b83] hover:text-[#002b36] flex items-center gap-1"
       >
         Open {title} <span className="text-lg leading-none">→</span>
       </Link>
@@ -69,7 +69,7 @@ function SectionCard({
 
 function EmptyState({ message, icon: Icon }: { message: string; icon: React.ElementType }) {
   return (
-    <div className="flex flex-col items-center justify-center h-32 text-center text-gray-400">
+    <div className="flex flex-col items-center justify-center h-32 text-center text-[#93a1a1]">
       <Icon className="w-8 h-8 mb-2 opacity-40" />
       <p className="text-sm">{message}</p>
     </div>
@@ -86,25 +86,25 @@ export default function DashboardOverview() {
     <div className="space-y-6">
       {/* Quick stat row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <p className="text-sm text-gray-500 mb-1">This week</p>
+        <div className="bg-[#eee8d5] rounded-2xl p-5 border border-[#93a1a1]/30 shadow-sm">
+          <p className="text-sm text-[#657b83] mb-1">This week</p>
           <p className="text-2xl font-bold">0</p>
-          <p className="text-xs text-gray-400 mt-1">workouts logged</p>
+          <p className="text-xs text-[#93a1a1] mt-1">workouts logged</p>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <p className="text-sm text-gray-500 mb-1">Next up</p>
+        <div className="bg-[#eee8d5] rounded-2xl p-5 border border-[#93a1a1]/30 shadow-sm">
+          <p className="text-sm text-[#657b83] mb-1">Next up</p>
           <p className="text-2xl font-bold">—</p>
-          <p className="text-xs text-gray-400 mt-1">scheduled session</p>
+          <p className="text-xs text-[#93a1a1] mt-1">scheduled session</p>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <p className="text-sm text-gray-500 mb-1">Meal today</p>
+        <div className="bg-[#eee8d5] rounded-2xl p-5 border border-[#93a1a1]/30 shadow-sm">
+          <p className="text-sm text-[#657b83] mb-1">Meal today</p>
           <p className="text-2xl font-bold">—</p>
-          <p className="text-xs text-gray-400 mt-1">posted by admin</p>
+          <p className="text-xs text-[#93a1a1] mt-1">posted by admin</p>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <p className="text-sm text-gray-500 mb-1">Community</p>
+        <div className="bg-[#eee8d5] rounded-2xl p-5 border border-[#93a1a1]/30 shadow-sm">
+          <p className="text-sm text-[#657b83] mb-1">Community</p>
           <p className="text-2xl font-bold">0</p>
-          <p className="text-xs text-gray-400 mt-1">new mentions</p>
+          <p className="text-xs text-[#93a1a1] mt-1">new mentions</p>
         </div>
       </div>
 
@@ -136,13 +136,13 @@ export default function DashboardOverview() {
       </div>
 
       {isAdmin && (
-        <div className="bg-[#d7fb48] rounded-3xl p-6 border border-[#c8ec39]">
+        <div className="bg-[#859900] rounded-3xl p-6 border border-[#859900]">
           <h3 className="font-bold text-lg mb-2">Admin quick actions</h3>
           <div className="flex flex-wrap gap-3">
-            <Link href="/admin" className="px-4 py-2 bg-black text-white rounded-xl text-sm font-bold hover:bg-gray-900">
+            <Link href="/admin" className="px-4 py-2 bg-[#002b36] text-[#fdf6e3] rounded-xl text-sm font-bold hover:bg-[#073642]">
               Admin console
             </Link>
-            <Link href="/dashboard/nutrition" className="px-4 py-2 bg-white text-black rounded-xl text-sm font-bold hover:bg-gray-50">
+            <Link href="/dashboard/nutrition" className="px-4 py-2 bg-[#fdf6e3] text-[#002b36] rounded-xl text-sm font-bold hover:bg-[#eee8d5]">
               Post meal of the day
             </Link>
           </div>
