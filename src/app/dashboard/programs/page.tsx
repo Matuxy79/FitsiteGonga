@@ -310,7 +310,7 @@ export default function ProgramsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={() => { setShowDayPanel(false); setSelectedDate(null); }}
           >
             <motion.div
@@ -318,10 +318,10 @@ export default function ProgramsPage() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl overflow-hidden"
+              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-zinc-950 border-l border-white/5 shadow-2xl overflow-hidden"
               onClick={e => e.stopPropagation()}
             >
-              <WorkoutWidget />
+              <WorkoutWidget initialDate={selectedDate} />
             </motion.div>
           </motion.div>
         )}
