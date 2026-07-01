@@ -23,26 +23,12 @@ if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true')
 app.use(helmet());
 app.use(compression({ level: 6, threshold: 1024 }));
 
-// CORS: allow configured origins; in development also allow any localhost port
-const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
-
-// Automatically allow the Railway production frontend URL
-configuredOrigins.push('https://fitsitegonga-frontend-production.up.railway.app');
-
-const corsOrigin = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-  if (!origin) return callback(null, true);
-  if (configuredOrigins.includes(origin)) return callback(null, true);
-  if (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost(:\d+)?$/.test(origin)) {
-    return callback(null, true);
-  }
-  callback(new Error(`CORS blocked origin: ${origin}`));
-};
-
+// CORS: solo project, small user base — reflect whatever origin made the
+// request (rather than maintaining an allow-list). A literal '*' can't be
+// used here since the app relies on httpOnly cookies (`credentials: true`),
+// and the CORS spec forbids a wildcard origin alongside credentials.
 app.use(cors({
-  origin: corsOrigin,
+  origin: true,
   credentials: true,
 }));
 app.use(rateLimit({
