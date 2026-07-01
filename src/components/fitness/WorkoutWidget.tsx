@@ -190,7 +190,7 @@ function EmptyState({ templates, onSelectTemplate, onCustom }: EmptyStateProps) 
           <Calendar className="w-5 h-5 text-sol-base01" />
         </div>
         <div className="text-sm font-bold text-sol-base03">No workout scheduled</div>
-        <div className="text-xs text-sol-base01 mt-1 font-mono uppercase tracking-wider">Pick a template to start</div>
+        <div className="text-[10px] text-sol-base01 mt-1.5 font-mono uppercase tracking-[0.4em]">Pick a template to start</div>
       </div>
       <TemplateGrid templates={templates} onSelect={onSelectTemplate} />
       <button
@@ -217,7 +217,7 @@ function RestDayView({ templates, onSelectTemplate }: RestDayViewProps) {
           <Moon className="w-5 h-5 text-sol-base01" />
         </div>
         <div className="text-sm font-bold text-sol-base03">Rest Day</div>
-        <div className="text-xs text-sol-base01 mt-1 font-mono uppercase tracking-wider">Recovery is part of the program</div>
+        <div className="text-[10px] text-sol-base01 mt-1.5 font-mono uppercase tracking-[0.4em]">Recovery is part of the program</div>
       </div>
       {!showPicker ? (
         <button
@@ -670,10 +670,7 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
       <div className="w-full">
         <div className="bg-white border border-sol-base1/30 p-4 sm:p-5 relative overflow-hidden shadow-discord h-full flex flex-col">
           
-          {/* Header Metadata Info */}
-          <div className="text-[10px] font-mono text-sol-base01 uppercase tracking-[0.4em] mb-3">
-            {"// WORKOUT PROTOCOL"}
-          </div>
+
 
           {/* day navigator */}
           <div className="flex items-center justify-between mb-2">
