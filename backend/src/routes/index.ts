@@ -27,14 +27,14 @@ export const initRoutes = (app: Express) => {
   app.use('/api/nutrition', nutritionRoutes);
   app.use('/api/messages/squads/:squadId/channels', channelRoutes);
 
-  // Media proxy for locally stored uploads.
+  // Media proxy: redirect to a presigned MinIO download URL (1-hour expiry).
   app.get('/api/media/*', async (req, res) => {
     const key = req.path.slice('/api/media/'.length);
     if (!key) return res.status(400).json({ error: 'Missing key' });
     try {
-      const filePath = await storageService.getFilePath(key);
+      const presignedUrl = await storageService.getFilePath(key);
       res.set('Cache-Control', 'private, max-age=3600');
-      res.sendFile(filePath);
+      res.redirect(302, presignedUrl);
     } catch {
       res.status(404).json({ error: 'File not found' });
     }

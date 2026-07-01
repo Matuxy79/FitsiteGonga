@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
 import { z } from 'zod';
-import { storageService } from '../services/storageService';
+import { storageService, getPublicUrl } from '../services/storageService';
 import { authenticateJWT } from '../middleware/authMiddleware';
 
 const router: Router = Router();
@@ -20,15 +20,14 @@ router.post('/upload-url', authenticateJWT, async (req, res) => {
     const validated = uploadUrlSchema.parse(req.body);
     const { key, contentType, expiresIn = 300 } = validated;
 
-    const uploadPath = await storageService.generateUploadUrl({
+    const uploadUrl = await storageService.generateUploadUrl({
       key,
       contentType,
       expiresIn,
     });
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
 
     res.json({
-      uploadUrl: `${baseUrl}${uploadPath}`,
+      uploadUrl,
       key,
       expiresIn,
     });
@@ -62,15 +61,14 @@ router.post('/upload-url/progress-photo', authenticateJWT, async (req, res) => {
     const ext = filename.split('.').pop()?.toLowerCase();
     const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
 
-    const uploadPath = await storageService.generateUploadUrl({
+    const uploadUrl = await storageService.generateUploadUrl({
       key,
       contentType,
       expiresIn: 300, // 5 minutes
     });
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
 
     res.json({
-      uploadUrl: `${baseUrl}${uploadPath}`,
+      uploadUrl,
       key,
       contentType,
       expiresIn: 300,
@@ -102,7 +100,7 @@ router.put(
       }
 
       await storageService.uploadFile(key, body, req.get('content-type') || 'application/octet-stream');
-      res.json({ key, publicUrl: `${req.protocol}://${req.get('host')}/api/media/${key}` });
+      res.json({ key, publicUrl: getPublicUrl(key) });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Validation error', details: error.errors });
