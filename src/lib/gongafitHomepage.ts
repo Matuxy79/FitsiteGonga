@@ -6,7 +6,7 @@ export type HomepagePerson = {
   accent: string
 }
 
-export const HOMEPAGE_PEOPLE_STORAGE_KEY = 'gongafit.homepage.people'
+const HOMEPAGE_PEOPLE_STORAGE_KEY = 'gongafit.homepage.people'
 export const HOMEPAGE_PEOPLE_EVENT = 'gongafit-homepage-people-updated'
 
 export const DEFAULT_HOMEPAGE_PEOPLE: HomepagePerson[] = [

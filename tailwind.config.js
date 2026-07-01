@@ -26,17 +26,26 @@ module.exports = {
         'sol-cyan': '#2aa198',
         'sol-green': '#859900',
 
+        // New Clean UI Palette
+        'clean-bg': '#f5f5f7',     // Main body background
+        'clean-sidebar': '#ffffff',// Sidebar background
+        'clean-accent': '#E8453C', // Coral red for active items
+        'clean-text': '#1a1a1a',   // Dark text
+        'clean-muted': '#6b7280',  // Muted text / icons
+        'clean-border': '#e5e7eb', // Subtle borders
+        'clean-hover': '#f3f4f6',  // Hover states
+
         // Legacy discord aliases mapped to solarized equivalents
         'discord-darkest': '#002b36',
         'discord-darker': '#073642',
-        'discord-dark': '#eee8d5',
-        'discord-medium': '#fdf6e3',
-        'discord-light': '#002b36',
-        'discord-muted': '#93a1a1',
-        'discord-accent': '#268bd2',
-        'discord-success': '#859900',
-        'discord-warning': '#b58900',
-        'discord-error': '#dc322f',
+        'discord-dark': '#ffffff', // Shifted to white for consistency
+        'discord-medium': '#f5f5f7', // Shifted to light gray
+        'discord-light': '#1a1a1a', // Shifted to dark text
+        'discord-muted': '#6b7280', // Shifted to gray
+        'discord-accent': '#E8453C', // Shifted to coral red
+        'discord-success': '#10b981', // Clean green
+        'discord-warning': '#f59e0b', // Clean amber
+        'discord-error': '#E8453C', // Clean coral red
       },
       animation: {
         'fade-in': 'fadeIn 0.25s ease-in-out',

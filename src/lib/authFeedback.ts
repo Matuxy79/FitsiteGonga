@@ -2,7 +2,7 @@ import type { TerminalNotification } from '@/providers/ToastProvider'
 import { isApiError, mapApiErrorToToast, getRetryAfterSeconds as getRetryAfterSecondsShared } from '@/lib/apiFeedback'
 
 export type AuthMode = 'login' | 'signup'
-export type AuthField = 'email' | 'password' | 'codename' | 'general'
+type AuthField = 'email' | 'password' | 'codename' | 'general'
 export type FieldErrors = Partial<Record<AuthField, string>>
 
 export function getEmailSector(email: string): string {
@@ -10,9 +10,8 @@ export function getEmailSector(email: string): string {
   return domain.toUpperCase()
 }
 
-export { isApiError }
 
-export function extractFieldErrors(details: unknown): FieldErrors {
+function extractFieldErrors(details: unknown): FieldErrors {
   if (!Array.isArray(details)) return {}
 
   const result: FieldErrors = {}
@@ -38,7 +37,7 @@ function firstFieldError(fieldErrors: FieldErrors): string | undefined {
   return fieldErrors.email || fieldErrors.password || fieldErrors.codename
 }
 
-export const getRetryAfterSeconds = getRetryAfterSecondsShared
+const getRetryAfterSeconds = getRetryAfterSecondsShared
 
 export function mapAuthErrorToToast(params: {
   mode: AuthMode

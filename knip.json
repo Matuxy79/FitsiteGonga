@@ -2,36 +2,11 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "workspaces": {
     ".": {
-      "entry": [
-        "src/app/**/*.{ts,tsx}",
-        "src/hooks/**/*.{ts,tsx}",
-        "src/providers/**/*.{ts,tsx}",
-        "src/repositories/**/*.{ts,tsx}",
-        "src/schema/**/*.{ts,tsx}",
-        "next.config.js",
-        "playwright.config.ts",
-        "vitest.config.ts",
-        "postcss.config.js",
-        "tailwind.config.js"
-      ],
-      "project": ["src/**/*.{ts,tsx}", "!src/test/**"],
-      "ignore": ["src/components/ui/Button.tsx", "src/components/ui/FormField.tsx", "src/components/ui/Input.tsx", "src/lib/metric-engine.ts"],
-      "ignoreDependencies": [
-        "@hookform/resolvers",
-        "@radix-ui/react-slot",
-        "@radix-ui/react-toast",
-        "axios",
-        "class-variance-authority",
-        "react-hook-form",
-        "zustand",
-        "@axe-core/playwright",
-        "@testing-library/react"
-      ]
+      "project": ["src/**/*.{ts,tsx}", "!src/test/**"]
     },
     "backend": {
-      "entry": ["src/server.ts", "scripts/**/*.ts"],
-      "project": ["src/**/*.ts", "scripts/**/*.ts"],
-      "ignore": ["dist/**"]
+      "entry": ["scripts/**/*.ts"],
+      "project": ["src/**/*.ts", "scripts/**/*.ts"]
     }
   }
 }
