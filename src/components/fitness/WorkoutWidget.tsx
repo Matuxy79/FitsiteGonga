@@ -28,11 +28,11 @@ import {
 
 // ---------- helpers ----------
 
-function pad(n) {
+function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function dateKey(d) {
+function dateKey(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
