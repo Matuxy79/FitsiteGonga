@@ -8,9 +8,9 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   images: {
-    domains: ['localhost'],
     remotePatterns: [
       { protocol: 'http', hostname: 'localhost', port: '4000' },
+      { protocol: 'https', hostname: '**.up.railway.app' },
     ],
   },
 };
