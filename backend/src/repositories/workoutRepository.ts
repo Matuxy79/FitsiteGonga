@@ -94,6 +94,25 @@ const templateSelect = {
   updated_at: true,
 } as const;
 
+const validWorkoutTypes = new Set([
+  'PUSH',
+  'PULL',
+  'LEGS',
+  'UPPER',
+  'LOWER',
+  'FULL_BODY',
+  'CARDIO',
+  'REST',
+  'CUSTOM',
+]);
+
+function normalizeWorkoutType(type: string): string {
+  const normalized = type.trim().toUpperCase().replace(/[\s-]+/g, '_');
+  if (validWorkoutTypes.has(normalized)) return normalized;
+  if (['STRENGTH', 'WORKOUT', 'HIIT', 'YOGA', 'CYCLING'].includes(normalized)) return 'CUSTOM';
+  return 'CUSTOM';
+}
+
 export const workoutRepository = {
   // Templates
   async listTemplates(userId: string, includePublic = false) {
@@ -122,7 +141,7 @@ export const workoutRepository = {
         user_id: data.user_id,
         name: data.name,
         description: data.description,
-        type: data.type as any,
+        type: normalizeWorkoutType(data.type) as any,
         exercises: data.exercises as unknown as Prisma.JsonArray,
         is_public: data.is_public || false,
       },
@@ -136,7 +155,7 @@ export const workoutRepository = {
       data: {
         name: data.name,
         description: data.description,
-        type: data.type as any,
+        type: data.type ? (normalizeWorkoutType(data.type) as any) : undefined,
         exercises: data.exercises ? (data.exercises as unknown as Prisma.JsonArray) : undefined,
         is_public: data.is_public,
         is_active: data.is_active,
@@ -221,7 +240,7 @@ export const workoutRepository = {
         template_id: data.template_id,
         scheduled_workout_id: data.scheduled_workout_id,
         name: data.name,
-        type: data.type as any,
+        type: normalizeWorkoutType(data.type) as any,
         duration_seconds: data.duration_seconds,
         notes: data.notes,
         exercises: {

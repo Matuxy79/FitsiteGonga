@@ -14,7 +14,7 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 4000;
 
-// Trust reverse proxy only in production (Railway, etc.)
+// Trust reverse proxy only when deployed behind one.
 if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
   app.set('trust proxy', 1);
 }

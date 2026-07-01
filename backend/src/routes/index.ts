@@ -11,7 +11,7 @@ import workoutRoutes from './workoutRoutes';
 import programRoutes from './programRoutes';
 import nutritionRoutes from './nutritionRoutes';
 import channelRoutes from './channelRoutes';
-import { s3Service } from '../services/s3Service';
+import { storageService } from '../services/storageService';
 
 export const initRoutes = (app: Express) => {
   app.use('/api/auth', authRoutes);
@@ -27,15 +27,14 @@ export const initRoutes = (app: Express) => {
   app.use('/api/nutrition', nutritionRoutes);
   app.use('/api/messages/squads/:squadId/channels', channelRoutes);
 
-  // Media proxy: generate presigned download URL and redirect
-  // Objects stay private, no ACL config needed
+  // Media proxy for locally stored uploads.
   app.get('/api/media/*', async (req, res) => {
     const key = req.path.slice('/api/media/'.length);
     if (!key) return res.status(400).json({ error: 'Missing key' });
     try {
-      const signedUrl = await s3Service.generatePresignedDownloadUrl(key, 3600);
-      res.set('Cache-Control', 'private, max-age=3500');
-      res.redirect(302, signedUrl);
+      const filePath = await storageService.getFilePath(key);
+      res.set('Cache-Control', 'private, max-age=3600');
+      res.sendFile(filePath);
     } catch {
       res.status(404).json({ error: 'File not found' });
     }

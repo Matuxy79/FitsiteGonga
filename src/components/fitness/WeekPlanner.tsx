@@ -24,14 +24,14 @@ import {
   RotateCcw,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { WORKOUT_TYPE_CONFIG } from '@/lib/workoutTypes'
 
 // -----------------------------------------------------------------------------
 // TYPES
 // -----------------------------------------------------------------------------
 
-export type WorkoutType = 
-  | 'PUSH' | 'PULL' | 'LEGS' | 'UPPER' | 'LOWER' 
-  | 'FULL_BODY' | 'CARDIO' | 'REST' | 'CUSTOM'
+// Use WorkoutType from shared module (imported via WORKOUT_TYPE_CONFIG)
+type WorkoutType = import('@/lib/workoutTypes').WorkoutType
 
 export interface WorkoutTemplate {
   id: string
@@ -80,23 +80,6 @@ interface WeekPlannerProps {
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const FULL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-
-const WORKOUT_TYPE_CONFIG: Record<WorkoutType, { 
-  label: string
-  color: string
-  bgColor: string
-  icon: typeof Dumbbell
-}> = {
-  PUSH: { label: 'Push', color: 'text-red-400', bgColor: 'bg-red-500/10', icon: Zap },
-  PULL: { label: 'Pull', color: 'text-blue-400', bgColor: 'bg-blue-500/10', icon: Dumbbell },
-  LEGS: { label: 'Legs', color: 'text-purple-400', bgColor: 'bg-purple-500/10', icon: Flame },
-  UPPER: { label: 'Upper', color: 'text-orange-400', bgColor: 'bg-orange-500/10', icon: Dumbbell },
-  LOWER: { label: 'Lower', color: 'text-pink-400', bgColor: 'bg-pink-500/10', icon: Flame },
-  FULL_BODY: { label: 'Full Body', color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', icon: Zap },
-  CARDIO: { label: 'Cardio', color: 'text-cyan-400', bgColor: 'bg-cyan-500/10', icon: Heart },
-  REST: { label: 'Rest', color: 'text-slate-400', bgColor: 'bg-slate-500/10', icon: Moon },
-  CUSTOM: { label: 'Custom', color: 'text-yellow-400', bgColor: 'bg-yellow-500/10', icon: Dumbbell },
-}
 
 // -----------------------------------------------------------------------------
 // MAIN COMPONENT

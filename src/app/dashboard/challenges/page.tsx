@@ -9,7 +9,7 @@ export default function ChallengesPage() {
         </div>
         <h1 className="text-3xl font-bold mb-3">Challenges coming soon</h1>
         <p className="text-gray-500 mb-6">
-          We're building team challenges, leaderboards, and achievement badges. Check back soon.
+          We&apos;re building team challenges, leaderboards, and achievement badges. Check back soon.
         </p>
         <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
           <Clock className="w-4 h-4" />

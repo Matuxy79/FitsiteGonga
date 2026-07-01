@@ -3,7 +3,7 @@ import multer from 'multer';
 import { z } from 'zod';
 import { authenticateJWT, requireAdmin } from '../middleware/authMiddleware';
 import { userRepository } from '../repositories/userRepository';
-import { s3Service } from '../services/s3Service';
+import { storageService } from '../services/storageService';
 
 const router: Router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -64,8 +64,8 @@ router.post('/me/avatar', authenticateJWT, upload.single('avatar'), async (req, 
       return res.status(400).json({ error: 'No image provided' });
     }
 
-    const key = s3Service.generateAvatarKey(req.user!.userId, req.file.originalname);
-    await s3Service.uploadFile(key, req.file.buffer, req.file.mimetype);
+    const key = storageService.generateAvatarKey(req.user!.userId, req.file.originalname);
+    await storageService.uploadFile(key, req.file.buffer, req.file.mimetype);
 
     const user = await userRepository.update(req.user!.userId, { avatar_url: key });
     res.json({ user, key });

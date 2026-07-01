@@ -82,6 +82,34 @@ router.post('/', authenticateJWT, async (req, res) => {
 });
 
 /**
+ * GET /api/programs/my
+ */
+router.get('/my', authenticateJWT, async (req, res) => {
+  try {
+    const enrollments = await programRepository.getUserPrograms(req.user!.userId);
+    res.json({ enrollments });
+  } catch (error: any) {
+    console.error('Get my programs error:', error);
+    res.status(500).json({ error: 'Failed to get enrolled programs' });
+  }
+});
+
+/**
+ * GET /api/programs/calendar
+ */
+router.get('/calendar', authenticateJWT, async (req, res) => {
+  try {
+    const start = req.query.start ? new Date(req.query.start as string) : new Date();
+    const end = req.query.end ? new Date(req.query.end as string) : new Date(start.getTime() + 28 * 24 * 60 * 60 * 1000);
+    const events = await programRepository.getCalendar(req.user!.userId, start, end);
+    res.json({ events });
+  } catch (error: any) {
+    console.error('Calendar error:', error);
+    res.status(500).json({ error: 'Failed to load calendar' });
+  }
+});
+
+/**
  * GET /api/programs/:id
  */
 router.get('/:id', authenticateJWT, async (req, res) => {
@@ -161,34 +189,6 @@ router.post('/:id/enroll', authenticateJWT, requirePaid, async (req, res) => {
   } catch (error: any) {
     console.error('Enroll error:', error);
     res.status(500).json({ error: 'Failed to enroll in program' });
-  }
-});
-
-/**
- * GET /api/programs/my
- */
-router.get('/my', authenticateJWT, async (req, res) => {
-  try {
-    const enrollments = await programRepository.getUserPrograms(req.user!.userId);
-    res.json({ enrollments });
-  } catch (error: any) {
-    console.error('Get my programs error:', error);
-    res.status(500).json({ error: 'Failed to get enrolled programs' });
-  }
-});
-
-/**
- * GET /api/programs/calendar
- */
-router.get('/calendar', authenticateJWT, async (req, res) => {
-  try {
-    const start = req.query.start ? new Date(req.query.start as string) : new Date();
-    const end = req.query.end ? new Date(req.query.end as string) : new Date(start.getTime() + 28 * 24 * 60 * 60 * 1000);
-    const events = await programRepository.getCalendar(req.user!.userId, start, end);
-    res.json({ events });
-  } catch (error: any) {
-    console.error('Calendar error:', error);
-    res.status(500).json({ error: 'Failed to load calendar' });
   }
 });
 

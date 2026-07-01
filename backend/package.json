@@ -1,7 +1,7 @@
 {
   "name": "fitsite-backend",
   "version": "1.0.0",
-  "description": "FitsiteGonga backend API - Railway + AWS",
+  "description": "FitsiteGonga backend API",
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
@@ -16,8 +16,6 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.490.0",
-    "@aws-sdk/s3-request-presigner": "^3.490.0",
     "@prisma/client": "^6.18.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
