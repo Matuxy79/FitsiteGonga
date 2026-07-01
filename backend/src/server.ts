@@ -29,6 +29,9 @@ const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL |
   .map((o) => o.trim())
   .filter(Boolean);
 
+// Automatically allow the Railway production frontend URL
+configuredOrigins.push('https://fitsitegonga-frontend-production.up.railway.app');
+
 const corsOrigin = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
   if (!origin) return callback(null, true);
   if (configuredOrigins.includes(origin)) return callback(null, true);
