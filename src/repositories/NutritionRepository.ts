@@ -75,4 +75,8 @@ export const NutritionRepository = {
     )
     return res.summary
   },
+
+  async deleteMeal(id: string): Promise<void> {
+    await apiClient.delete(`/api/nutrition/meals/${id}`)
+  },
 }

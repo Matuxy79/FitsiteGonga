@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { NutritionRepository, type Meal, type MealType } from '@/repositories/NutritionRepository'
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
-import { Apple, Loader2, Plus, Camera } from 'lucide-react'
+import { Apple, Loader2, Plus, Camera, Trash2 } from 'lucide-react'
 
 function mediaUrl(key?: string) {
   if (!key) return undefined
@@ -44,6 +44,19 @@ export default function NutritionPage() {
   useEffect(() => {
     loadData()
   }, [])
+
+  const handleDeleteMeal = async (id: string, name: string) => {
+    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return
+
+    try {
+      await NutritionRepository.deleteMeal(id)
+      setMeals(prev => prev.filter(m => m.id !== id))
+      if (meal?.id === id) setMeal(null)
+      toast({ title: 'Meal deleted', variant: 'success' })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'delete this meal' }))
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -116,7 +129,17 @@ export default function NutritionPage() {
             <h2 className="font-bold text-lg mb-4">Recent meals</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {meals.slice(0, 6).map((m) => (
-                <div key={m.id} className="border border-gray-100 rounded-2xl p-4">
+                <div key={m.id} className="relative border border-gray-100 rounded-2xl p-4">
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMeal(m.id, m.name)}
+                      aria-label={`Delete ${m.name}`}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 text-gray-400 shadow-sm hover:bg-red-50 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   {m.image_url && (
                     <img src={mediaUrl(m.image_url)} alt={m.name} className="w-full h-32 object-cover rounded-xl mb-3" />
                   )}
