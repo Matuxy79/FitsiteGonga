@@ -116,7 +116,7 @@ const TEMPLATES = [
 
 // ---------- storage ----------
 
-async function loadJSON(key: string, fallback: any) {
+async function loadJSON(key: string, fallback: any): Promise<any> {
   try {
     const res = await (window as any).storage.get(key, false);
     if (res && res.value) return JSON.parse(res.value);
@@ -126,7 +126,7 @@ async function loadJSON(key: string, fallback: any) {
   }
 }
 
-async function saveJSON(key: string, value: any) {
+async function saveJSON(key: string, value: any): Promise<void> {
   try {
     await (window as any).storage.set(key, JSON.stringify(value), false);
   } catch (e) {
@@ -134,7 +134,7 @@ async function saveJSON(key: string, value: any) {
   }
 }
 
-async function deleteKey(key: string) {
+async function deleteKey(key: string): Promise<void> {
   try {
     await (window as any).storage.delete(key, false);
   } catch (e) {
@@ -671,7 +671,6 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
         <div className="bg-white border border-sol-base1/30 p-4 sm:p-5 relative overflow-hidden shadow-discord h-full flex flex-col">
           
 
-
           {/* day navigator */}
           <div className="flex items-center justify-between mb-2">
             <button
@@ -699,168 +698,145 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
             </button>
           </div>
 
-          <div className="flex items-center justify-center gap-3 mb-5 border-b border-sol-base1/20 pb-3">
-            {!isToday(currentDate) && (
-              <button onClick={goToday} className="text-[10px] font-bold text-[#ff5d4f] hover:text-[#e54d3f] transition-colors font-mono tracking-wider">
-                [JUMP TO TODAY]
-              </button>
-            )}
-            {workoutData && (
-              <button
-                aria-label="Clear workout"
-                onClick={handleClearWorkout}
-                className="text-[10px] font-bold text-sol-base1 hover:text-sol-red flex items-center gap-1 transition-colors font-mono tracking-wider"
-              >
-                <Trash2 className="w-3 h-3" /> [CLEAR PROTOCOL]
-              </button>
-            )}
-          </div>
+          {/* today button */}
+          {!isToday(currentDate) && (
+            <button
+              onClick={goToday}
+              className="w-full mb-3 py-1.5 rounded-lg text-xs font-semibold text-[#ff5d4f] border border-[#ff5d4f]/30 hover:bg-[#ff5d4f]/5 transition-colors font-mono"
+            >
+              BACK TO TODAY
+            </button>
+          )}
 
-          {loading ? (
-            <div className="py-16 flex items-center justify-center text-sol-base01 text-xs font-mono uppercase tracking-wider">
-              [Loading system frequencies…]
-            </div>
-          ) : !workoutData ? (
-            <EmptyState templates={TEMPLATES} onSelectTemplate={handleSelectTemplate} onCustom={startCustomWorkout} />
-          ) : workoutData.isRestDay ? (
-            <RestDayView templates={TEMPLATES} onSelectTemplate={handleSelectTemplate} />
-          ) : (
-            <div className="flex-1 flex flex-col min-h-0">
-              <div className="flex items-center justify-between mb-3 shrink-0">
-                <div>
-                  <div className="text-sm font-bold text-sol-base03 tracking-wide uppercase">{workoutData.templateName}</div>
-                  <div className="text-[10px] text-sol-base01 font-mono mt-0.5">
-                    {doneSets}/{totalSets} SETS · {workoutData.exercises.length} EXERCISES
+          {/* main content */}
+          <div className="flex-1 overflow-y-auto">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-xs text-sol-base01 font-mono">Loading...</div>
+              </div>
+            ) : !workoutData ? (
+              <EmptyState templates={TEMPLATES} onSelectTemplate={handleSelectTemplate} onCustom={startCustomWorkout} />
+            ) : workoutData.isRestDay ? (
+              <RestDayView templates={TEMPLATES} onSelectTemplate={handleSelectTemplate} />
+            ) : (
+              <div>
+                {/* header */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-bold text-sol-base03">{workoutData.templateName}</div>
+                    <div className="text-xs font-mono text-sol-base01">
+                      {doneSets} / {totalSets} SETS
+                    </div>
+                  </div>
+                  <div className="w-full h-2 bg-sol-base2 rounded-full overflow-hidden border border-sol-base1/20">
+                    <div
+                      className="h-full bg-[#ff5d4f] transition-all duration-300"
+                      style={{ width: `${progressPct}%` }}
+                    />
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowTemplatePicker((s) => !s)}
-                  className="text-xs font-semibold text-[#ff5d4f] hover:text-[#e54d3f] transition-colors font-mono"
-                >
-                  [CHANGE]
-                </button>
-              </div>
 
-              <div className="w-full h-1 bg-sol-base2 rounded-full mb-5 overflow-hidden border border-sol-base1/20 shrink-0">
-                <div
-                  className="h-full bg-[#ff5d4f] rounded-full transition-all shadow-[0_0_10px_rgba(255,93,79,0.3)]"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-
-              {showTemplatePicker && (
-                <div className="mb-4 bg-sol-base2/30 p-3 rounded-xl border border-sol-base1/20 shrink-0">
-                  <div className="text-[9px] font-mono text-sol-base01 uppercase tracking-widest mb-2">// SELECT FREQUENCY</div>
-                  <TemplateGrid templates={TEMPLATES} onSelect={handleSelectTemplate} />
-                </div>
-              )}
-
-              {workoutData.completedAt && (
-                <div className="flex items-center justify-between bg-sol-green/10 border border-sol-green/30 rounded-xl px-4 py-3 mb-4 shadow-sm shrink-0">
-                  <div className="flex items-center gap-2 text-sol-green text-xs font-bold tracking-wider font-mono">
-                    <Sparkles className="w-4 h-4 text-sol-green" /> [PROTOCOL_SUCCESSFUL]
-                  </div>
-                  <button onClick={reopenWorkout} className="text-xs font-semibold text-sol-green hover:text-sol-green/80 font-mono">
-                    [REOPEN]
-                  </button>
-                </div>
-              )}
-
-              <div className="flex-1 overflow-y-auto pr-1 mb-3">
-                {workoutData.exercises.map((ex: any) => (
+                {/* exercises */}
+                {workoutData.exercises.map((exercise: any) => (
                   <ExerciseCard
-                    key={ex.id}
-                    exercise={ex}
-                    onRemove={() => removeExercise(ex.id)}
-                    onAddSet={() => addSet(ex.id)}
-                    onRemoveSet={(idx) => removeSet(ex.id, idx)}
-                    onUpdateSet={(idx, field, value) => updateSetField(ex.id, idx, field, value)}
-                    onToggleSet={(idx) => toggleSetDone(ex.id, idx)}
+                    key={exercise.id}
+                    exercise={exercise}
+                    onRemove={() => removeExercise(exercise.id)}
+                    onAddSet={() => addSet(exercise.id)}
+                    onRemoveSet={(idx) => removeSet(exercise.id, idx)}
+                    onUpdateSet={(idx, field, value) => updateSetField(exercise.id, idx, field, value)}
+                    onToggleSet={(idx) => toggleSetDone(exercise.id, idx)}
                   />
                 ))}
-              </div>
 
-              <div className="shrink-0 pt-2 border-t border-sol-base1/20">
+                {/* add exercise */}
                 {!showAddExercise ? (
                   <button
                     onClick={() => setShowAddExercise(true)}
-                    className="w-full py-2 rounded-xl border border-dashed border-sol-base1/30 hover:border-[#ff5d4f]/30 text-xs font-semibold text-sol-base01 hover:text-[#ff5d4f] flex items-center justify-center gap-1.5 mb-3 transition-colors font-mono"
+                    className="w-full py-2.5 rounded-xl border border-dashed border-sol-base1/30 hover:border-[#ff5d4f]/30 text-sm font-semibold text-sol-base01 hover:text-[#ff5d4f] flex items-center justify-center gap-1.5 transition-colors font-mono"
                   >
-                    <Plus className="w-3.5 h-3.5" /> ADD NEW EXERCISE
+                    <Plus className="w-4 h-4" /> ADD EXERCISE
                   </button>
                 ) : (
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="bg-sol-base2/30 rounded-xl p-4 mb-3 border border-sol-base1/20">
                     <input
-                      autoFocus
                       type="text"
                       value={newExerciseName}
                       onChange={(e) => setNewExerciseName(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleAddExercise();
-                        if (e.key === "Escape") {
-                          setShowAddExercise(false);
-                          setNewExerciseName("");
-                        }
                       }}
                       placeholder="Exercise name..."
-                      className="flex-1 h-9 px-3 text-sm rounded-lg border border-sol-base1/40 bg-white text-sol-base03 focus:border-[#ff5d4f]/50 focus:outline-none"
+                      autoFocus
+                      className="w-full px-3 py-2 rounded-lg border border-sol-base1/40 bg-white text-sol-base03 text-sm focus:border-[#ff5d4f]/50 focus:outline-none focus:ring-1 focus:ring-[#ff5d4f]/30"
                     />
-                    <button
-                      onClick={handleAddExercise}
-                      className="h-9 px-4 rounded-lg bg-[#ff5d4f] text-white text-xs font-bold hover:bg-[#e54d3f] transition-colors uppercase font-mono"
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowAddExercise(false);
-                        setNewExerciseName("");
-                      }}
-                      className="h-9 w-9 flex items-center justify-center rounded-lg text-sol-base01 hover:text-sol-base03 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => setShowAddExercise(false)}
+                        className="flex-1 py-2 rounded-lg border border-sol-base1/30 text-sm font-semibold text-sol-base01 hover:bg-sol-base2 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleAddExercise}
+                        className="flex-1 py-2 rounded-lg bg-[#ff5d4f] text-white text-sm font-semibold hover:bg-[#e54d3f] transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {!workoutData.completedAt && workoutData.exercises.length > 0 && (
-                  <button
-                    onClick={finishWorkout}
-                    className="w-full py-2.5 rounded-xl bg-[#ff5d4f] text-white text-xs font-bold hover:bg-[#e54d3f] shadow-[0_4px_10px_rgba(255,93,79,0.2)] transition-all uppercase tracking-wider font-mono"
-                  >
-                    COMMIT WORKOUT
-                  </button>
+                {/* rest timer */}
+                {restTimer && <RestTimerBar restTimer={restTimer} onAdjust={adjustRest} onDismiss={dismissRest} />}
+
+                {/* actions */}
+                <div className="flex gap-2 mt-4">
+                  {!workoutData.completedAt ? (
+                    <>
+                      <button
+                        onClick={handleClearWorkout}
+                        className="flex-1 py-2.5 rounded-xl border border-sol-base1/30 text-sm font-semibold text-sol-base01 hover:border-sol-red/30 hover:text-sol-red hover:bg-sol-red/5 transition-colors font-mono"
+                      >
+                        <Trash2 className="w-4 h-4 inline mr-1" /> CLEAR
+                      </button>
+                      <button
+                        onClick={finishWorkout}
+                        className="flex-1 py-2.5 rounded-xl bg-[#ff5d4f] text-white text-sm font-semibold hover:bg-[#e54d3f] transition-colors font-mono"
+                      >
+                        <Check className="w-4 h-4 inline mr-1" /> FINISH
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={reopenWorkout}
+                        className="flex-1 py-2.5 rounded-xl border border-sol-base1/30 text-sm font-semibold text-sol-base01 hover:border-[#ff5d4f]/30 hover:text-[#ff5d4f] hover:bg-[#ff5d4f]/5 transition-colors font-mono"
+                      >
+                        REOPEN
+                      </button>
+                      <button
+                        onClick={handleClearWorkout}
+                        className="flex-1 py-2.5 rounded-xl border border-sol-base1/30 text-sm font-semibold text-sol-base01 hover:border-sol-red/30 hover:text-sol-red hover:bg-sol-red/5 transition-colors font-mono"
+                      >
+                        <Trash2 className="w-4 h-4 inline mr-1" /> CLEAR
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* completion badge */}
+                {workoutData.completedAt && (
+                  <div className="mt-4 p-3 rounded-xl bg-[#ff5d4f]/10 border border-[#ff5d4f]/30 text-center">
+                    <div className="text-xs font-semibold text-[#ff5d4f] font-mono">✓ WORKOUT COMPLETE</div>
+                  </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {restTimer && <RestTimerBar restTimer={restTimer} onAdjust={adjustRest} onDismiss={dismissRest} />}
-
-          {showClearConfirm && (
-            <ConfirmModal
-              title="Clear this workout?"
-              message="This removes all logged sets for this day. This can't be undone."
-              confirmLabel="Clear"
-              onCancel={() => setShowClearConfirm(false)}
-              onConfirm={confirmClearWorkout}
-            />
-          )}
-
-          {showTemplateConfirm && pendingTemplate && (
-            <ConfirmModal
-              title={`Switch to ${pendingTemplate.name}?`}
-              message="You've already logged progress today. Switching templates will replace it."
-              confirmLabel="Switch"
-              onCancel={() => {
-                setShowTemplateConfirm(false);
-                setPendingTemplate(null);
-              }}
-              onConfirm={() => applyTemplate(pendingTemplate)}
-            />
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
