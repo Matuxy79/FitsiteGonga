@@ -28,15 +28,15 @@ import {
 
 // ---------- helpers ----------
 
-function pad(n) {
+function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function dateKey(d) {
+function dateKey(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function isToday(d) {
+function isToday(d: Date) {
   return dateKey(d) === dateKey(new Date());
 }
 
@@ -46,11 +46,11 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-function formatDayName(d) {
+function formatDayName(d: Date) {
   return DAY_NAMES[d.getDay()];
 }
 
-function formatFullDate(d) {
+function formatFullDate(d: Date) {
   return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
@@ -118,7 +118,7 @@ const TEMPLATES = [
 
 // ---------- storage (swap these for real API calls if wiring to a backend) ----------
 
-async function loadJSON(key, fallback) {
+async function loadJSON(key: string, fallback: any) {
   try {
     const res = await window.storage.get(key, false);
     if (res && res.value) return JSON.parse(res.value);
@@ -128,7 +128,7 @@ async function loadJSON(key, fallback) {
   }
 }
 
-async function saveJSON(key, value) {
+async function saveJSON(key: string, value: any) {
   try {
     await window.storage.set(key, JSON.stringify(value), false);
   } catch (e) {
@@ -136,7 +136,7 @@ async function saveJSON(key, value) {
   }
 }
 
-async function deleteKey(key) {
+async function deleteKey(key: string) {
   try {
     await window.storage.delete(key, false);
   } catch (e) {
@@ -146,10 +146,10 @@ async function deleteKey(key) {
 
 // ---------- small components ----------
 
-function TemplateGrid({ templates, onSelect }) {
+function TemplateGrid({ templates, onSelect }: any) {
   return (
     <div className="grid grid-cols-2 gap-2">
-      {templates.map((t) => {
+      {templates.map((t: any) => {
         const Icon = t.icon;
         return (
           <button
@@ -173,7 +173,7 @@ function TemplateGrid({ templates, onSelect }) {
   );
 }
 
-function EmptyState({ templates, onSelectTemplate, onCustom }) {
+function EmptyState({ templates, onSelectTemplate, onCustom }: any) {
   return (
     <div>
       <div className="flex flex-col items-center text-center py-6 mb-4">
@@ -194,7 +194,7 @@ function EmptyState({ templates, onSelectTemplate, onCustom }) {
   );
 }
 
-function RestDayView({ templates, onSelectTemplate }) {
+function RestDayView({ templates, onSelectTemplate }: any) {
   const [showPicker, setShowPicker] = useState(false);
   return (
     <div>
@@ -213,13 +213,13 @@ function RestDayView({ templates, onSelectTemplate }) {
           Log a workout instead
         </button>
       ) : (
-        <TemplateGrid templates={templates.filter((t) => !t.isRestDay)} onSelect={onSelectTemplate} />
+        <TemplateGrid templates={templates.filter((t: any) => !t.isRestDay)} onSelect={onSelectTemplate} />
       )}
     </div>
   );
 }
 
-function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, onToggleSet }) {
+function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, onToggleSet }: any) {
   return (
     <div className="bg-gray-50 rounded-xl p-3 mb-3 border border-gray-100">
       <div className="flex items-center justify-between mb-2">
@@ -242,7 +242,7 @@ function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, 
         <span className="w-5"></span>
       </div>
 
-      {exercise.sets.map((set, idx) => (
+      {exercise.sets.map((set: any, idx: number) => (
         <div key={idx} className="flex items-center gap-2 py-1">
           <span className="w-6 text-xs text-gray-400 text-center">{idx + 1}</span>
           <span className="w-10 text-xs text-gray-300 text-center">{exercise.targetReps}</span>
@@ -289,7 +289,7 @@ function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, 
   );
 }
 
-function RestTimerBar({ restTimer, onAdjust, onDismiss }) {
+function RestTimerBar({ restTimer, onAdjust, onDismiss }: any) {
   const mm = Math.floor(restTimer.secondsLeft / 60);
   const ss = pad(restTimer.secondsLeft % 60);
   return (
@@ -318,7 +318,7 @@ function RestTimerBar({ restTimer, onAdjust, onDismiss }) {
   );
 }
 
-function ConfirmModal({ title, message, confirmLabel, onConfirm, onCancel }) {
+function ConfirmModal({ title, message, confirmLabel, onConfirm, onCancel }: any) {
   return (
     <div
       className="absolute inset-0 flex items-center justify-center p-5 rounded-2xl"
@@ -350,16 +350,16 @@ function ConfirmModal({ title, message, confirmLabel, onConfirm, onCancel }) {
 
 export default function WorkoutWidget() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [workoutData, setWorkoutData] = useState(null);
+  const [workoutData, setWorkoutData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loggedDates, setLoggedDates] = useState(new Set());
-  const [restTimer, setRestTimer] = useState(null);
+  const [restTimer, setRestTimer] = useState<any>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [newExerciseName, setNewExerciseName] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showTemplateConfirm, setShowTemplateConfirm] = useState(false);
-  const [pendingTemplate, setPendingTemplate] = useState(null);
+  const [pendingTemplate, setPendingTemplate] = useState<any>(null);
 
   const skipNextSave = useRef(true);
   const dateKeyRef = useRef(dateKey(new Date()));
@@ -370,7 +370,7 @@ export default function WorkoutWidget() {
       try {
         const res = await window.storage.list("workout-", false);
         if (res && res.keys) {
-          setLoggedDates(new Set(res.keys.map((k) => k.replace("workout-", ""))));
+          setLoggedDates(new Set(res.keys.map((k: string) => k.replace("workout-", ""))));
         }
       } catch (e) {
         // no data yet — fine
@@ -421,10 +421,10 @@ export default function WorkoutWidget() {
   // auto-complete when every set is checked
   useEffect(() => {
     if (!workoutData || workoutData.isRestDay || workoutData.completedAt) return;
-    const total = workoutData.exercises.reduce((n, e) => n + e.sets.length, 0);
-    const done = workoutData.exercises.reduce((n, e) => n + e.sets.filter((s) => s.done).length, 0);
+    const total = workoutData.exercises.reduce((n: number, e: any) => n + e.sets.length, 0);
+    const done = workoutData.exercises.reduce((n: number, e: any) => n + e.sets.filter((s: any) => s.done).length, 0);
     if (total > 0 && done === total) {
-      setWorkoutData((w) => ({ ...w, completedAt: Date.now() }));
+      setWorkoutData((w: any) => ({ ...w, completedAt: Date.now() }));
     }
   }, [workoutData]);
 
@@ -436,7 +436,7 @@ export default function WorkoutWidget() {
       return;
     }
     const id = setTimeout(() => {
-      setRestTimer((t) => (t ? { ...t, secondsLeft: t.secondsLeft - 1 } : null));
+      setRestTimer((t: any) => (t ? { ...t, secondsLeft: t.secondsLeft - 1 } : null));
     }, 1000);
     return () => clearTimeout(id);
   }, [restTimer]);
@@ -461,7 +461,7 @@ export default function WorkoutWidget() {
     setCurrentDate(new Date());
   }
 
-  function applyTemplate(template) {
+  function applyTemplate(template: any) {
     if (template.isRestDay) {
       setWorkoutData({ templateName: template.name, isRestDay: true, exercises: [], completedAt: null });
     } else {
@@ -469,7 +469,7 @@ export default function WorkoutWidget() {
         templateName: template.name,
         isRestDay: false,
         completedAt: null,
-        exercises: template.exercises.map((ex) => ({
+        exercises: template.exercises.map((ex: any) => ({
           id: genId(),
           name: ex.name,
           targetReps: ex.targetReps,
@@ -482,9 +482,9 @@ export default function WorkoutWidget() {
     setPendingTemplate(null);
   }
 
-  function handleSelectTemplate(template) {
+  function handleSelectTemplate(template: any) {
     const hasProgress =
-      workoutData && !workoutData.isRestDay && workoutData.exercises.some((e) => e.sets.some((s) => s.done));
+      workoutData && !workoutData.isRestDay && workoutData.exercises.some((e: any) => e.sets.some((s: any) => s.done));
     if (hasProgress) {
       setPendingTemplate(template);
       setShowTemplateConfirm(true);
@@ -498,39 +498,39 @@ export default function WorkoutWidget() {
     setShowAddExercise(true);
   }
 
-  function updateExercise(id, updater) {
-    setWorkoutData((w) => ({ ...w, exercises: w.exercises.map((e) => (e.id === id ? updater(e) : e)) }));
+  function updateExercise(id: string, updater: any) {
+    setWorkoutData((w: any) => ({ ...w, exercises: w.exercises.map((e: any) => (e.id === id ? updater(e) : e)) }));
   }
 
-  function removeExercise(id) {
-    setWorkoutData((w) => ({ ...w, exercises: w.exercises.filter((e) => e.id !== id) }));
+  function removeExercise(id: string) {
+    setWorkoutData((w: any) => ({ ...w, exercises: w.exercises.filter((e: any) => e.id !== id) }));
   }
 
-  function addSet(exerciseId) {
-    updateExercise(exerciseId, (e) => ({
+  function addSet(exerciseId: string) {
+    updateExercise(exerciseId, (e: any) => ({
       ...e,
       sets: [...e.sets, { weight: "", reps: e.targetReps, done: false }],
     }));
   }
 
-  function removeSet(exerciseId, idx) {
-    updateExercise(exerciseId, (e) => ({ ...e, sets: e.sets.filter((_, i) => i !== idx) }));
+  function removeSet(exerciseId: string, idx: number) {
+    updateExercise(exerciseId, (e: any) => ({ ...e, sets: e.sets.filter((_: any, i: number) => i !== idx) }));
   }
 
-  function updateSetField(exerciseId, idx, field, value) {
-    updateExercise(exerciseId, (e) => ({
+  function updateSetField(exerciseId: string, idx: number, field: string, value: any) {
+    updateExercise(exerciseId, (e: any) => ({
       ...e,
-      sets: e.sets.map((s, i) => (i === idx ? { ...s, [field]: value } : s)),
+      sets: e.sets.map((s: any, i: number) => (i === idx ? { ...s, [field]: value } : s)),
     }));
   }
 
-  function toggleSetDone(exerciseId, idx) {
-    const ex = workoutData.exercises.find((e) => e.id === exerciseId);
+  function toggleSetDone(exerciseId: string, idx: number) {
+    const ex = workoutData.exercises.find((e: any) => e.id === exerciseId);
     const nowDone = !ex.sets[idx].done;
-    setWorkoutData((w) => ({
+    setWorkoutData((w: any) => ({
       ...w,
-      exercises: w.exercises.map((e) =>
-        e.id !== exerciseId ? e : { ...e, sets: e.sets.map((s, i) => (i === idx ? { ...s, done: nowDone } : s)) }
+      exercises: w.exercises.map((e: any) =>
+        e.id !== exerciseId ? e : { ...e, sets: e.sets.map((s: any, i: number) => (i === idx ? { ...s, done: nowDone } : s)) }
       ),
     }));
     if (nowDone) {
@@ -541,7 +541,7 @@ export default function WorkoutWidget() {
   function handleAddExercise() {
     const name = newExerciseName.trim();
     if (!name) return;
-    setWorkoutData((w) => {
+    setWorkoutData((w: any) => {
       const base =
         w && !w.isRestDay ? w : { templateName: (w && w.templateName) || "Custom Workout", isRestDay: false, completedAt: null, exercises: [] };
       return {
@@ -566,11 +566,11 @@ export default function WorkoutWidget() {
   }
 
   function finishWorkout() {
-    setWorkoutData((w) => ({ ...w, completedAt: Date.now() }));
+    setWorkoutData((w: any) => ({ ...w, completedAt: Date.now() }));
   }
 
   function reopenWorkout() {
-    setWorkoutData((w) => ({ ...w, completedAt: null }));
+    setWorkoutData((w: any) => ({ ...w, completedAt: null }));
   }
 
   function handleClearWorkout() {
@@ -582,8 +582,8 @@ export default function WorkoutWidget() {
     setShowClearConfirm(false);
   }
 
-  function adjustRest(delta) {
-    setRestTimer((t) => (t ? { ...t, secondsLeft: Math.max(0, t.secondsLeft + delta) } : t));
+  function adjustRest(delta: number) {
+    setRestTimer((t: any) => (t ? { ...t, secondsLeft: Math.max(0, t.secondsLeft + delta) } : t));
   }
 
   function dismissRest() {
@@ -591,10 +591,10 @@ export default function WorkoutWidget() {
   }
 
   const totalSets =
-    workoutData && !workoutData.isRestDay ? workoutData.exercises.reduce((n, e) => n + e.sets.length, 0) : 0;
+    workoutData && !workoutData.isRestDay ? workoutData.exercises.reduce((n: number, e: any) => n + e.sets.length, 0) : 0;
   const doneSets =
     workoutData && !workoutData.isRestDay
-      ? workoutData.exercises.reduce((n, e) => n + e.sets.filter((s) => s.done).length, 0)
+      ? workoutData.exercises.reduce((n: number, e: any) => n + e.sets.filter((s: any) => s.done).length, 0)
       : 0;
   const progressPct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
 
@@ -693,93 +693,91 @@ export default function WorkoutWidget() {
                 </div>
               )}
 
-              {workoutData.exercises.map((ex) => (
+              {workoutData.exercises.map((ex: any) => (
                 <ExerciseCard
                   key={ex.id}
                   exercise={ex}
                   onRemove={() => removeExercise(ex.id)}
                   onAddSet={() => addSet(ex.id)}
-                  onRemoveSet={(idx) => removeSet(ex.id, idx)}
-                  onUpdateSet={(idx, field, value) => updateSetField(ex.id, idx, field, value)}
-                  onToggleSet={(idx) => toggleSetDone(ex.id, idx)}
+                  onRemoveSet={(idx: number) => removeSet(ex.id, idx)}
+                  onUpdateSet={(idx: number, field: string, value: any) => updateSetField(ex.id, idx, field, value)}
+                  onToggleSet={(idx: number) => toggleSetDone(ex.id, idx)}
                 />
               ))}
 
-              {!showAddExercise ? (
-                <button
-                  onClick={() => setShowAddExercise(true)}
-                  className="w-full py-2.5 rounded-xl border border-dashed border-gray-200 text-sm font-medium text-gray-400 hover:border-red-300 hover:text-red-600 flex items-center justify-center gap-1.5 mb-3"
-                >
-                  <Plus className="w-4 h-4" /> Add exercise
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 mb-3">
+              {showAddExercise && (
+                <div className="bg-gray-50 rounded-xl p-3 mb-3 border border-gray-100">
                   <input
-                    autoFocus
                     type="text"
                     value={newExerciseName}
                     onChange={(e) => setNewExerciseName(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleAddExercise();
-                      if (e.key === "Escape") {
-                        setShowAddExercise(false);
-                        setNewExerciseName("");
-                      }
                     }}
                     placeholder="Exercise name"
-                    className="flex-1 h-9 px-3 text-sm rounded-lg border border-gray-200 focus:border-red-500 focus:outline-none"
+                    autoFocus
+                    className="w-full h-8 text-sm rounded-lg border border-gray-200 focus:border-red-500 focus:outline-none bg-white px-2"
                   />
-                  <button
-                    onClick={handleAddExercise}
-                    className="h-9 px-3 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700"
-                  >
-                    Add
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowAddExercise(false);
-                      setNewExerciseName("");
-                    }}
-                    className="h-9 w-9 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={handleAddExercise}
+                      className="flex-1 py-1.5 rounded-lg bg-red-600 text-sm font-medium text-white hover:bg-red-700"
+                    >
+                      Add
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAddExercise(false);
+                        setNewExerciseName("");
+                      }}
+                      className="flex-1 py-1.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-100"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {!workoutData.completedAt && workoutData.exercises.length > 0 && (
+              <button
+                onClick={() => setShowAddExercise((s) => !s)}
+                className="w-full py-2.5 rounded-xl border border-dashed border-gray-200 text-sm font-medium text-gray-400 hover:border-red-300 hover:text-red-600 flex items-center justify-center gap-1.5 mb-3"
+              >
+                <Plus className="w-4 h-4" /> Add exercise
+              </button>
+
+              {!workoutData.completedAt && (
                 <button
                   onClick={finishWorkout}
-                  className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800"
+                  className="w-full py-2.5 rounded-xl bg-red-600 text-sm font-medium text-white hover:bg-red-700"
                 >
                   Finish workout
                 </button>
               )}
+
+              {restTimer && <RestTimerBar restTimer={restTimer} onAdjust={adjustRest} onDismiss={dismissRest} />}
             </>
           )}
 
-          {restTimer && <RestTimerBar restTimer={restTimer} onAdjust={adjustRest} onDismiss={dismissRest} />}
-
           {showClearConfirm && (
             <ConfirmModal
-              title="Clear this workout?"
-              message="This removes all logged sets for this day. This can't be undone."
+              title="Clear workout?"
+              message="This will delete all progress for today. You can't undo this."
               confirmLabel="Clear"
-              onCancel={() => setShowClearConfirm(false)}
               onConfirm={confirmClearWorkout}
+              onCancel={() => setShowClearConfirm(false)}
             />
           )}
 
           {showTemplateConfirm && pendingTemplate && (
             <ConfirmModal
-              title={`Switch to ${pendingTemplate.name}?`}
-              message="You've already logged progress today. Switching templates will replace it."
+              title="Switch template?"
+              message="You have unsaved progress. Switching will discard it."
               confirmLabel="Switch"
+              onConfirm={() => applyTemplate(pendingTemplate)}
               onCancel={() => {
                 setShowTemplateConfirm(false);
                 setPendingTemplate(null);
               }}
-              onConfirm={() => applyTemplate(pendingTemplate)}
             />
           )}
         </div>
@@ -787,3 +785,4 @@ export default function WorkoutWidget() {
     </div>
   );
 }
+
