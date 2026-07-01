@@ -10,8 +10,6 @@ import { CalendarDays, ChevronLeft, ChevronRight, Plus, Loader2, Crown, Check, X
 import { WORKOUT_TYPE_CONFIG, getWorkoutTypeConfig } from '@/lib/workoutTypes'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import WorkoutWidget from '@/components/fitness/WorkoutWidget'
-
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
 }
@@ -306,24 +304,17 @@ export default function ProgramsPage() {
       {/* Day Detail Panel - Full Workout Widget */}
       <AnimatePresence>
         {showDayPanel && selectedDate && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-            onClick={() => { setShowDayPanel(false); setSelectedDate(null); }}
-          >
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-sol-base3 border-l border-sol-base1/30 shadow-2xl overflow-hidden"
-              onClick={e => e.stopPropagation()}
-            >
-              <WorkoutWidget initialDate={selectedDate} />
-            </motion.div>
-          </motion.div>
+          <DayDetailPanel
+            date={selectedDate}
+            events={eventsByDay.get(selectedDate) || []}
+            onClose={() => { setShowDayPanel(false); setSelectedDate(null); }}
+            onComplete={handleCompleteWorkout}
+            onSkip={handleSkipWorkout}
+            onDelete={handleDeleteWorkout}
+            onAddWorkout={handleAddWorkout}
+            loading={actionLoading}
+            templates={templates}
+          />
         )}
       </AnimatePresence>
     </div>

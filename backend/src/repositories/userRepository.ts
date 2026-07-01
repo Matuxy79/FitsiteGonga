@@ -131,6 +131,30 @@ export const userRepository = {
     });
   },
 
+  async updateAccessMode(
+    id: string,
+    data: { role: Role; membership_tier: MembershipTier }
+  ): Promise<UserWithoutPassword> {
+    return prisma.user.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        email: true,
+        display_name: true,
+        avatar_url: true,
+        role: true,
+        membership_tier: true,
+        subscription_status: true,
+        trial_ends_at: true,
+        fitness_level: true,
+        goals: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  },
+
   /**
    * Update role (self-service redeem-code grant, or admin tooling)
    */
