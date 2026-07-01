@@ -42,12 +42,39 @@ export function setAuthToken(token: string | null): void {
   }
 }
 
+let refreshPromise: Promise<boolean> | null = null;
+
+/**
+ * Attempt to refresh the access token using the httpOnly refresh-token cookie.
+ */
+async function refreshAccessToken(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/api/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+    if (!data?.accessToken) return false;
+
+    setAuthToken(data.accessToken);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const AUTH_BOOTSTRAP_ENDPOINTS = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/logout'];
+
 /**
  * Make HTTP request with authentication
  */
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  isRetry = false
 ): Promise<T> {
   const token = getAuthToken();
   const url = `${API_URL}${endpoint}`;
@@ -95,6 +122,19 @@ async function request<T>(
   const data = await response.json();
 
   if (!response.ok) {
+    const isAuthBootstrapEndpoint = AUTH_BOOTSTRAP_ENDPOINTS.includes(endpoint);
+    if (response.status === 401 && !isRetry && !isAuthBootstrapEndpoint) {
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+      }
+      const refreshed = await refreshPromise;
+      if (refreshed) {
+        return request<T>(endpoint, options, true);
+      }
+    }
+
     const error: ApiError = {
       error: data.error || 'Request failed',
       details: data.details,

@@ -46,10 +46,10 @@ export const authenticateJWT = (
     req.user = decoded;
     next();
   } catch (error: any) {
-    console.warn(`[auth] 403 on ${req.method} ${req.path}: ${error.message}`);
-    return res.status(403).json({ 
-      error: 'Forbidden - Invalid or expired token',
-      message: error.message 
+    console.warn(`[auth] 401 on ${req.method} ${req.path}: ${error.message}`);
+    return res.status(401).json({
+      error: 'Unauthorized - Invalid or expired token',
+      message: error.message
     });
   }
 };
