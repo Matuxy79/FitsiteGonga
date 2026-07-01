@@ -20,7 +20,7 @@ import {
 /**
  * WorkoutWidget — standalone day-based workout logger.
  *
- * Dark mode high-tech variant ("The Forge").
+ * Solarized Light Theme variant.
  * Persists per-day workout logs via window.storage.
  */
 
@@ -77,7 +77,7 @@ const TEMPLATES = [
       { name: "Deadlift", targetSets: 4, targetReps: 6 },
       { name: "Pull-Ups", targetSets: 4, targetReps: 8 },
       { name: "Barbell Row", targetSets: 3, targetReps: 10 },
-      { name: "Face Pulls", targetSets: 3, text: "", targetReps: 15 },
+      { name: "Face Pulls", targetSets: 3, targetReps: 15 },
       { name: "Bicep Curls", targetSets: 3, targetReps: 12 },
     ],
   },
@@ -158,14 +158,14 @@ function TemplateGrid({ templates, onSelect }: TemplateGridProps) {
           <button
             key={t.id}
             onClick={() => onSelect(t)}
-            className="flex flex-col items-start gap-2 p-3 rounded-xl border border-white/5 bg-zinc-950/40 hover:border-purple-500/30 hover:bg-purple-500/5 text-left transition-colors"
+            className="flex flex-col items-start gap-2 p-3 rounded-xl border border-sol-base1/30 bg-sol-base2/40 hover:border-[#ff5d4f]/30 hover:bg-[#ff5d4f]/5 text-left transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center">
-              <Icon className="w-4 h-4 text-purple-400" />
+            <div className="w-8 h-8 rounded-full bg-sol-base2 border border-sol-base1/20 flex items-center justify-center">
+              <Icon className="w-4 h-4 text-[#ff5d4f]" />
             </div>
             <div>
-              <div className="text-sm font-semibold text-slate-200">{t.name}</div>
-              <div className="text-[10px] text-slate-500 font-mono">
+              <div className="text-sm font-semibold text-sol-base03">{t.name}</div>
+              <div className="text-[10px] text-sol-base01 font-mono">
                 {t.isRestDay ? "RECOVERY" : `${t.exercises.length} EXERCISES`}
               </div>
             </div>
@@ -185,17 +185,17 @@ interface EmptyStateProps {
 function EmptyState({ templates, onSelectTemplate, onCustom }: EmptyStateProps) {
   return (
     <div>
-      <div className="flex flex-col items-center text-center py-6 mb-4 bg-black/20 rounded-xl border border-white/5">
-        <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center mb-3 border border-white/5">
-          <Calendar className="w-5 h-5 text-slate-500" />
+      <div className="flex flex-col items-center text-center py-6 mb-4 bg-sol-base2/40 rounded-xl border border-sol-base1/20">
+        <div className="w-12 h-12 rounded-full bg-sol-base2/80 flex items-center justify-center mb-3 border border-sol-base1/20">
+          <Calendar className="w-5 h-5 text-sol-base01" />
         </div>
-        <div className="text-sm font-bold text-slate-200">No workout scheduled</div>
-        <div className="text-xs text-slate-500 mt-1 font-mono uppercase tracking-wider">Pick a template to start</div>
+        <div className="text-sm font-bold text-sol-base03">No workout scheduled</div>
+        <div className="text-xs text-sol-base01 mt-1 font-mono uppercase tracking-wider">Pick a template to start</div>
       </div>
       <TemplateGrid templates={templates} onSelect={onSelectTemplate} />
       <button
         onClick={onCustom}
-        className="w-full mt-3 py-2.5 rounded-xl border border-dashed border-white/10 hover:border-purple-500/30 text-sm font-semibold text-slate-400 hover:text-purple-400 flex items-center justify-center gap-1.5 transition-colors font-mono"
+        className="w-full mt-3 py-2.5 rounded-xl border border-dashed border-sol-base1/30 hover:border-[#ff5d4f]/30 text-sm font-semibold text-sol-base01 hover:text-[#ff5d4f] flex items-center justify-center gap-1.5 transition-colors font-mono"
       >
         <Plus className="w-4 h-4" /> START FREESTYLE
       </button>
@@ -212,17 +212,17 @@ function RestDayView({ templates, onSelectTemplate }: RestDayViewProps) {
   const [showPicker, setShowPicker] = useState(false);
   return (
     <div>
-      <div className="flex flex-col items-center text-center py-6 mb-4 bg-black/20 rounded-xl border border-white/5">
-        <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center mb-3 border border-white/5">
-          <Moon className="w-5 h-5 text-slate-500" />
+      <div className="flex flex-col items-center text-center py-6 mb-4 bg-sol-base2/40 rounded-xl border border-sol-base1/20">
+        <div className="w-12 h-12 rounded-full bg-sol-base2/80 flex items-center justify-center mb-3 border border-sol-base1/20">
+          <Moon className="w-5 h-5 text-sol-base01" />
         </div>
-        <div className="text-sm font-bold text-slate-200">Rest Day</div>
-        <div className="text-xs text-slate-500 mt-1 font-mono uppercase tracking-wider">Recovery is part of the program</div>
+        <div className="text-sm font-bold text-sol-base03">Rest Day</div>
+        <div className="text-xs text-sol-base01 mt-1 font-mono uppercase tracking-wider">Recovery is part of the program</div>
       </div>
       {!showPicker ? (
         <button
           onClick={() => setShowPicker(true)}
-          className="w-full py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-slate-400 hover:border-purple-500/30 hover:text-purple-400 hover:bg-purple-500/5 transition-colors font-mono"
+          className="w-full py-2.5 rounded-xl border border-sol-base1/30 text-sm font-semibold text-sol-base01 hover:border-[#ff5d4f]/30 hover:text-[#ff5d4f] hover:bg-[#ff5d4f]/5 transition-colors font-mono"
         >
           LOG A WORKOUT INSTEAD
         </button>
@@ -244,19 +244,19 @@ interface ExerciseCardProps {
 
 function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, onToggleSet }: ExerciseCardProps) {
   return (
-    <div className="bg-black/30 rounded-xl p-4 mb-3 border border-white/5">
+    <div className="bg-sol-base2/30 rounded-xl p-4 mb-3 border border-sol-base1/20 shadow-sm">
       <div className="flex items-center justify-between mb-3">
-        <div className="text-sm font-bold text-slate-100">{exercise.name}</div>
+        <div className="text-sm font-bold text-sol-base02">{exercise.name}</div>
         <button
           aria-label={`Remove ${exercise.name}`}
           onClick={onRemove}
-          className="w-6 h-6 flex items-center justify-center rounded-full text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          className="w-6 h-6 flex items-center justify-center rounded-full text-sol-base1 hover:text-sol-red hover:bg-sol-red/10 transition-colors"
         >
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono tracking-wider mb-2 px-1">
+      <div className="flex items-center gap-2 text-[10px] text-sol-base01 font-mono tracking-wider mb-2 px-1">
         <span className="w-6 text-center">SET</span>
         <span className="w-10 text-center">TARGET</span>
         <span className="w-16 text-center">KG</span>
@@ -267,15 +267,15 @@ function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, 
 
       {exercise.sets.map((set: any, idx: number) => (
         <div key={idx} className="flex items-center gap-2 py-1">
-          <span className="w-6 text-xs text-slate-500 text-center font-mono">{idx + 1}</span>
-          <span className="w-10 text-xs text-slate-400 text-center font-mono">{exercise.targetReps}</span>
+          <span className="w-6 text-xs text-sol-base01 text-center font-mono">{idx + 1}</span>
+          <span className="w-10 text-xs text-sol-base00 text-center font-mono">{exercise.targetReps}</span>
           <input
             type="number"
             inputMode="decimal"
             value={set.weight}
             onChange={(e) => onUpdateSet(idx, "weight", e.target.value)}
             placeholder="0"
-            className="w-16 h-8 text-sm text-center rounded-lg border border-white/10 bg-black/40 text-slate-100 focus:border-purple-500/55 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+            className="w-16 h-8 text-sm text-center rounded-lg border border-sol-base1/40 bg-white text-sol-base03 focus:border-[#ff5d4f]/50 focus:outline-none focus:ring-1 focus:ring-[#ff5d4f]/30"
           />
           <input
             type="number"
@@ -283,7 +283,7 @@ function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, 
             value={set.reps}
             onChange={(e) => onUpdateSet(idx, "reps", e.target.value)}
             placeholder="0"
-            className="w-14 h-8 text-sm text-center rounded-lg border border-white/10 bg-black/40 text-slate-100 focus:border-purple-500/55 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+            className="w-14 h-8 text-sm text-center rounded-lg border border-sol-base1/40 bg-white text-sol-base03 focus:border-[#ff5d4f]/50 focus:outline-none focus:ring-1 focus:ring-[#ff5d4f]/30"
           />
           <button
             aria-label={set.done ? "Mark set incomplete" : "Mark set complete"}
@@ -291,8 +291,8 @@ function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, 
             className={
               "w-8 h-8 rounded-full flex items-center justify-center border transition-all " +
               (set.done 
-                ? "bg-purple-600 border-purple-500 text-white shadow-[0_0_10px_rgba(139,92,246,0.4)]" 
-                : "bg-black/40 border-white/10 text-slate-500 hover:border-purple-500/30 hover:text-purple-400")
+                ? "bg-[#ff5d4f] border-[#ff5d4f] text-white shadow-[0_0_10px_rgba(255,93,79,0.3)]" 
+                : "bg-white border-sol-base1/40 text-sol-base1 hover:border-[#ff5d4f]/30 hover:text-[#ff5d4f]")
             }
           >
             <Check className="w-4 h-4" />
@@ -300,14 +300,14 @@ function ExerciseCard({ exercise, onRemove, onAddSet, onRemoveSet, onUpdateSet, 
           <button
             aria-label="Remove set"
             onClick={() => onRemoveSet(idx)}
-            className="w-5 h-5 flex items-center justify-center text-slate-600 hover:text-red-400 transition-colors"
+            className="w-5 h-5 flex items-center justify-center text-sol-base1 hover:text-sol-red transition-colors"
           >
             <Minus className="w-3 h-3" />
           </button>
         </div>
       ))}
 
-      <button onClick={onAddSet} className="text-xs font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1 mt-2.5 px-1 font-mono">
+      <button onClick={onAddSet} className="text-xs font-semibold text-[#ff5d4f] hover:text-[#e54d3f] flex items-center gap-1 mt-2.5 px-1 font-mono">
         <Plus className="w-3 h-3" /> ADD SET
       </button>
     </div>
@@ -324,24 +324,24 @@ function RestTimerBar({ restTimer, onAdjust, onDismiss }: RestTimerBarProps) {
   const mm = Math.floor(restTimer.secondsLeft / 60);
   const ss = pad(restTimer.secondsLeft % 60);
   return (
-    <div className="mt-4 bg-zinc-900 border border-purple-500/20 rounded-xl px-4 py-3 flex items-center gap-3 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
-      <Timer className="w-4 h-4 text-purple-400 animate-pulse" />
+    <div className="mt-4 bg-white border border-sol-base1/30 rounded-xl px-4 py-3 flex items-center gap-3 shadow-discord">
+      <Timer className="w-4 h-4 text-[#ff5d4f] animate-pulse" />
       <div className="flex-1">
-        <div className="text-[10px] uppercase font-mono tracking-wider text-slate-500">Rest Timer</div>
-        <div className="text-lg font-bold text-slate-100 font-mono">
+        <div className="text-[10px] uppercase font-mono tracking-wider text-sol-base01">Rest Timer</div>
+        <div className="text-lg font-bold text-sol-base03 font-mono">
           {mm}:{ss}
         </div>
       </div>
-      <button onClick={() => onAdjust(-15)} className="text-xs px-2 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-slate-200 border border-white/5 font-mono">
+      <button onClick={() => onAdjust(-15)} className="text-xs px-2 py-1.5 rounded-md bg-sol-base2 hover:bg-sol-base1/30 text-sol-base03 border border-sol-base1/20 font-mono">
         -15s
       </button>
-      <button onClick={() => onAdjust(15)} className="text-xs px-2 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-slate-200 border border-white/5 font-mono">
+      <button onClick={() => onAdjust(15)} className="text-xs px-2 py-1.5 rounded-md bg-sol-base2 hover:bg-sol-base1/30 text-sol-base03 border border-sol-base1/20 font-mono">
         +15s
       </button>
       <button
         aria-label="Dismiss rest timer"
         onClick={onDismiss}
-        className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-colors"
+        className="w-7 h-7 flex items-center justify-center rounded-full text-sol-base1 hover:bg-sol-base2 hover:text-sol-base03 transition-colors"
       >
         <X className="w-4 h-4" />
       </button>
@@ -361,21 +361,21 @@ function ConfirmModal({ title, message, confirmLabel, onConfirm, onCancel }: Con
   return (
     <div
       className="absolute inset-0 flex items-center justify-center p-5 rounded-2xl z-20"
-      style={{ backgroundColor: "rgba(9, 9, 11, 0.75)" }}
+      style={{ backgroundColor: "rgba(0, 43, 54, 0.4)" }}
     >
-      <div className="bg-zinc-900 border border-white/10 rounded-xl p-5 w-full shadow-2xl">
-        <div className="text-sm font-bold text-slate-100 mb-1">{title}</div>
-        <div className="text-xs text-slate-400 mb-4">{message}</div>
+      <div className="bg-white border border-sol-base1/30 rounded-xl p-5 w-full shadow-discord-xl">
+        <div className="text-sm font-bold text-sol-base03 mb-1">{title}</div>
+        <div className="text-xs text-sol-base01 mb-4">{message}</div>
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="flex-1 py-2 rounded-lg border border-white/10 text-sm font-semibold text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-colors"
+            className="flex-1 py-2 rounded-lg border border-sol-base1/30 text-sm font-semibold text-sol-base01 hover:bg-sol-base2 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2 rounded-lg bg-red-950/40 border border-red-500/30 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition-colors"
+            className="flex-1 py-2 rounded-lg bg-sol-red text-white text-sm font-semibold hover:bg-sol-red/90 transition-colors"
           >
             {confirmLabel}
           </button>
@@ -547,6 +547,7 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
     setPendingTemplate(null);
   }
 
+  // Handle template switch confirmation
   function handleSelectTemplate(template: any) {
     const hasProgress =
       workoutData && !workoutData.isRestDay && workoutData.exercises.some((e: any) => e.sets.some((s: any) => s.done));
@@ -635,7 +636,6 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
     setWorkoutData((w: any) => ({ ...w, completedAt: Date.now() }));
   }
 
-  // Edit / Reopen workout
   function reopenWorkout() {
     setWorkoutData((w: any) => ({ ...w, completedAt: null }));
   }
@@ -666,12 +666,12 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
   const progressPct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
 
   return (
-    <div className="w-full bg-zinc-950 flex justify-center text-slate-100 font-sans">
+    <div className="w-full bg-sol-base3 flex justify-center text-sol-base03 font-sans h-full overflow-y-auto">
       <div className="w-full">
-        <div className="bg-zinc-900 border border-white/5 p-4 sm:p-5 relative overflow-hidden">
+        <div className="bg-white border border-sol-base1/30 p-4 sm:p-5 relative overflow-hidden shadow-discord h-full flex flex-col">
           
           {/* Header Metadata Info */}
-          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.4em] mb-3">
+          <div className="text-[10px] font-mono text-sol-base01 uppercase tracking-[0.4em] mb-3">
             {"// WORKOUT PROTOCOL"}
           </div>
 
@@ -680,31 +680,31 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
             <button
               aria-label="Previous day"
               onClick={goPrevDay}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:bg-white/5 hover:text-slate-200 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-sol-base01 hover:bg-sol-base2 hover:text-sol-base03 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="text-center">
-              <div className="text-base font-bold text-slate-100 flex items-center justify-center gap-1.5 tracking-wide uppercase">
+              <div className="text-base font-bold text-sol-base03 flex items-center justify-center gap-1.5 tracking-wide uppercase">
                 {formatDayName(currentDate)}
                 {loggedDates.has(dateKey(currentDate)) && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 inline-block shadow-[0_0_8px_rgba(139,92,246,0.8)]" title="Workout logged" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ff5d4f] inline-block shadow-[0_0_8px_rgba(255,93,79,0.8)]" title="Workout logged" />
                 )}
               </div>
-              <div className="text-[10px] font-mono text-slate-500 mt-0.5">{formatFullDate(currentDate)}</div>
+              <div className="text-[10px] font-mono text-sol-base01 mt-0.5">{formatFullDate(currentDate)}</div>
             </div>
             <button
               aria-label="Next day"
               onClick={goNextDay}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:bg-white/5 hover:text-slate-200 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-sol-base01 hover:bg-sol-base2 hover:text-sol-base03 transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex items-center justify-center gap-3 mb-5 border-b border-white/5 pb-3">
+          <div className="flex items-center justify-center gap-3 mb-5 border-b border-sol-base1/20 pb-3">
             {!isToday(currentDate) && (
-              <button onClick={goToday} className="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors font-mono tracking-wider">
+              <button onClick={goToday} className="text-[10px] font-bold text-[#ff5d4f] hover:text-[#e54d3f] transition-colors font-mono tracking-wider">
                 [JUMP TO TODAY]
               </button>
             )}
@@ -712,7 +712,7 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
               <button
                 aria-label="Clear workout"
                 onClick={handleClearWorkout}
-                className="text-[10px] font-bold text-slate-500 hover:text-red-400 flex items-center gap-1 transition-colors font-mono tracking-wider"
+                className="text-[10px] font-bold text-sol-base1 hover:text-sol-red flex items-center gap-1 transition-colors font-mono tracking-wider"
               >
                 <Trash2 className="w-3 h-3" /> [CLEAR PROTOCOL]
               </button>
@@ -720,7 +720,7 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
           </div>
 
           {loading ? (
-            <div className="py-16 flex items-center justify-center text-slate-500 text-xs font-mono uppercase tracking-wider">
+            <div className="py-16 flex items-center justify-center text-sol-base01 text-xs font-mono uppercase tracking-wider">
               [Loading system frequencies…]
             </div>
           ) : !workoutData ? (
@@ -728,48 +728,48 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
           ) : workoutData.isRestDay ? (
             <RestDayView templates={TEMPLATES} onSelectTemplate={handleSelectTemplate} />
           ) : (
-            <>
-              <div className="flex items-center justify-between mb-3">
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex items-center justify-between mb-3 shrink-0">
                 <div>
-                  <div className="text-sm font-bold text-slate-200 tracking-wide uppercase">{workoutData.templateName}</div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  <div className="text-sm font-bold text-sol-base03 tracking-wide uppercase">{workoutData.templateName}</div>
+                  <div className="text-[10px] text-sol-base01 font-mono mt-0.5">
                     {doneSets}/{totalSets} SETS · {workoutData.exercises.length} EXERCISES
                   </div>
                 </div>
                 <button
                   onClick={() => setShowTemplatePicker((s) => !s)}
-                  className="text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors font-mono"
+                  className="text-xs font-semibold text-[#ff5d4f] hover:text-[#e54d3f] transition-colors font-mono"
                 >
                   [CHANGE]
                 </button>
               </div>
 
-              <div className="w-full h-1 bg-black/40 rounded-full mb-5 overflow-hidden border border-white/5">
+              <div className="w-full h-1 bg-sol-base2 rounded-full mb-5 overflow-hidden border border-sol-base1/20 shrink-0">
                 <div
-                  className="h-full bg-purple-600 rounded-full transition-all shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+                  className="h-full bg-[#ff5d4f] rounded-full transition-all shadow-[0_0_10px_rgba(255,93,79,0.3)]"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
 
               {showTemplatePicker && (
-                <div className="mb-4 bg-black/25 p-3 rounded-xl border border-white/5">
-                  <div className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-2">// SELECT FREQUENCY</div>
+                <div className="mb-4 bg-sol-base2/30 p-3 rounded-xl border border-sol-base1/20 shrink-0">
+                  <div className="text-[9px] font-mono text-sol-base01 uppercase tracking-widest mb-2">// SELECT FREQUENCY</div>
                   <TemplateGrid templates={TEMPLATES} onSelect={handleSelectTemplate} />
                 </div>
               )}
 
               {workoutData.completedAt && (
-                <div className="flex items-center justify-between bg-emerald-950/20 border border-emerald-500/20 rounded-xl px-4 py-3 mb-4 shadow-[0_0_15px_rgba(16,185,129,0.05)]">
-                  <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold tracking-wider font-mono">
-                    <Sparkles className="w-4 h-4 text-emerald-400" /> [PROTOCOL_SUCCESSFUL]
+                <div className="flex items-center justify-between bg-sol-green/10 border border-sol-green/30 rounded-xl px-4 py-3 mb-4 shadow-sm shrink-0">
+                  <div className="flex items-center gap-2 text-sol-green text-xs font-bold tracking-wider font-mono">
+                    <Sparkles className="w-4 h-4 text-sol-green" /> [PROTOCOL_SUCCESSFUL]
                   </div>
-                  <button onClick={reopenWorkout} className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 font-mono">
+                  <button onClick={reopenWorkout} className="text-xs font-semibold text-sol-green hover:text-sol-green/80 font-mono">
                     [REOPEN]
                   </button>
                 </div>
               )}
 
-              <div className="max-h-[55vh] overflow-y-auto pr-1">
+              <div className="flex-1 overflow-y-auto pr-1 mb-3">
                 {workoutData.exercises.map((ex: any) => (
                   <ExerciseCard
                     key={ex.id}
@@ -783,57 +783,59 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
                 ))}
               </div>
 
-              {!showAddExercise ? (
-                <button
-                  onClick={() => setShowAddExercise(true)}
-                  className="w-full mt-2 py-2 rounded-xl border border-dashed border-white/10 hover:border-purple-500/30 text-xs font-semibold text-slate-400 hover:text-purple-400 flex items-center justify-center gap-1.5 mb-3 transition-colors font-mono"
-                >
-                  <Plus className="w-3.5 h-3.5" /> ADD NEW EXERCISE
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 mb-3 mt-2">
-                  <input
-                    autoFocus
-                    type="text"
-                    value={newExerciseName}
-                    onChange={(e) => setNewExerciseName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleAddExercise();
-                      if (e.key === "Escape") {
+              <div className="shrink-0 pt-2 border-t border-sol-base1/20">
+                {!showAddExercise ? (
+                  <button
+                    onClick={() => setShowAddExercise(true)}
+                    className="w-full py-2 rounded-xl border border-dashed border-sol-base1/30 hover:border-[#ff5d4f]/30 text-xs font-semibold text-sol-base01 hover:text-[#ff5d4f] flex items-center justify-center gap-1.5 mb-3 transition-colors font-mono"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> ADD NEW EXERCISE
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 mb-3">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={newExerciseName}
+                      onChange={(e) => setNewExerciseName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleAddExercise();
+                        if (e.key === "Escape") {
+                          setShowAddExercise(false);
+                          setNewExerciseName("");
+                        }
+                      }}
+                      placeholder="Exercise name..."
+                      className="flex-1 h-9 px-3 text-sm rounded-lg border border-sol-base1/40 bg-white text-sol-base03 focus:border-[#ff5d4f]/50 focus:outline-none"
+                    />
+                    <button
+                      onClick={handleAddExercise}
+                      className="h-9 px-4 rounded-lg bg-[#ff5d4f] text-white text-xs font-bold hover:bg-[#e54d3f] transition-colors uppercase font-mono"
+                    >
+                      Add
+                    </button>
+                    <button
+                      onClick={() => {
                         setShowAddExercise(false);
                         setNewExerciseName("");
-                      }
-                    }}
-                    placeholder="Exercise name..."
-                    className="flex-1 h-9 px-3 text-sm rounded-lg border border-white/10 bg-black/40 text-slate-100 focus:border-purple-500/50 focus:outline-none"
-                  />
-                  <button
-                    onClick={handleAddExercise}
-                    className="h-9 px-4 rounded-lg bg-purple-600 text-white text-xs font-bold hover:bg-purple-700 transition-colors uppercase font-mono"
-                  >
-                    Add
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowAddExercise(false);
-                      setNewExerciseName("");
-                    }}
-                    className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+                      }}
+                      className="h-9 w-9 flex items-center justify-center rounded-lg text-sol-base01 hover:text-sol-base03 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
 
-              {!workoutData.completedAt && workoutData.exercises.length > 0 && (
-                <button
-                  onClick={finishWorkout}
-                  className="w-full py-2.5 rounded-xl bg-purple-600 text-white text-xs font-bold hover:bg-purple-500 shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)] transition-all uppercase tracking-wider font-mono mt-2"
-                >
-                  COMMIT WORKOUT
-                </button>
-              )}
-            </>
+                {!workoutData.completedAt && workoutData.exercises.length > 0 && (
+                  <button
+                    onClick={finishWorkout}
+                    className="w-full py-2.5 rounded-xl bg-[#ff5d4f] text-white text-xs font-bold hover:bg-[#e54d3f] shadow-[0_4px_10px_rgba(255,93,79,0.2)] transition-all uppercase tracking-wider font-mono"
+                  >
+                    COMMIT WORKOUT
+                  </button>
+                )}
+              </div>
+            </div>
           )}
 
           {restTimer && <RestTimerBar restTimer={restTimer} onAdjust={adjustRest} onDismiss={dismissRest} />}

@@ -373,7 +373,7 @@ function GongaFitLandingInner() {
                   {workoutChips.map(({ label, Icon, color, bg }) => (
                     <span
                       key={label}
-                      className="inline-flex items-center gap-2 rounded-full border border-white bg-white/90 px-4 py-3 text-sm font-black text-[#172033] shadow-[0_10px_20px_rgba(35,96,136,0.12)]"
+                      className="inline-flex items-center gap-2 rounded-full border border-[#eee8d5] bg-[#eee8d5]/90 px-4 py-3 text-sm font-black text-[#002b36] shadow-[0_10px_20px_rgba(0,43,54,0.10)]"
                     >
                       <span
                         className="flex h-8 w-8 items-center justify-center rounded-full"
@@ -426,7 +426,7 @@ function GongaFitLandingInner() {
                   {workoutChips.map(({ label, Icon, color, bg }) => (
                     <span
                       key={label}
-                      className="inline-flex items-center gap-2 rounded-full border border-white bg-white/90 px-4 py-3 text-sm font-black text-[#172033] shadow-[0_10px_20px_rgba(35,96,136,0.12)]"
+                      className="inline-flex items-center gap-2 rounded-full border border-[#eee8d5] bg-[#eee8d5]/90 px-4 py-3 text-sm font-black text-[#002b36] shadow-[0_10px_20px_rgba(0,43,54,0.10)]"
                     >
                       <span
                         className="flex h-8 w-8 items-center justify-center rounded-full"
@@ -448,26 +448,26 @@ function GongaFitLandingInner() {
                   type="button"
                   onClick={() => setActiveSlide(index)}
                   className={`h-2 rounded-full transition-all ${
-                    index === activeSlide ? 'w-8 bg-[#ff5d4f]' : 'w-2 bg-white/80 hover:bg-white'
+                    index === activeSlide ? 'w-8 bg-[#dc322f]' : 'w-2 bg-[#eee8d5]/80 hover:bg-[#eee8d5]'
                   }`}
                   aria-label={`Show ${item.title}`}
                 />
               ))}
             </div>
 
-            <div className="relative z-10 mx-5 mb-5 rounded-[28px] bg-white/92 px-6 py-6 shadow-[0_18px_44px_rgba(35,96,136,0.14)] sm:mx-8 lg:mx-10">
+            <div className="relative z-10 mx-5 mb-5 rounded-[28px] bg-[#eee8d5]/92 px-6 py-6 shadow-[0_18px_44px_rgba(0,43,54,0.12)] sm:mx-8 lg:mx-10">
               <div className="grid gap-5 lg:grid-cols-[1.2fr_repeat(3,1fr)] lg:items-center">
-                <h2 className="text-3xl font-black leading-tight text-[#172033]">
+                <h2 className="text-3xl font-black leading-tight text-[#002b36]">
                   All the tools to reach your goals
                 </h2>
                 {toolHighlights.map(({ title, body, Icon, color }) => (
                   <div key={title} className="flex items-center gap-4">
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-[#172033]" style={{ backgroundColor: color }}>
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-[#002b36]" style={{ backgroundColor: color }}>
                       <Icon className="h-6 w-6" />
                     </span>
                     <div>
-                      <p className="font-black text-[#172033]">{title}</p>
-                      <p className="text-sm font-medium leading-5 text-[#657185]">{body}</p>
+                      <p className="font-black text-[#002b36]">{title}</p>
+                      <p className="text-sm font-medium leading-5 text-[#657b83]">{body}</p>
                     </div>
                   </div>
                 ))}
@@ -482,13 +482,13 @@ function GongaFitLandingInner() {
 
 function PersonCard({ person }: { person: HomepagePerson }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-[0_14px_30px_rgba(35,96,136,0.18)]">
-      <div className="h-28 bg-[#effaff] sm:h-32 lg:h-24" style={{ backgroundColor: person.accent }}>
+    <div className="overflow-hidden rounded-2xl bg-[#eee8d5] shadow-[0_14px_30px_rgba(0,43,54,0.18)]">
+      <div className="h-28 bg-[#fdf6e3] sm:h-32 lg:h-24" style={{ backgroundColor: person.accent }}>
         <img src={person.imageUrl} alt="" className="h-full w-full object-cover object-top" />
       </div>
       <div className="min-h-[72px] px-2 py-3 text-center sm:px-3">
-        <p className="text-sm font-black leading-tight text-[#172033] sm:text-base lg:text-lg">{person.name}</p>
-        <p className="mt-1 text-[11px] font-bold leading-tight text-[#657185] sm:text-xs">{person.role}</p>
+        <p className="text-sm font-black leading-tight text-[#002b36] sm:text-base lg:text-lg">{person.name}</p>
+        <p className="mt-1 text-[11px] font-bold leading-tight text-[#657b83] sm:text-xs">{person.role}</p>
       </div>
     </div>
   )
@@ -508,7 +508,7 @@ function TrainerSlideshow({
   const slide = trainerSlides[activeSlide]
 
   return (
-    <div className={`overflow-hidden rounded-[24px] bg-white/92 shadow-[0_18px_44px_rgba(35,96,136,0.18)] backdrop-blur ${className}`}>
+    <div className={`overflow-hidden rounded-[24px] bg-[#eee8d5]/92 shadow-[0_18px_44px_rgba(0,43,54,0.18)] backdrop-blur ${className}`}>
       <div className={compact ? 'h-40' : 'h-56 sm:h-64'}>
         <AnimatePresence mode="wait">
           <motion.img
@@ -524,8 +524,8 @@ function TrainerSlideshow({
         </AnimatePresence>
       </div>
       <div className="p-4">
-        <p className="text-base font-black text-[#172033]">{slide.title}</p>
-        {!compact && <p className="mt-1 text-sm font-medium leading-5 text-[#657185]">{slide.body}</p>}
+        <p className="text-base font-black text-[#002b36]">{slide.title}</p>
+        {!compact && <p className="mt-1 text-sm font-medium leading-5 text-[#657b83]">{slide.body}</p>}
         <div className="mt-3 flex gap-2">
           {trainerSlides.map((item, index) => (
             <button
@@ -533,7 +533,7 @@ function TrainerSlideshow({
               type="button"
               onClick={() => setActiveSlide(index)}
               className={`h-2 rounded-full transition-all ${
-                index === activeSlide ? 'w-7 bg-[#ff5d4f]' : 'w-2 bg-[#d6e1ea] hover:bg-[#aab4c1]'
+                index === activeSlide ? 'w-7 bg-[#dc322f]' : 'w-2 bg-[#93a1a1] hover:bg-[#657b83]'
               }`}
               aria-label={`Show ${item.title}`}
             />
@@ -596,33 +596,33 @@ function AuthPanel({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, delay: 0.1, ease: 'easeOut' }}
-      className="rounded-[30px] border border-white bg-white/95 p-6 shadow-[0_24px_70px_rgba(35,96,136,0.22)] backdrop-blur md:p-8"
+      className="rounded-[30px] border border-[#eee8d5] bg-[#eee8d5]/95 p-6 shadow-[0_24px_70px_rgba(0,43,54,0.18)] backdrop-blur md:p-8"
     >
       <div className="mb-7 flex items-center justify-between gap-5">
         <div>
-          <h2 className="text-4xl font-black text-[#172033]">{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
-          <p className="mt-2 text-base font-medium text-[#657185]">
+          <h2 className="text-4xl font-black text-[#002b36]">{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
+          <p className="mt-2 text-base font-medium text-[#657b83]">
             {mode === 'login' ? "Welcome back. Let's get you moving." : 'Create your GongaFit account.'}
           </p>
         </div>
-        <img src={mascotImage} alt="" className="h-20 w-20 rounded-3xl object-cover shadow-[0_12px_24px_rgba(255,190,35,0.25)]" />
+        <img src={mascotImage} alt="" className="h-20 w-20 rounded-3xl object-cover shadow-[0_12px_24px_rgba(181,137,0,0.25)]" />
       </div>
 
       <div className="space-y-4">
         {fieldErrors.general && (
-          <div className="rounded-2xl bg-[#fff0ec] border border-[#ffb6ad] p-4 text-sm font-bold text-[#df3e31] shadow-sm">
+          <div className="rounded-2xl bg-[#dc322f]/10 border border-[#dc322f] p-4 text-sm font-bold text-[#cb4b16] shadow-sm">
             {fieldErrors.general}
           </div>
         )}
         
-        <label className="block text-sm font-black text-[#172033]">
+        <label className="block text-sm font-black text-[#002b36]">
           Email
           <span
-            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-white px-4 ${
-              fieldErrors.email ? 'border-[#ff5d4f]' : 'border-[#d6e1ea]'
+            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-[#fdf6e3] px-4 ${
+              fieldErrors.email ? 'border-[#dc322f]' : 'border-[#93a1a1]'
             }`}
           >
-            <Mail className="h-5 w-5 text-[#657185]" />
+            <Mail className="h-5 w-5 text-[#657b83]" />
             <input
               value={email}
               onChange={(event) => {
@@ -634,20 +634,20 @@ function AuthPanel({
               autoComplete="email"
               aria-invalid={fieldErrors.email ? true : undefined}
               placeholder="you@example.com"
-              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#172033] outline-none placeholder:text-[#aab4c1]"
+              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#002b36] outline-none placeholder:text-[#93a1a1]"
             />
           </span>
         </label>
-        {fieldErrors.email && <p className="-mt-2 text-xs font-bold text-[#ff5d4f]">{fieldErrors.email}</p>}
+        {fieldErrors.email && <p className="-mt-2 text-xs font-bold text-[#dc322f]">{fieldErrors.email}</p>}
 
-        <label className="block text-sm font-black text-[#172033]">
+        <label className="block text-sm font-black text-[#002b36]">
           Password
           <span
-            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-white px-4 ${
-              fieldErrors.password ? 'border-[#ff5d4f]' : 'border-[#d6e1ea]'
+            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-[#fdf6e3] px-4 ${
+              fieldErrors.password ? 'border-[#dc322f]' : 'border-[#93a1a1]'
             }`}
           >
-            <LockKeyhole className="h-5 w-5 text-[#657185]" />
+            <LockKeyhole className="h-5 w-5 text-[#657b83]" />
             <input
               value={password}
               onChange={(event) => {
@@ -662,12 +662,12 @@ function AuthPanel({
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               aria-invalid={fieldErrors.password ? true : undefined}
               placeholder="Enter your password"
-              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#172033] outline-none placeholder:text-[#aab4c1]"
+              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#002b36] outline-none placeholder:text-[#93a1a1]"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-[#657185] transition hover:text-[#172033]"
+              className="text-[#657b83] transition hover:text-[#002b36]"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -678,8 +678,8 @@ function AuthPanel({
         {(fieldErrors.password || capsLockOn) && (
           <div className="-mt-2 flex items-start justify-between gap-3">
             <div>
-              {fieldErrors.password && <p className="text-xs font-bold text-[#ff5d4f]">{fieldErrors.password}</p>}
-              {capsLockOn && <p className="text-xs font-bold text-[#f2a51f]">Caps lock is on</p>}
+              {fieldErrors.password && <p className="text-xs font-bold text-[#dc322f]">{fieldErrors.password}</p>}
+              {capsLockOn && <p className="text-xs font-bold text-[#b58900]">Caps lock is on</p>}
             </div>
           </div>
         )}
@@ -690,15 +690,15 @@ function AuthPanel({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="block overflow-hidden text-sm font-black text-[#172033]"
+              className="block overflow-hidden text-sm font-black text-[#002b36]"
             >
               Display name
               <span
-                className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-white px-4 ${
-                  fieldErrors.codename ? 'border-[#ff5d4f]' : 'border-[#d6e1ea]'
+                className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-[#fdf6e3] px-4 ${
+                  fieldErrors.codename ? 'border-[#dc322f]' : 'border-[#93a1a1]'
                 }`}
               >
-                <Users className="h-5 w-5 text-[#657185]" />
+                <Users className="h-5 w-5 text-[#657b83]" />
                 <input
                   value={codename}
                   onChange={(event) => {
@@ -710,10 +710,10 @@ function AuthPanel({
                   autoComplete="nickname"
                   aria-invalid={fieldErrors.codename ? true : undefined}
                   placeholder="Your name"
-                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#172033] outline-none placeholder:text-[#aab4c1]"
+                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#002b36] outline-none placeholder:text-[#93a1a1]"
                 />
               </span>
-              {fieldErrors.codename && <p className="mt-2 text-xs font-bold text-[#ff5d4f]">{fieldErrors.codename}</p>}
+              {fieldErrors.codename && <p className="mt-2 text-xs font-bold text-[#dc322f]">{fieldErrors.codename}</p>}
             </motion.label>
           )}
         </AnimatePresence>
@@ -725,7 +725,7 @@ function AuthPanel({
           whileHover={{ scale: submitDisabled ? 1 : 1.02 }}
           whileTap={{ scale: submitDisabled ? 1 : 0.98 }}
           layout
-          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#ff5d4f] text-base font-black text-white shadow-[0_14px_28px_rgba(255,93,79,0.32)] transition-colors hover:bg-[#ff4939] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#dc322f] text-base font-black text-white shadow-[0_14px_28px_rgba(220,50,47,0.32)] transition-colors hover:bg-[#cb4b16] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {redirecting
             ? 'Opening...'
@@ -739,7 +739,7 @@ function AuthPanel({
           {submitDisabled ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
         </motion.button>
 
-        <div className="flex items-center justify-center gap-2 pt-2 text-sm font-semibold text-[#657185]">
+        <div className="flex items-center justify-center gap-2 pt-2 text-sm font-semibold text-[#657b83]">
           <span>{mode === 'login' ? 'New here?' : 'Already moving?'}</span>
           <button
             type="button"
@@ -747,7 +747,7 @@ function AuthPanel({
               setMode(mode === 'login' ? 'signup' : 'login')
               setCodename('')
             }}
-            className="font-black text-[#ff5d4f] transition hover:text-[#df3e31]"
+            className="font-black text-[#dc322f] transition hover:text-[#cb4b16]"
           >
             {mode === 'login' ? 'Sign up' : 'Log in'}
           </button>

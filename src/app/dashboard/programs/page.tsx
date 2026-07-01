@@ -318,7 +318,7 @@ export default function ProgramsPage() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-zinc-950 border-l border-white/5 shadow-2xl overflow-hidden"
+              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-sol-base3 border-l border-sol-base1/30 shadow-2xl overflow-hidden"
               onClick={e => e.stopPropagation()}
             >
               <WorkoutWidget initialDate={selectedDate} />
