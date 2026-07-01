@@ -1,78 +1,117 @@
-import fs from 'fs/promises';
-import path from 'path';
+import {
+  S3Client,
+  HeadBucketCommand,
+  CreateBucketCommand,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
+import type { Readable } from 'stream';
 
-const STORAGE_ROOT = path.resolve(
-  process.env.LOCAL_STORAGE_DIR || path.resolve(__dirname, '../../uploads')
+const S3_BUCKET = process.env.S3_BUCKET || 'gongafit-uploads';
+
+export const isStorageConfigured = Boolean(
+  process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY
 );
 
-export const isStorageConfigured = true;
+const s3Client = new S3Client({
+  endpoint: process.env.S3_ENDPOINT,
+  region: process.env.S3_REGION || 'us-east-1',
+  forcePathStyle: true,
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
+  },
+});
 
-function normalizeKey(key: string): string {
-  const normalized = key.replace(/\\/g, '/').replace(/^\/+/, '');
-  if (!normalized || normalized.includes('\0')) {
-    throw new Error('Invalid storage key');
+// Memoized so bucket existence is checked/created once per process, not once per request.
+let bucketReadyPromise: Promise<void> | null = null;
+
+async function ensureBucketExists(): Promise<void> {
+  if (!bucketReadyPromise) {
+    bucketReadyPromise = (async () => {
+      try {
+        await s3Client.send(new HeadBucketCommand({ Bucket: S3_BUCKET }));
+      } catch (error: any) {
+        const statusCode = error?.$metadata?.httpStatusCode;
+        const errorName = error?.name;
+        const notFound =
+          statusCode === 404 ||
+          errorName === 'NoSuchBucket' ||
+          errorName === 'NotFound';
+
+        if (!notFound) {
+          console.error('Failed to check storage bucket:', error);
+          throw error;
+        }
+
+        try {
+          await s3Client.send(new CreateBucketCommand({ Bucket: S3_BUCKET }));
+        } catch (createError) {
+          console.error('Failed to create storage bucket:', createError);
+          throw createError;
+        }
+      }
+    })().catch((error) => {
+      bucketReadyPromise = null;
+      throw error;
+    });
   }
-  return normalized;
+
+  return bucketReadyPromise;
 }
 
-function resolveStoragePath(key: string): string {
-  const normalized = normalizeKey(key);
-  const filePath = path.resolve(STORAGE_ROOT, normalized);
-  const rootWithSeparator = STORAGE_ROOT.endsWith(path.sep) ? STORAGE_ROOT : `${STORAGE_ROOT}${path.sep}`;
-
-  if (filePath !== STORAGE_ROOT && !filePath.startsWith(rootWithSeparator)) {
-    throw new Error('Invalid storage key');
-  }
-
-  return filePath;
-}
-
-export function getPublicUrl(key: string): string {
-  return `/api/media/${normalizeKey(key)}`;
-}
-
-export interface UploadUrlOptions {
-  key: string;
-  contentType: string;
-  expiresIn?: number;
+export interface GetObjectStreamResult {
+  stream: NodeJS.ReadableStream;
+  contentType?: string;
+  contentLength?: number;
 }
 
 export const storageService = {
-  async generateUploadUrl(options: UploadUrlOptions): Promise<string> {
-    const key = normalizeKey(options.key);
-    return `/api/storage/upload?key=${encodeURIComponent(key)}`;
-  },
-
-  async getFilePath(key: string): Promise<string> {
-    const filePath = resolveStoragePath(key);
-    await fs.access(filePath);
-    return filePath;
-  },
-
-  async generateDownloadUrl(key: string): Promise<string> {
-    return getPublicUrl(key);
+  async uploadFile(key: string, body: Buffer, contentType: string): Promise<void> {
+    await ensureBucketExists();
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+      })
+    );
   },
 
   async deleteFile(key: string): Promise<void> {
-    const filePath = resolveStoragePath(key);
-    await fs.rm(filePath, { force: true });
+    await ensureBucketExists();
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: key,
+      })
+    );
   },
 
-  generateProgressPhotoKey(userId: string, challengeId: string, filename: string): string {
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 9);
-    const ext = filename.split('.').pop() || 'jpg';
-    return `progress-photos/${userId}/${challengeId}/${timestamp}-${randomId}.${ext}`;
+  async getObjectStream(key: string): Promise<GetObjectStreamResult> {
+    await ensureBucketExists();
+    const response = await s3Client.send(
+      new GetObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: key,
+      })
+    );
+
+    if (!response.Body) {
+      throw new Error(`Object not found: ${key}`);
+    }
+
+    return {
+      stream: response.Body as unknown as Readable,
+      contentType: response.ContentType,
+      contentLength: response.ContentLength,
+    };
   },
 
   generateAvatarKey(userId: string, filename: string): string {
     const ext = filename.split('.').pop() || 'jpg';
     return `avatars/${userId}.${ext}`;
-  },
-
-  async uploadFile(key: string, body: Buffer, _contentType: string): Promise<void> {
-    const filePath = resolveStoragePath(key);
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    await fs.writeFile(filePath, body);
   },
 };
