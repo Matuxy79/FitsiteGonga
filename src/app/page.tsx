@@ -712,11 +712,14 @@ function AuthPanel({
           )}
         </AnimatePresence>
 
-        <button
+        <motion.button
           type="button"
           onClick={handleSubmit}
           disabled={submitDisabled}
-          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#ff5d4f] text-base font-black text-white shadow-[0_14px_28px_rgba(255,93,79,0.32)] transition hover:-translate-y-0.5 hover:bg-[#ff4939] disabled:cursor-not-allowed disabled:opacity-60"
+          whileHover={{ scale: submitDisabled ? 1 : 1.02 }}
+          whileTap={{ scale: submitDisabled ? 1 : 0.98 }}
+          layout
+          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#ff5d4f] text-base font-black text-white shadow-[0_14px_28px_rgba(255,93,79,0.32)] transition-colors hover:bg-[#ff4939] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {redirecting
             ? 'Opening...'
@@ -728,7 +731,7 @@ function AuthPanel({
                   ? 'Log in'
                   : 'Create account'}
           {submitDisabled ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
-        </button>
+        </motion.button>
 
         <div className="flex items-center justify-center gap-2 pt-2 text-sm font-semibold text-[#657185]">
           <span>{mode === 'login' ? 'New here?' : 'Already moving?'}</span>
