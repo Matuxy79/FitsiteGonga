@@ -609,6 +609,12 @@ function AuthPanel({
       </div>
 
       <div className="space-y-4">
+        {fieldErrors.general && (
+          <div className="rounded-2xl bg-[#fff0ec] border border-[#ffb6ad] p-4 text-sm font-bold text-[#df3e31] shadow-sm">
+            {fieldErrors.general}
+          </div>
+        )}
+        
         <label className="block text-sm font-black text-[#172033]">
           Email
           <span

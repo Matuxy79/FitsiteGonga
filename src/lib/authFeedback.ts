@@ -2,7 +2,7 @@ import type { TerminalNotification } from '@/providers/ToastProvider'
 import { isApiError, mapApiErrorToToast, getRetryAfterSeconds as getRetryAfterSecondsShared } from '@/lib/apiFeedback'
 
 export type AuthMode = 'login' | 'signup'
-export type AuthField = 'email' | 'password' | 'codename'
+export type AuthField = 'email' | 'password' | 'codename' | 'general'
 export type FieldErrors = Partial<Record<AuthField, string>>
 
 export function getEmailSector(email: string): string {
@@ -56,7 +56,10 @@ export function mapAuthErrorToToast(params: {
 
   // Generic connection-level failures (network/CORS) — shared copy, no auth-specific override needed.
   if (status === 0) {
-    return { toast: mapApiErrorToToast(apiError, { sector: 'SYSTEM' }) }
+    return { 
+      toast: mapApiErrorToToast(apiError, { sector: 'SYSTEM' }),
+      fieldErrors: { general: "Can't reach the server. Please check your connection or try again later." }
+    }
   }
 
   if (status === 429) {
@@ -123,6 +126,7 @@ export function mapAuthErrorToToast(params: {
         message: 'Server error. Please try again in a moment.',
         sector: 'SYSTEM',
       },
+      fieldErrors: { general: 'Server error. Please try again in a moment.' }
     }
   }
 
