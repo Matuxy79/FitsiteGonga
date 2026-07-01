@@ -33,6 +33,9 @@ export default function SettingsPage() {
   const [goals, setGoals] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [switchingPlan, setSwitchingPlan] = useState(false)
+  const [redeemCodeInput, setRedeemCodeInput] = useState('')
+  const [redeeming, setRedeeming] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -80,6 +83,35 @@ export default function SettingsPage() {
       toast(mapApiErrorToToast(err, { action: 'update your profile' }))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handlePlanSwitch = async (nextTier: 'FREE' | 'PAID') => {
+    setSwitchingPlan(true)
+    try {
+      await UserRepository.updatePlan(nextTier)
+      await refreshUser()
+      toast({ title: `Switched to ${nextTier === 'PAID' ? 'Paid' : 'Free'} plan`, variant: 'success' })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'switch your plan' }))
+    } finally {
+      setSwitchingPlan(false)
+    }
+  }
+
+  const handleRedeemCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!redeemCodeInput.trim()) return
+    setRedeeming(true)
+    try {
+      await UserRepository.redeemCode(redeemCodeInput.trim())
+      await refreshUser()
+      setRedeemCodeInput('')
+      toast({ title: 'Admin access granted', variant: 'success' })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'redeem your code' }))
+    } finally {
+      setRedeeming(false)
     }
   }
 
@@ -173,6 +205,94 @@ export default function SettingsPage() {
           </button>
         </div>
       </form>
+
+      {/* Membership & Admin Access */}
+      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
+        {user?.role === 'ADMIN' ? (
+          <div className="flex items-center gap-3 text-sm font-semibold text-gray-700 bg-gray-50 px-4 py-3 rounded-xl">
+            <ShieldCheck className="w-5 h-5 text-[#ff5d4f]" />
+            Admin access — you have full platform access.
+          </div>
+        ) : (
+          <>
+            <div>
+              <h2 className="font-bold text-lg mb-1">Membership plan</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                This is a demo — switch your plan anytime, no payment required.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div
+                  className={`rounded-2xl border-2 p-5 ${
+                    user?.membership_tier === 'FREE' ? 'border-[#ff5d4f] bg-[#ff5d4f]/5' : 'border-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-bold mb-1">
+                    <Users className="w-4 h-4" /> Free
+                  </div>
+                  <p className="text-xs text-gray-500 mb-4">Core features, limited templates.</p>
+                  {user?.membership_tier === 'FREE' ? (
+                    <span className="text-xs font-bold text-[#ff5d4f]">Current plan</span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={switchingPlan}
+                      onClick={() => handlePlanSwitch('FREE')}
+                      className="text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      {switchingPlan ? 'Switching...' : 'Switch to Free'}
+                    </button>
+                  )}
+                </div>
+
+                <div
+                  className={`rounded-2xl border-2 p-5 ${
+                    user?.membership_tier === 'PAID' ? 'border-[#ff5d4f] bg-[#ff5d4f]/5' : 'border-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-bold mb-1">
+                    <Crown className="w-4 h-4" /> Paid
+                  </div>
+                  <p className="text-xs text-gray-500 mb-4">Unlimited templates, public sharing.</p>
+                  {user?.membership_tier === 'PAID' ? (
+                    <span className="text-xs font-bold text-[#ff5d4f]">Current plan</span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={switchingPlan}
+                      onClick={() => handlePlanSwitch('PAID')}
+                      className="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#ff5d4f] text-white hover:bg-[#e54d3f] disabled:opacity-50"
+                    >
+                      {switchingPlan ? 'Switching...' : 'Switch to Paid'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-gray-100">
+              <h2 className="font-bold text-lg mb-1">Redeem admin code</h2>
+              <p className="text-sm text-gray-500 mb-3">Have an admin code? Redeem it here.</p>
+              <form onSubmit={handleRedeemCode} className="flex gap-2">
+                <input
+                  value={redeemCodeInput}
+                  onChange={(e) => setRedeemCodeInput(e.target.value)}
+                  placeholder="Enter code"
+                  aria-label="Admin code"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+                />
+                <button
+                  type="submit"
+                  disabled={redeeming || !redeemCodeInput.trim()}
+                  className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-black disabled:opacity-50 flex items-center gap-2"
+                >
+                  {redeeming && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {redeeming ? 'Redeeming...' : 'Redeem'}
+                </button>
+              </form>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

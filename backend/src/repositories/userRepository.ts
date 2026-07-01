@@ -132,6 +132,30 @@ export const userRepository = {
   },
 
   /**
+   * Update role (self-service redeem-code grant, or admin tooling)
+   */
+  async updateRole(id: string, role: Role): Promise<UserWithoutPassword> {
+    return prisma.user.update({
+      where: { id },
+      data: { role },
+      select: {
+        id: true,
+        email: true,
+        display_name: true,
+        avatar_url: true,
+        role: true,
+        membership_tier: true,
+        subscription_status: true,
+        trial_ends_at: true,
+        fitness_level: true,
+        goals: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  },
+
+  /**
    * Delete user (soft delete - set is_active to false)
    */
   async delete(id: string): Promise<void> {

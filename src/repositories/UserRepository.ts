@@ -1,4 +1,4 @@
-import apiClient from '@/lib/apiClient'
+import apiClient, { setAuthToken } from '@/lib/apiClient'
 import type { User } from '@/types/fitness'
 
 export interface UpdateProfileDTO {
@@ -7,10 +7,28 @@ export interface UpdateProfileDTO {
   goals?: string[]
 }
 
+export interface UpdatePlanResponse {
+  user: User
+  accessToken: string
+  refreshToken: string
+}
+
 export const UserRepository = {
   async getMe(): Promise<User> {
     const res = await apiClient.get<{ user: User }>('/api/users/me')
     return res.user
+  },
+
+  async updatePlan(membership_tier: 'FREE' | 'PAID'): Promise<UpdatePlanResponse> {
+    const res = await apiClient.patch<UpdatePlanResponse>('/api/users/me/plan', { membership_tier })
+    setAuthToken(res.accessToken)
+    return res
+  },
+
+  async redeemCode(code: string): Promise<UpdatePlanResponse> {
+    const res = await apiClient.post<UpdatePlanResponse>('/api/users/me/redeem-code', { code })
+    setAuthToken(res.accessToken)
+    return res
   },
 
   async updateProfile(data: UpdateProfileDTO): Promise<User> {
