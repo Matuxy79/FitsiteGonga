@@ -53,7 +53,11 @@ async function request<T>(
   const url = `${API_URL}${endpoint}`;
 
   const headers = new Headers(options.headers);
-  headers.set('Content-Type', 'application/json');
+  const isFormData = typeof window !== 'undefined' && options.body instanceof FormData;
+  // Let the browser set the multipart boundary for FormData uploads.
+  if (!isFormData) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
@@ -119,6 +123,16 @@ export const apiClient = {
     return request<T>(endpoint, {
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
+    });
+  },
+
+  /**
+   * POST request with multipart/form-data body (e.g. file uploads).
+   */
+  async postFormData<T>(endpoint: string, body: FormData): Promise<T> {
+    return request<T>(endpoint, {
+      method: 'POST',
+      body,
     });
   },
 

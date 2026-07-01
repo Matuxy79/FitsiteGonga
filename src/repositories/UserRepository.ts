@@ -40,12 +40,6 @@ export const UserRepository = {
     const formData = new FormData()
     formData.append('avatar', file)
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/users/me/avatar`, {
-      method: 'POST',
-      body: formData,
-      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken') || ''}` },
-    })
-    if (!res.ok) throw new Error('Failed to upload avatar')
-    return res.json()
+    return apiClient.postFormData<{ user: User; key: string }>('/api/users/me/avatar', formData)
   },
 }

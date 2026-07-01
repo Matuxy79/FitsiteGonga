@@ -59,13 +59,8 @@ export const NutritionRepository = {
     })
     if (data.image) formData.append('image', data.image)
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/nutrition/meals`, {
-      method: 'POST',
-      body: formData,
-      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken') || ''}` },
-    })
-    if (!res.ok) throw new Error('Failed to create meal')
-    return (await res.json()).meal
+    const res = await apiClient.postFormData<{ meal: Meal }>('/api/nutrition/meals', formData)
+    return res.meal
   },
 
   async logMeal(mealId: string, notes?: string): Promise<NutritionLog> {
