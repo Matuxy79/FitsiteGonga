@@ -67,11 +67,15 @@ export function mapAuthErrorToToast(params: {
   const status = apiError.status
 
   if (status === 0) {
+    const message =
+      process.env.NODE_ENV === 'production'
+        ? "Can't reach GongaFit right now. This is usually temporary — please try again in a moment."
+        : 'Backend unreachable. Start the server and try again.'
     return {
       toast: {
         status: 'ERROR',
         title: 'CONNECTION LOST',
-        message: 'Backend unreachable. Start the server and try again.',
+        message,
         sector: 'SYSTEM',
       },
     }
