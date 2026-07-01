@@ -15,6 +15,8 @@ import {
   Zap,
   Target,
   Moon,
+  History,
+  TrendingUp,
 } from "lucide-react";
 
 /**
@@ -142,6 +144,105 @@ async function deleteKey(key: string) {
   }
 }
 
+// ---------- history insights ----------
+
+interface HistoryInsights {
+  recentTemplates: { id: string; name: string; date: string; icon: any }[];
+  recommendedTemplate: (typeof TEMPLATES)[number] | null;
+  weeklyStats: { day: string; key: string; hasWorkout: boolean; isToday: boolean }[];
+}
+
+async function loadHistoryInsights(currentDate: Date): Promise<HistoryInsights> {
+  const empty: HistoryInsights = { recentTemplates: [], recommendedTemplate: null, weeklyStats: [] };
+  try {
+    const res = await (window as any).storage.list("workout-", false);
+    if (!res || !res.keys || res.keys.length === 0) return empty;
+
+    const items: { key: string; date: Date; dateKey: string; data: any }[] = [];
+    for (const key of res.keys.slice(0, 200)) {
+      const data = await loadJSON(key, null);
+      if (!data) continue;
+      const dk = key.replace("workout-", "");
+      const [y, m, d] = dk.split("-").map(Number);
+      const date = new Date(y, m - 1, d);
+      items.push({ key, date, dateKey: dk, data });
+    }
+
+    items.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    // Recent templates: last 3 unique non-rest workouts
+    const seen = new Set<string>();
+    const recentTemplates: { id: string; name: string; date: string; icon: any }[] = [];
+    for (const item of items) {
+      if (item.data.isRestDay) continue;
+      const name = item.data.templateName || "Custom Workout";
+      if (seen.has(name)) continue;
+      seen.add(name);
+      const template = TEMPLATES.find((t) => t.name === name);
+      recentTemplates.push({
+        id: item.key,
+        name,
+        date: dateKey(item.date),
+        icon: template ? template.icon : Dumbbell,
+      });
+      if (recentTemplates.length >= 3) break;
+    }
+
+    // Recommendation: most common template on this day of week, then overall
+    const dayOfWeek = currentDate.getDay();
+    const sameDayItems = items.filter((i) => i.date.getDay() === dayOfWeek && !i.data.isRestDay);
+    const dayCounts = new Map<string, number>();
+    for (const item of sameDayItems) {
+      const name = item.data.templateName || "Custom Workout";
+      dayCounts.set(name, (dayCounts.get(name) || 0) + 1);
+    }
+    let recommendedName: string | null = null;
+    let bestCount = 0;
+    Array.from(dayCounts.entries()).forEach(([name, count]) => {
+      if (count > bestCount) {
+        bestCount = count;
+        recommendedName = name;
+      }
+    });
+    if (!recommendedName) {
+      const overallCounts = new Map<string, number>();
+      for (const item of items) {
+        if (item.data.isRestDay) continue;
+        const name = item.data.templateName || "Custom Workout";
+        overallCounts.set(name, (overallCounts.get(name) || 0) + 1);
+      }
+      Array.from(overallCounts.entries()).forEach(([name, count]) => {
+        if (count > bestCount && name !== "Custom Workout") {
+          bestCount = count;
+          recommendedName = name;
+        }
+      });
+    }
+    const recommendedTemplate = recommendedName
+      ? TEMPLATES.find((t) => t.name === recommendedName) || null
+      : null;
+
+    // Weekly stats: Sun–Sat of the current week
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+    const weeklyStats = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const dk = dateKey(d);
+      return {
+        day: DAY_NAMES[d.getDay()][0],
+        key: dk,
+        hasWorkout: items.some((it) => it.dateKey === dk && !it.data.isRestDay),
+        isToday: isToday(d),
+      };
+    });
+
+    return { recentTemplates, recommendedTemplate, weeklyStats };
+  } catch (e) {
+    return empty;
+  }
+}
+
 // ---------- small components ----------
 
 interface TemplateGridProps {
@@ -180,11 +281,34 @@ interface EmptyStateProps {
   templates: typeof TEMPLATES;
   onSelectTemplate: (template: any) => void;
   onCustom: () => void;
+  insights: HistoryInsights;
+  currentDate: Date;
 }
 
-function EmptyState({ templates, onSelectTemplate, onCustom }: EmptyStateProps) {
+function EmptyState({ templates, onSelectTemplate, onCustom, insights, currentDate }: EmptyStateProps) {
+  const { recommendedTemplate, recentTemplates, weeklyStats } = insights;
+
   return (
     <div>
+      {/* 1. Weekly context bar */}
+      <div className="flex items-center justify-between mb-4 px-1">
+        {weeklyStats.map((s) => (
+          <div key={s.key} className="flex flex-col items-center gap-1.5">
+            <span className="text-[9px] font-mono text-sol-base01 uppercase">{s.day}</span>
+            <div
+              className={
+                "w-2 h-2 rounded-full border " +
+                (s.hasWorkout
+                  ? "bg-[#ff5d4f] border-[#ff5d4f]"
+                  : "bg-sol-base2 border-sol-base1/30") +
+                (s.isToday ? " ring-2 ring-[#ff5d4f]/30" : "")
+              }
+              title={s.hasWorkout ? "Workout logged" : "No workout"}
+            />
+          </div>
+        ))}
+      </div>
+
       <div className="flex flex-col items-center text-center py-6 mb-4 bg-sol-base2/40 rounded-xl border border-sol-base1/20">
         <div className="w-12 h-12 rounded-full bg-sol-base2/80 flex items-center justify-center mb-3 border border-sol-base1/20">
           <Calendar className="w-5 h-5 text-sol-base01" />
@@ -192,7 +316,60 @@ function EmptyState({ templates, onSelectTemplate, onCustom }: EmptyStateProps) 
         <div className="text-sm font-bold text-sol-base03">No workout scheduled</div>
         <div className="text-[10px] text-sol-base01 mt-1.5 font-mono uppercase tracking-[0.4em]">Pick a template to start</div>
       </div>
+
+      {/* 2. Smart recommendation card */}
+      {recommendedTemplate && (
+        <div className="mb-3 bg-gradient-to-r from-[#ff5d4f]/10 to-sol-base2/40 rounded-xl border border-[#ff5d4f]/20 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-[#ff5d4f]" />
+              <span className="text-[10px] font-mono text-sol-base01 uppercase tracking-wider">Recommended for {formatDayName(currentDate)}</span>
+            </div>
+            {(() => {
+              const RecommendedIcon = recommendedTemplate.icon;
+              return <RecommendedIcon className="w-4 h-4 text-[#ff5d4f]" />;
+            })()}
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-bold text-sol-base03">{recommendedTemplate.name}</div>
+            <button
+              onClick={() => onSelectTemplate(recommendedTemplate)}
+              className="px-3 py-1.5 rounded-lg bg-[#ff5d4f] text-white text-[10px] font-bold hover:bg-[#e54d3f] transition-colors font-mono uppercase tracking-wider"
+            >
+              Start
+            </button>
+          </div>
+        </div>
+      )}
+
       <TemplateGrid templates={templates} onSelect={onSelectTemplate} />
+
+      {/* 3. Recent templates quick-restart */}
+      {recentTemplates.length > 0 && (
+        <div className="mt-3">
+          <div className="flex items-center gap-1.5 mb-2 px-1">
+            <History className="w-3 h-3 text-sol-base01" />
+            <span className="text-[10px] font-mono text-sol-base01 uppercase tracking-wider">Recent</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {recentTemplates.map((rt) => {
+              const Icon = rt.icon;
+              const knownTemplate = templates.find((t) => t.name === rt.name);
+              return (
+                <button
+                  key={rt.id}
+                  onClick={() => (knownTemplate ? onSelectTemplate(knownTemplate) : onCustom())}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl border border-sol-base1/30 bg-sol-base2/40 hover:border-[#ff5d4f]/30 hover:bg-[#ff5d4f]/5 text-left shrink-0 transition-colors"
+                >
+                  <Icon className="w-3.5 h-3.5 text-[#ff5d4f]" />
+                  <span className="text-xs font-semibold text-sol-base03 whitespace-nowrap">{rt.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <button
         onClick={onCustom}
         className="w-full mt-3 py-2.5 rounded-xl border border-dashed border-sol-base1/30 hover:border-[#ff5d4f]/30 text-sm font-semibold text-sol-base01 hover:text-[#ff5d4f] flex items-center justify-center gap-1.5 transition-colors font-mono"
@@ -412,6 +589,11 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
   const [workoutData, setWorkoutData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loggedDates, setLoggedDates] = useState(new Set<string>());
+  const [historyInsights, setHistoryInsights] = useState<HistoryInsights>({
+    recentTemplates: [],
+    recommendedTemplate: null,
+    weeklyStats: [],
+  });
   const [restTimer, setRestTimer] = useState<any>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [showAddExercise, setShowAddExercise] = useState(false);
@@ -436,6 +618,11 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
       }
     })();
   }, []);
+
+  // load history-derived insights whenever the day changes
+  useEffect(() => {
+    loadHistoryInsights(currentDate).then(setHistoryInsights).catch(() => {});
+  }, [currentDate]);
 
   // load workout for the current day whenever the day changes
   useEffect(() => {
@@ -721,7 +908,13 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
               [Loading system frequencies…]
             </div>
           ) : !workoutData ? (
-            <EmptyState templates={TEMPLATES} onSelectTemplate={handleSelectTemplate} onCustom={startCustomWorkout} />
+            <EmptyState
+              templates={TEMPLATES}
+              onSelectTemplate={handleSelectTemplate}
+              onCustom={startCustomWorkout}
+              insights={historyInsights}
+              currentDate={currentDate}
+            />
           ) : workoutData.isRestDay ? (
             <RestDayView templates={TEMPLATES} onSelectTemplate={handleSelectTemplate} />
           ) : (
@@ -750,7 +943,7 @@ export default function WorkoutWidget({ initialDate }: WorkoutWidgetProps = {}) 
 
               {showTemplatePicker && (
                 <div className="mb-4 bg-sol-base2/30 p-3 rounded-xl border border-sol-base1/20 shrink-0">
-                  <div className="text-[9px] font-mono text-sol-base01 uppercase tracking-widest mb-2">// SELECT FREQUENCY</div>
+                  <div className="text-[9px] font-mono text-sol-base01 uppercase tracking-widest mb-2">{/* SELECT FREQUENCY */}</div>
                   <TemplateGrid templates={TEMPLATES} onSelect={handleSelectTemplate} />
                 </div>
               )}
