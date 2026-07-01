@@ -21,6 +21,7 @@ model User {
   membership_tier MembershipTier @default(FREE)
   subscription_status SubscriptionStatus @default(ACTIVE)
   trial_ends_at DateTime?
+  is_active     Boolean  @default(true)
   fitness_level FitnessLevel @default(BEGINNER)
   goals         String[] @default([])
   created_at    DateTime @default(now())

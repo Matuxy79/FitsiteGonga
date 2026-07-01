@@ -13,6 +13,8 @@ export interface UpdatePlanResponse {
   refreshToken: string
 }
 
+export type AccessMode = 'FREE' | 'PAID' | 'ADMIN'
+
 export const UserRepository = {
   async getMe(): Promise<User> {
     const res = await apiClient.get<{ user: User }>('/api/users/me')
@@ -21,6 +23,12 @@ export const UserRepository = {
 
   async updatePlan(membership_tier: 'FREE' | 'PAID'): Promise<UpdatePlanResponse> {
     const res = await apiClient.patch<UpdatePlanResponse>('/api/users/me/plan', { membership_tier })
+    setAuthToken(res.accessToken)
+    return res
+  },
+
+  async updateAccessMode(mode: AccessMode, code?: string): Promise<UpdatePlanResponse> {
+    const res = await apiClient.patch<UpdatePlanResponse>('/api/users/me/access-mode', { mode, code })
     setAuthToken(res.accessToken)
     return res
   },

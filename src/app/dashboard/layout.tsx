@@ -2,19 +2,27 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { UserRepository, type AccessMode } from '@/repositories/UserRepository'
+import { useToast } from '@/providers/ToastProvider'
+import { mapApiErrorToToast } from '@/lib/apiFeedback'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Activity,
   Apple,
   Bell,
   CalendarDays,
+  Check,
+  Crown,
   Dumbbell,
+  KeyRound,
   LineChart,
+  Loader2,
   LogOut,
   Search,
   Settings,
+  ShieldCheck,
   Trophy,
   Users,
   ChevronLeft,
@@ -41,6 +49,33 @@ const bottomNavItems = [
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
+const accountModeOptions = [
+  {
+    mode: 'FREE',
+    label: 'Free',
+    description: 'Basic training tools',
+    icon: Users,
+    badgeClass: 'bg-gray-100 text-gray-600',
+    iconClass: 'bg-gray-100 text-gray-600',
+  },
+  {
+    mode: 'PAID',
+    label: 'Paid',
+    description: 'Premium tools',
+    icon: Crown,
+    badgeClass: 'bg-emerald-100 text-emerald-700',
+    iconClass: 'bg-emerald-100 text-emerald-700',
+  },
+  {
+    mode: 'ADMIN',
+    label: 'Admin',
+    description: 'Full platform access',
+    icon: ShieldCheck,
+    badgeClass: 'bg-[#ff5d4f]/10 text-[#d83d31]',
+    iconClass: 'bg-[#ff5d4f]/10 text-[#d83d31]',
+  },
+] as const
+
 function initials(name: string) {
   return name
     .split(' ')
@@ -57,13 +92,24 @@ function avatarUrl(key?: string | null) {
   return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/media/${key}`
 }
 
+function getAccountMode(user: ReturnType<typeof useAuth>['user']): AccessMode {
+  if (user?.role === 'ADMIN') return 'ADMIN'
+  return user?.membership_tier === 'PAID' ? 'PAID' : 'FREE'
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, logout } = useAuth()
+  const { user, loading, logout, refreshUser } = useAuth()
+  const { toast } = useToast()
   const pathname = usePathname()
   const router = useRouter()
   
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [pendingAdminCode, setPendingAdminCode] = useState('')
+  const [showAdminCode, setShowAdminCode] = useState(false)
+  const [switchingMode, setSwitchingMode] = useState<AccessMode | null>(null)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setIsMounted(true)
@@ -79,6 +125,60 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   useEffect(() => {
+    if (!isProfileMenuOpen) return
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false)
+        setShowAdminCode(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsProfileMenuOpen(false)
+        setShowAdminCode(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isProfileMenuOpen])
+
+  useEffect(() => {
+    if (!isProfileMenuOpen) return
+    const firstItem = profileMenuRef.current?.querySelector<HTMLButtonElement>(
+      'button[role="menuitemradio"]:not(:disabled)'
+    )
+    firstItem?.focus()
+  }, [isProfileMenuOpen])
+
+  const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return
+    event.preventDefault()
+
+    const items = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>('button[role="menuitemradio"]:not(:disabled)')
+    )
+    if (!items.length) return
+
+    const currentIndex = items.indexOf(document.activeElement as HTMLButtonElement)
+    let nextIndex = currentIndex
+
+    if (event.key === 'ArrowDown') nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0
+    else if (event.key === 'ArrowUp') nextIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1
+    else if (event.key === 'Home') nextIndex = 0
+    else if (event.key === 'End') nextIndex = items.length - 1
+
+    items[nextIndex]?.focus()
+  }
+
+  useEffect(() => {
     if (!loading && !user) {
       router.replace('/?reason=session-expired')
     }
@@ -89,13 +189,48 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.replace('/?reason=signed-out')
   }
 
-  const isPro = user?.role === 'ADMIN' || user?.membership_tier === 'PAID'
-  const tierLabel = user?.role === 'ADMIN' ? 'Admin' : isPro ? 'Pro Member' : 'Free'
-  
-  // Clean green badge for Pro/Admin, subtle gray for Free
-  const tierClass = isPro
-    ? 'bg-emerald-100 text-emerald-700'
-    : 'bg-gray-100 text-gray-600'
+  const currentAccountMode = getAccountMode(user)
+  const currentAccountOption = accountModeOptions.find((option) => option.mode === currentAccountMode) || accountModeOptions[0]
+  const tierLabel = currentAccountOption.label
+  const tierClass = currentAccountOption.badgeClass
+
+  const switchAccountMode = async (mode: AccessMode, code?: string) => {
+    setSwitchingMode(mode)
+    try {
+      await UserRepository.updateAccessMode(mode, code)
+      await refreshUser()
+      window.dispatchEvent(new Event('auth:changed'))
+      setIsProfileMenuOpen(false)
+      setShowAdminCode(false)
+      setPendingAdminCode('')
+      toast({
+        title: `Switched to ${accountModeOptions.find((option) => option.mode === mode)?.label || mode}`,
+        variant: 'success',
+      })
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'switch account mode' }))
+    } finally {
+      setSwitchingMode(null)
+    }
+  }
+
+  const handleModeSelect = (mode: AccessMode) => {
+    if (mode === currentAccountMode || switchingMode) return
+
+    if (mode === 'ADMIN') {
+      setShowAdminCode(true)
+      return
+    }
+
+    switchAccountMode(mode)
+  }
+
+  const handleAdminSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const code = pendingAdminCode.trim()
+    if (!code || switchingMode) return
+    switchAccountMode('ADMIN', code)
+  }
 
   const sidebarWidth = isCollapsed ? 'w-20' : 'w-64'
   const mainMarginClass = isCollapsed ? 'md:ml-20' : 'md:ml-64'
@@ -143,30 +278,135 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Profile Card */}
-        <div className="px-4 pb-6 shrink-0">
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-clean-border bg-white shadow-sm cursor-pointer hover:border-gray-300 transition-colors">
-            {user?.avatar_url ? (
-              <img src={avatarUrl(user.avatar_url)} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-            ) : (
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 bg-gray-100 text-gray-700">
-                {initials(user?.display_name || 'GF')}
+        <div className="relative z-40 px-4 pb-6 shrink-0">
+          <div ref={profileMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setIsProfileMenuOpen((open) => !open)}
+              aria-haspopup="menu"
+              aria-expanded={isProfileMenuOpen}
+              aria-label="Open account mode menu"
+              className={`group flex w-full cursor-pointer items-center gap-3 p-3 rounded-xl border border-clean-border bg-white shadow-sm hover:border-gray-300 hover:bg-clean-hover hover:shadow-md active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-clean-accent/25 transition-all ${
+                isCollapsed ? 'justify-center' : ''
+              } ${isProfileMenuOpen ? 'border-clean-accent/50 ring-2 ring-clean-accent/25' : ''}`}
+            >
+              <div className="relative shrink-0">
+                {user?.avatar_url ? (
+                  <img src={avatarUrl(user.avatar_url)} alt="" className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold bg-gray-100 text-gray-700">
+                    {initials(user?.display_name || 'GF')}
+                  </div>
+                )}
+                {isCollapsed && (
+                  <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-white bg-clean-sidebar text-clean-muted shadow-sm">
+                    <ChevronDown className={`h-2.5 w-2.5 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+                  </span>
+                )}
               </div>
-            )}
-            
-            {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate text-clean-text">
-                  {user?.display_name || 'Profile'}
-                </p>
-                <div className={`inline-flex items-center px-1.5 py-0.5 mt-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${tierClass}`}>
-                  {tierLabel}
+
+              {!isCollapsed && (
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-bold truncate text-clean-text">
+                    {user?.display_name || 'Profile'}
+                  </p>
+                  <div className={`inline-flex items-center px-1.5 py-0.5 mt-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${tierClass}`}>
+                    {tierLabel}
+                  </div>
                 </div>
-              </div>
-            )}
-            
-            {!isCollapsed && (
-              <ChevronDown className="w-4 h-4 text-clean-muted shrink-0" />
-            )}
+              )}
+
+              {!isCollapsed && (
+                <ChevronDown
+                  className={`w-4 h-4 text-clean-muted shrink-0 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`}
+                />
+              )}
+            </button>
+
+            <AnimatePresence>
+              {isProfileMenuOpen && (
+                <motion.div
+                  initial={{ y: -6, scale: 0.98 }}
+                  animate={{ y: 0, scale: 1 }}
+                  exit={{ y: -6, scale: 0.98 }}
+                  transition={{ duration: 0.16, ease: 'easeOut' }}
+                  className={`absolute z-50 mt-2 ${isCollapsed ? 'left-0 w-64' : 'left-0 right-0'}`}
+                >
+                  <div className="rounded-xl border border-clean-border bg-white shadow-xl shadow-gray-900/10 overflow-hidden">
+                    <div className="px-3 py-2.5 border-b border-clean-border">
+                      <p className="text-xs font-bold uppercase tracking-wider text-clean-muted">Account mode</p>
+                      <p className="text-xs text-clean-muted truncate mt-0.5">{user?.email}</p>
+                    </div>
+
+                    <div
+                      className="p-2 space-y-1"
+                      role="menu"
+                      aria-label="Account mode options"
+                      onKeyDown={handleMenuKeyDown}
+                    >
+                      {accountModeOptions.map((option) => {
+                        const OptionIcon = option.icon
+                        const isCurrent = option.mode === currentAccountMode
+                        const isSwitching = switchingMode === option.mode
+
+                        return (
+                          <button
+                            key={option.mode}
+                            type="button"
+                            role="menuitemradio"
+                            aria-checked={isCurrent}
+                            disabled={switchingMode !== null || isCurrent}
+                            onClick={() => handleModeSelect(option.mode)}
+                            className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                              isCurrent
+                                ? 'bg-clean-hover text-clean-text'
+                                : 'text-clean-muted hover:bg-clean-hover hover:text-clean-text'
+                            } disabled:cursor-default`}
+                          >
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${option.iconClass}`}>
+                              {isSwitching ? <Loader2 className="w-4 h-4 animate-spin" /> : <OptionIcon className="w-4 h-4" />}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm font-bold">{option.label}</span>
+                              <span className="block text-xs text-clean-muted truncate">{option.description}</span>
+                            </span>
+                            {isCurrent && <Check className="w-4 h-4 text-clean-accent shrink-0" />}
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {showAdminCode && currentAccountMode !== 'ADMIN' && (
+                      <form onSubmit={handleAdminSubmit} className="border-t border-clean-border p-3 space-y-2">
+                        <label htmlFor="sidebar-admin-code" className="text-xs font-bold uppercase tracking-wider text-clean-muted">
+                          Admin code
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-clean-muted" />
+                          <input
+                            id="sidebar-admin-code"
+                            type="password"
+                            value={pendingAdminCode}
+                            onChange={(event) => setPendingAdminCode(event.target.value)}
+                            placeholder="Enter code"
+                            className="w-full rounded-lg border border-clean-border bg-white py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-clean-accent/25 focus:border-clean-accent/50"
+                            autoFocus
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={!pendingAdminCode.trim() || switchingMode !== null}
+                          className="flex w-full items-center justify-center gap-2 rounded-lg bg-clean-accent px-3 py-2 text-xs font-bold text-white hover:bg-[#e54d3f] disabled:opacity-50 disabled:hover:bg-clean-accent"
+                        >
+                          {switchingMode === 'ADMIN' && <Loader2 className="w-4 h-4 animate-spin" />}
+                          Unlock Admin
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -336,4 +576,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   )
 }
-

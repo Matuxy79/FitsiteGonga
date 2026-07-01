@@ -7,6 +7,7 @@ export interface AdminUser {
   email: string
   display_name: string
   role: AdminRole
+  is_active: boolean
   created_at: string
   updated_at: string
   last_active_at?: string | null
@@ -67,6 +68,11 @@ export const AdminRepository = {
 
   async updateUserRole(userId: string, role: AdminRole): Promise<AdminUser> {
     const response = await apiClient.put<{ data: AdminUser }>(`/api/admin/users/${userId}/role`, { role })
+    return extractPayload(response)
+  },
+
+  async updateUserStatus(userId: string, is_active: boolean): Promise<AdminUser> {
+    const response = await apiClient.put<{ data: AdminUser }>(`/api/admin/users/${userId}/status`, { is_active })
     return extractPayload(response)
   },
 }

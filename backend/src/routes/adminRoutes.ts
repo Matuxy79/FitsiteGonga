@@ -34,6 +34,10 @@ const updateRoleSchema = z.object({
   role: z.enum(['ADMIN', 'TRAINER', 'CLIENT']),
 });
 
+const updateStatusSchema = z.object({
+  is_active: z.boolean(),
+});
+
 const userIdParamsSchema = z.object({
   id: z.string().uuid(),
 });
@@ -105,6 +109,7 @@ router.get('/users', async (req, res) => {
           email: true,
           display_name: true,
           role: true,
+          is_active: true,
           created_at: true,
           updated_at: true,
         },
@@ -269,6 +274,52 @@ router.put('/users/:id/role', async (req, res) => {
     }
     console.error('Admin update role error:', error);
     res.status(500).json({ error: 'Failed to update role' });
+  }
+});
+
+/**
+ * PUT /api/admin/users/:id/status
+ * Enable or disable a user's account.
+ */
+router.put('/users/:id/status', async (req, res) => {
+  try {
+    const { id } = userIdParamsSchema.parse(req.params);
+    const { is_active } = updateStatusSchema.parse(req.body);
+
+    if (id === req.user!.userId && !is_active) {
+      return res.status(400).json({ error: 'Cannot disable your own account' });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { is_active },
+      select: {
+        id: true,
+        email: true,
+        display_name: true,
+        role: true,
+        is_active: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    res.json({
+      data: {
+        ...updated,
+        created_at: updated.created_at.toISOString(),
+        updated_at: updated.updated_at.toISOString(),
+      },
+    });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.errors });
+    }
+    if (error?.code === 'P2025') {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    console.error('Admin update status error:', error);
+    res.status(500).json({ error: 'Failed to update user status' });
   }
 });
 

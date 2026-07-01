@@ -35,9 +35,13 @@ export function useToast() {
   if (!context) {
     throw new Error('useToast must be used within ToastProvider');
   }
-  
-  // Return a wrapper that handles both old and new API
-  const legacyToast = (props: LegacyToastProps | Omit<TerminalNotification, 'id'>) => {
+  const { toast: contextToast, dismiss } = context;
+
+  // Return a wrapper that handles both old and new API. Memoized so
+  // components that put `toast` in a useCallback/useEffect dependency array
+  // (e.g. admin/page.tsx's data loaders) don't get a new function identity
+  // on every render, which would otherwise re-trigger those effects forever.
+  const legacyToast = useCallback((props: LegacyToastProps | Omit<TerminalNotification, 'id'>) => {
     // Check if it's legacy format
     if ('variant' in props || 'description' in props) {
       const legacy = props as LegacyToastProps;
@@ -46,18 +50,18 @@ export function useToast() {
         destructive: 'ERROR',
         default: 'INFO'
       };
-      context.toast({
+      contextToast({
         status: statusMap[legacy.variant || 'default'],
         title: legacy.title,
         message: legacy.description || '',
         sector: 'SYSTEM'
       });
     } else {
-      context.toast(props as Omit<TerminalNotification, 'id'>);
+      contextToast(props as Omit<TerminalNotification, 'id'>);
     }
-  };
+  }, [contextToast]);
 
-  return { toast: legacyToast, dismiss: context.dismiss };
+  return { toast: legacyToast, dismiss };
 }
 
 // Terminal Notification Component

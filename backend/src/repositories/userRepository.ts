@@ -45,6 +45,7 @@ export const userRepository = {
         membership_tier: true,
         subscription_status: true,
         trial_ends_at: true,
+        is_active: true,
         fitness_level: true,
         goals: true,
         created_at: true,
@@ -75,6 +76,7 @@ export const userRepository = {
         membership_tier: true,
         subscription_status: true,
         trial_ends_at: true,
+        is_active: true,
         fitness_level: true,
         goals: true,
         created_at: true,
@@ -99,6 +101,7 @@ export const userRepository = {
         membership_tier: true,
         subscription_status: true,
         trial_ends_at: true,
+        is_active: true,
         fitness_level: true,
         goals: true,
         created_at: true,
@@ -123,6 +126,7 @@ export const userRepository = {
         membership_tier: true,
         subscription_status: true,
         trial_ends_at: true,
+        is_active: true,
         fitness_level: true,
         goals: true,
         created_at: true,
@@ -147,6 +151,7 @@ export const userRepository = {
         membership_tier: true,
         subscription_status: true,
         trial_ends_at: true,
+        is_active: true,
         fitness_level: true,
         goals: true,
         created_at: true,
@@ -171,6 +176,7 @@ export const userRepository = {
         membership_tier: true,
         subscription_status: true,
         trial_ends_at: true,
+        is_active: true,
         fitness_level: true,
         goals: true,
         created_at: true,
@@ -180,10 +186,36 @@ export const userRepository = {
   },
 
   /**
-   * Delete user (soft delete - set is_active to false)
+   * Enable or disable a user's account (admin tooling). Disabled users are
+   * blocked at login and on their next refresh-token exchange.
+   */
+  async setActive(id: string, is_active: boolean): Promise<UserWithoutPassword> {
+    return prisma.user.update({
+      where: { id },
+      data: { is_active },
+      select: {
+        id: true,
+        email: true,
+        display_name: true,
+        avatar_url: true,
+        role: true,
+        membership_tier: true,
+        subscription_status: true,
+        trial_ends_at: true,
+        is_active: true,
+        fitness_level: true,
+        goals: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  },
+
+  /**
+   * Delete user (hard delete). For disabling an account without erasing
+   * data, use setActive instead.
    */
   async delete(id: string): Promise<void> {
-    // In production, you might want to soft delete
     await prisma.user.delete({
       where: { id },
     });

@@ -87,11 +87,13 @@ function UserRow({ user, onAction }: { user: AdminUser, onAction: (action: strin
 
   const lastActive = user.last_active_at || user.updated_at
 
+  const isDisabled = user.is_active === false
+
   return (
-    <motion.tr 
+    <motion.tr
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+      className={`border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors ${isDisabled ? 'opacity-50' : ''}`}
     >
       <td className="py-4 px-4">
         <div>
@@ -100,7 +102,14 @@ function UserRow({ user, onAction }: { user: AdminUser, onAction: (action: strin
         </div>
       </td>
       <td className="py-4 px-4">
-        <RoleBadge role={user.role} />
+        <div className="flex items-center gap-2">
+          <RoleBadge role={user.role} />
+          {isDisabled && (
+            <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded border bg-zinc-500/20 text-zinc-400 border-zinc-500/30">
+              Disabled
+            </span>
+          )}
+        </div>
       </td>
       <td className="py-4 px-4 text-slate-400 text-sm">{formatDate(user.created_at)}</td>
       <td className="py-4 px-4 text-slate-400 text-sm">
@@ -110,7 +119,7 @@ function UserRow({ user, onAction }: { user: AdminUser, onAction: (action: strin
         </span>
       </td>
       <td className="py-4 px-4 relative">
-        <button 
+        <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="p-2 hover:bg-zinc-700 rounded transition-colors"
         >
@@ -118,23 +127,32 @@ function UserRow({ user, onAction }: { user: AdminUser, onAction: (action: strin
         </button>
         {menuOpen && (
           <>
-            <div 
-              className="fixed inset-0 z-40" 
-              onClick={() => setMenuOpen(false)} 
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setMenuOpen(false)}
             />
             <div className="absolute right-4 top-12 bg-zinc-900 border border-zinc-700 rounded shadow-xl z-50 min-w-[160px]">
-              <button 
+              <button
                 onClick={() => { onAction('role', user); setMenuOpen(false) }}
                 className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-zinc-800 flex items-center gap-2"
               >
                 <UserCog className="w-4 h-4" /> Change Role
               </button>
-              <button 
-                onClick={() => { onAction('disable', user); setMenuOpen(false) }}
-                className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-zinc-800 flex items-center gap-2"
-              >
-                <Ban className="w-4 h-4" /> Disable User
-              </button>
+              {isDisabled ? (
+                <button
+                  onClick={() => { onAction('enable', user); setMenuOpen(false) }}
+                  className="w-full px-4 py-2 text-left text-sm text-emerald-400 hover:bg-zinc-800 flex items-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" /> Enable User
+                </button>
+              ) : (
+                <button
+                  onClick={() => { onAction('disable', user); setMenuOpen(false) }}
+                  className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-zinc-800 flex items-center gap-2"
+                >
+                  <Ban className="w-4 h-4" /> Disable User
+                </button>
+              )}
             </div>
           </>
         )}
@@ -331,8 +349,30 @@ export default function AdminDashboard() {
   const handleUserAction = async (action: string, targetUser: AdminUser) => {
     if (action === 'role') {
       setRoleModalUser(targetUser)
-    } else if (action === 'disable') {
-      alert(`[TODO] Disable user ${targetUser.email}`)
+      return
+    }
+
+    if (action === 'disable' || action === 'enable') {
+      const nextActive = action === 'enable'
+      const confirmed = window.confirm(
+        nextActive
+          ? `Enable ${targetUser.email}? They will be able to log in again.`
+          : `Disable ${targetUser.email}? They will be blocked from logging in and signed out on their next token refresh.`
+      )
+      if (!confirmed) return
+
+      try {
+        const updated = await AdminRepository.updateUserStatus(targetUser.id, nextActive)
+        setUsers((prev) => prev.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)))
+        toast({
+          status: 'OK',
+          title: nextActive ? 'USER ENABLED' : 'USER DISABLED',
+          message: `${targetUser.email} ${nextActive ? 'can log in again.' : 'has been disabled.'}`,
+          sector: 'ADMIN',
+        })
+      } catch (err) {
+        toast(mapApiErrorToToast(err, { action: `${nextActive ? 'enable' : 'disable'} this user` }))
+      }
     }
   }
 

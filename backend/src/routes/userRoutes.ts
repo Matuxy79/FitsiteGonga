@@ -25,6 +25,11 @@ const updatePlanSchema = z.object({
   membership_tier: z.enum(['FREE', 'PAID']),
 });
 
+const updateAccessModeSchema = z.object({
+  mode: z.enum(['FREE', 'PAID', 'ADMIN']),
+  code: z.string().min(1).max(200).optional(),
+});
+
 const redeemCodeSchema = z.object({
   code: z.string().min(1).max(200),
 });
@@ -126,6 +131,49 @@ router.patch('/me/plan', authenticateJWT, async (req, res) => {
     }
     console.error('Update plan error:', error);
     res.status(500).json({ error: 'Failed to update plan' });
+  }
+});
+
+/**
+ * PATCH /api/users/me/access-mode
+ * Demo-only self-service switcher used by the dashboard account dropdown.
+ * Free/Paid demote to a normal client account; Admin still requires the code.
+ */
+router.patch('/me/access-mode', authenticateJWT, async (req, res) => {
+  try {
+    const validated = updateAccessModeSchema.parse(req.body);
+    const secret = process.env.ADMIN_SECRET_CODE || 'nhoj-reezy';
+
+    if (validated.mode === 'ADMIN' && validated.code !== secret) {
+      console.warn(`Failed admin mode switch attempt by user ${req.user!.userId}`);
+      return res.status(400).json({ error: 'Invalid code' });
+    }
+
+    const user = await userRepository.updateAccessMode(req.user!.userId, {
+      role: validated.mode === 'ADMIN' ? 'ADMIN' : 'CLIENT',
+      membership_tier: validated.mode === 'FREE' ? 'FREE' : 'PAID',
+    });
+
+    const tokens = authService.generateTokens({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      membership_tier: user.membership_tier,
+    });
+
+    setAuthCookies(res, tokens);
+
+    res.json({
+      user,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.errors });
+    }
+    console.error('Update access mode error:', error);
+    res.status(500).json({ error: 'Failed to update access mode' });
   }
 });
 
