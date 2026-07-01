@@ -27,6 +27,18 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   /**
+   * `useAuth` has no shared context — every component that calls it holds its
+   * own `user` state. Listen for a broadcast so all instances (e.g. the
+   * dashboard header badge) pick up changes made from elsewhere (e.g. the
+   * Settings page plan/role switcher) without a full page reload.
+   */
+  useEffect(() => {
+    const onAuthChanged = () => refreshUser();
+    window.addEventListener('auth:changed', onAuthChanged);
+    return () => window.removeEventListener('auth:changed', onAuthChanged);
+  }, []);
+
+  /**
    * Login user
    */
   const login = async (email: string, password: string): Promise<void> => {
@@ -76,7 +88,9 @@ export function useAuth(): UseAuthReturn {
   };
 
   /**
-   * Refresh current user data
+   * Refresh current user data.
+   * On 401, attempt to refresh the access token once using the httpOnly
+   * refresh-token cookie. If that fails, clear the session.
    */
   const refreshUser = async (): Promise<void> => {
     try {
@@ -85,6 +99,17 @@ export function useAuth(): UseAuthReturn {
       setUser(user);
       setError(null);
     } catch (err: any) {
+      if (err.status === 401) {
+        try {
+          await AuthRepository.refreshToken();
+          const user = await AuthRepository.getCurrentUser();
+          setUser(user);
+          setError(null);
+          return;
+        } catch (refreshErr) {
+          // Refresh failed — fall through to clear session.
+        }
+      }
       // Not authenticated - clear user
       setUser(null);
       setError(null);

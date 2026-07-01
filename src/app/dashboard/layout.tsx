@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import {
   Activity,
@@ -50,6 +51,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, loading, logout } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/?reason=session-expired')
+    }
+  }, [loading, user, router])
 
   const handleLogout = async () => {
     await logout()

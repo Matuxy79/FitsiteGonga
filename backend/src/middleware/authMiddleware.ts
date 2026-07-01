@@ -37,6 +37,7 @@ export const authenticateJWT = (
     }
 
     if (!token) {
+      console.warn(`[auth] 401 on ${req.method} ${req.path}: no token provided`);
       return res.status(401).json({ error: 'Unauthorized - No token provided' });
     }
 
@@ -45,6 +46,7 @@ export const authenticateJWT = (
     req.user = decoded;
     next();
   } catch (error: any) {
+    console.warn(`[auth] 403 on ${req.method} ${req.path}: ${error.message}`);
     return res.status(403).json({ 
       error: 'Forbidden - Invalid or expired token',
       message: error.message 

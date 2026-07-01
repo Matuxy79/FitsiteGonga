@@ -3,9 +3,32 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { UserRepository } from '@/repositories/UserRepository'
-import { Camera, ShieldCheck, Crown, Users, Loader2 } from 'lucide-react'
+import { Camera, ShieldCheck, Crown, Users, Loader2, Check, Lock, Sparkles, KeyRound } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
+
+const TIER_STEPS = [
+  { key: 'FREE', label: 'Free', icon: Users },
+  { key: 'PAID', label: 'Paid', icon: Crown },
+  { key: 'ADMIN', label: 'Admin', icon: ShieldCheck },
+] as const
+
+const PLAN_FEATURES: Record<'FREE' | 'PAID', { included: string[]; locked: string[] }> = {
+  FREE: {
+    included: ['3 workout templates', 'Basic progress tracking', 'Community access'],
+    locked: ['Unlimited templates', 'Advanced analytics', 'Public template sharing'],
+  },
+  PAID: {
+    included: [
+      'Unlimited templates',
+      'Advanced analytics',
+      'Public template sharing',
+      'Priority support',
+    ],
+    locked: [],
+  },
+}
 
 function initials(name: string) {
   return name
@@ -91,6 +114,7 @@ export default function SettingsPage() {
     try {
       await UserRepository.updatePlan(nextTier)
       await refreshUser()
+      window.dispatchEvent(new Event('auth:changed'))
       toast({ title: `Switched to ${nextTier === 'PAID' ? 'Paid' : 'Free'} plan`, variant: 'success' })
     } catch (err) {
       toast(mapApiErrorToToast(err, { action: 'switch your plan' }))
@@ -106,6 +130,7 @@ export default function SettingsPage() {
     try {
       await UserRepository.redeemCode(redeemCodeInput.trim())
       await refreshUser()
+      window.dispatchEvent(new Event('auth:changed'))
       setRedeemCodeInput('')
       toast({ title: 'Admin access granted', variant: 'success' })
     } catch (err) {
@@ -154,10 +179,14 @@ export default function SettingsPage() {
           <div>
             <h2 className="font-bold text-lg">{user?.display_name || 'Athlete'}</h2>
             <p className="text-sm text-gray-500">{user?.email}</p>
-            <div className="flex items-center gap-2 mt-2 text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full w-fit">
+            <button
+              type="button"
+              onClick={() => document.getElementById('membership-plan')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex items-center gap-2 mt-2 text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full w-fit hover:bg-gray-200 transition-colors cursor-pointer"
+            >
               <TierIcon className="w-3.5 h-3.5" />
               {tierLabel}
-            </div>
+            </button>
           </div>
         </div>
 
@@ -207,91 +236,195 @@ export default function SettingsPage() {
       </form>
 
       {/* Membership & Admin Access */}
-      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
-        {user?.role === 'ADMIN' ? (
-          <div className="flex items-center gap-3 text-sm font-semibold text-gray-700 bg-gray-50 px-4 py-3 rounded-xl">
-            <ShieldCheck className="w-5 h-5 text-[#ff5d4f]" />
-            Admin access — you have full platform access.
-          </div>
-        ) : (
-          <>
-            <div>
-              <h2 className="font-bold text-lg mb-1">Membership plan</h2>
-              <p className="text-sm text-gray-500 mb-4">
-                This is a demo — switch your plan anytime, no payment required.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div
-                  className={`rounded-2xl border-2 p-5 ${
-                    user?.membership_tier === 'FREE' ? 'border-[#ff5d4f] bg-[#ff5d4f]/5' : 'border-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 font-bold mb-1">
-                    <Users className="w-4 h-4" /> Free
-                  </div>
-                  <p className="text-xs text-gray-500 mb-4">Core features, limited templates.</p>
-                  {user?.membership_tier === 'FREE' ? (
-                    <span className="text-xs font-bold text-[#ff5d4f]">Current plan</span>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={switchingPlan}
-                      onClick={() => handlePlanSwitch('FREE')}
-                      className="text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+      <div id="membership-plan" className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-8">
+        {/* Tier ladder */}
+        <div>
+          <h2 className="font-bold text-lg mb-1">Your rank</h2>
+          <p className="text-sm text-gray-500 mb-5">Level up by switching plans or redeeming a code.</p>
+          <div className="flex items-center">
+            {TIER_STEPS.map((step, i) => {
+              const currentIndex = user?.role === 'ADMIN' ? 2 : user?.membership_tier === 'PAID' ? 1 : 0
+              const reached = i <= currentIndex
+              const isCurrent = i === currentIndex
+              const StepIcon = step.icon
+              return (
+                <div key={step.key} className="flex items-center flex-1 last:flex-none">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <motion.div
+                      animate={isCurrent ? { scale: [1, 1.12, 1] } : { scale: 1 }}
+                      transition={isCurrent ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : {}}
+                      className={`relative w-11 h-11 rounded-full flex items-center justify-center border-2 ${
+                        reached
+                          ? 'bg-[#ff5d4f] border-[#ff5d4f] text-white'
+                          : 'bg-gray-50 border-gray-200 text-gray-300'
+                      }`}
                     >
-                      {switchingPlan ? 'Switching...' : 'Switch to Free'}
-                    </button>
+                      <StepIcon className="w-5 h-5" />
+                      {isCurrent && (
+                        <motion.span
+                          className="absolute inset-0 rounded-full border-2 border-[#ff5d4f]"
+                          animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
+                          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
+                        />
+                      )}
+                    </motion.div>
+                    <span className={`text-xs font-bold ${reached ? 'text-gray-800' : 'text-gray-300'}`}>
+                      {step.label}
+                    </span>
+                  </div>
+                  {i < TIER_STEPS.length - 1 && (
+                    <div className={`h-0.5 flex-1 mx-2 rounded-full ${i < currentIndex ? 'bg-[#ff5d4f]' : 'bg-gray-100'}`} />
                   )}
                 </div>
+              )
+            })}
+          </div>
+        </div>
 
-                <div
-                  className={`rounded-2xl border-2 p-5 ${
-                    user?.membership_tier === 'PAID' ? 'border-[#ff5d4f] bg-[#ff5d4f]/5' : 'border-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 font-bold mb-1">
-                    <Crown className="w-4 h-4" /> Paid
-                  </div>
-                  <p className="text-xs text-gray-500 mb-4">Unlimited templates, public sharing.</p>
-                  {user?.membership_tier === 'PAID' ? (
-                    <span className="text-xs font-bold text-[#ff5d4f]">Current plan</span>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={switchingPlan}
-                      onClick={() => handlePlanSwitch('PAID')}
-                      className="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#ff5d4f] text-white hover:bg-[#e54d3f] disabled:opacity-50"
-                    >
-                      {switchingPlan ? 'Switching...' : 'Switch to Paid'}
-                    </button>
-                  )}
+        <AnimatePresence mode="wait">
+          {user?.role === 'ADMIN' ? (
+            <motion.div
+              key="admin"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35 }}
+              className="flex items-center gap-4 text-sm font-semibold text-white bg-gradient-to-r from-[#ff5d4f] to-[#ff8a5c] px-5 py-4 rounded-2xl shadow-lg shadow-[#ff5d4f]/20"
+            >
+              <motion.div
+                animate={{ rotate: [0, -10, 10, -6, 6, 0] }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0"
+              >
+                <ShieldCheck className="w-5 h-5" />
+              </motion.div>
+              <div>
+                <p className="font-bold flex items-center gap-1.5">
+                  Admin access unlocked <Sparkles className="w-4 h-4" />
+                </p>
+                <p className="text-xs font-normal text-white/80">Full platform access — no plan limits apply.</p>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="plans"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-8"
+            >
+              <div>
+                <h2 className="font-bold text-lg mb-1">Membership plan</h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  This is a demo — switch your plan anytime, no payment required.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {(['FREE', 'PAID'] as const).map((tier) => {
+                    const isCurrentTier = user?.membership_tier === tier
+                    const isPaidTier = tier === 'PAID'
+                    const TierCardIcon = isPaidTier ? Crown : Users
+                    return (
+                      <motion.div
+                        key={tier}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        className={`relative rounded-2xl border-2 p-5 overflow-hidden transition-colors ${
+                          isCurrentTier ? 'border-[#ff5d4f] bg-[#ff5d4f]/5' : 'border-gray-100'
+                        }`}
+                      >
+                        {isPaidTier && !isCurrentTier && (
+                          <span className="absolute top-0 right-0 text-[10px] font-bold text-white bg-gray-900 px-2.5 py-1 rounded-bl-xl">
+                            MOST POPULAR
+                          </span>
+                        )}
+                        <AnimatePresence>
+                          {isCurrentTier && (
+                            <motion.span
+                              initial={{ scale: 0, rotate: -15 }}
+                              animate={{ scale: 1, rotate: -8 }}
+                              exit={{ scale: 0 }}
+                              className="absolute top-3 right-3 text-[10px] font-bold text-white bg-[#ff5d4f] px-2 py-1 rounded-full"
+                            >
+                              CURRENT
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+
+                        <div className="flex items-center gap-2 font-bold mb-3">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              isPaidTier ? 'bg-gradient-to-br from-amber-400 to-[#ff5d4f] text-white' : 'bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            <TierCardIcon className="w-4 h-4" />
+                          </div>
+                          {isPaidTier ? 'Paid' : 'Free'}
+                        </div>
+
+                        <ul className="space-y-1.5 mb-4">
+                          {PLAN_FEATURES[tier].included.map((feature) => (
+                            <li key={feature} className="flex items-center gap-2 text-xs text-gray-600">
+                              <Check className="w-3.5 h-3.5 text-[#ff5d4f] shrink-0" />
+                              {feature}
+                            </li>
+                          ))}
+                          {PLAN_FEATURES[tier].locked.map((feature) => (
+                            <li key={feature} className="flex items-center gap-2 text-xs text-gray-300">
+                              <Lock className="w-3.5 h-3.5 shrink-0" />
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+
+                        {isCurrentTier ? (
+                          <span className="text-xs font-bold text-[#ff5d4f]">Current plan</span>
+                        ) : (
+                          <motion.button
+                            type="button"
+                            whileTap={{ scale: 0.96 }}
+                            disabled={switchingPlan}
+                            onClick={() => handlePlanSwitch(tier)}
+                            className={`w-full text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-50 ${
+                              isPaidTier
+                                ? 'bg-[#ff5d4f] text-white hover:bg-[#e54d3f]'
+                                : 'border border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {switchingPlan ? 'Switching...' : `Switch to ${isPaidTier ? 'Paid' : 'Free'}`}
+                          </motion.button>
+                        )}
+                      </motion.div>
+                    )
+                  })}
                 </div>
               </div>
-            </div>
 
-            <div className="pt-2 border-t border-gray-100">
-              <h2 className="font-bold text-lg mb-1">Redeem admin code</h2>
-              <p className="text-sm text-gray-500 mb-3">Have an admin code? Redeem it here.</p>
-              <form onSubmit={handleRedeemCode} className="flex gap-2">
-                <input
-                  value={redeemCodeInput}
-                  onChange={(e) => setRedeemCodeInput(e.target.value)}
-                  placeholder="Enter code"
-                  aria-label="Admin code"
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
-                />
-                <button
-                  type="submit"
-                  disabled={redeeming || !redeemCodeInput.trim()}
-                  className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-black disabled:opacity-50 flex items-center gap-2"
-                >
-                  {redeeming && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {redeeming ? 'Redeeming...' : 'Redeem'}
-                </button>
-              </form>
-            </div>
-          </>
-        )}
+              <div className="pt-2 border-t border-gray-100">
+                <h2 className="font-bold text-lg mb-1 flex items-center gap-1.5">
+                  <KeyRound className="w-4 h-4 text-[#ff5d4f]" /> Redeem admin code
+                </h2>
+                <p className="text-sm text-gray-500 mb-3">Got a secret code? Redeem it to unlock admin access.</p>
+                <form onSubmit={handleRedeemCode} className="flex gap-2">
+                  <input
+                    value={redeemCodeInput}
+                    onChange={(e) => setRedeemCodeInput(e.target.value)}
+                    placeholder="Enter code"
+                    aria-label="Admin code"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+                  />
+                  <motion.button
+                    type="submit"
+                    whileTap={{ scale: 0.96 }}
+                    disabled={redeeming || !redeemCodeInput.trim()}
+                    className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-black disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {redeeming && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {redeeming ? 'Redeeming...' : 'Redeem'}
+                  </motion.button>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )
