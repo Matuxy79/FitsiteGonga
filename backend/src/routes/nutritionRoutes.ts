@@ -3,21 +3,43 @@ import { z } from 'zod';
 import multer from 'multer';
 import { authenticateJWT, requireAdmin } from '../middleware/authMiddleware';
 import { nutritionRepository } from '../repositories/nutritionRepository';
-import { s3Service } from '../services/s3Service';
+import { storageService } from '../services/storageService';
 
 const router: Router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+const optionalNumber = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  return typeof value === 'string' ? Number(value) : value;
+}, z.number().optional());
+
+const optionalInteger = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  return typeof value === 'string' ? Number(value) : value;
+}, z.number().int().optional());
+
+const optionalBoolean = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (value === 'true' || value === true) return true;
+  if (value === 'false' || value === false) return false;
+  return value;
+}, z.boolean().optional());
+
+const optionalDateTime = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  return value;
+}, z.string().datetime().optional());
 
 const mealSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   meal_type: z.enum(['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK']),
-  calories: z.number().int().optional(),
-  protein_g: z.number().optional(),
-  carbs_g: z.number().optional(),
-  fat_g: z.number().optional(),
-  is_public: z.boolean().optional(),
-  featured_date: z.string().datetime().optional(),
+  calories: optionalInteger,
+  protein_g: optionalNumber,
+  carbs_g: optionalNumber,
+  fat_g: optionalNumber,
+  is_public: optionalBoolean,
+  featured_date: optionalDateTime,
 });
 
 const logSchema = z.object({
@@ -82,7 +104,7 @@ router.post('/meals', authenticateJWT, requireAdmin, upload.single('image'), asy
     let imageUrl: string | undefined;
     if (req.file) {
       const key = mealKey(req.file.originalname);
-      await s3Service.uploadFile(key, req.file.buffer, req.file.mimetype);
+      await storageService.uploadFile(key, req.file.buffer, req.file.mimetype);
       imageUrl = key;
     }
 
@@ -113,7 +135,7 @@ router.put('/meals/:id', authenticateJWT, requireAdmin, upload.single('image'), 
     let imageUrl: string | undefined;
     if (req.file) {
       const key = mealKey(req.file.originalname);
-      await s3Service.uploadFile(key, req.file.buffer, req.file.mimetype);
+      await storageService.uploadFile(key, req.file.buffer, req.file.mimetype);
       imageUrl = key;
     }
 

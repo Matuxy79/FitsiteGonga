@@ -4,7 +4,7 @@ import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { prisma } from '../db/client';
 import { authenticateJWT } from '../middleware/authMiddleware';
-import { s3Service } from '../services/s3Service';
+import { storageService } from '../services/storageService';
 import { getIO } from '../socket/socketServer';
 
 // Rate limiters
@@ -969,7 +969,7 @@ router.post('/upload', authenticateJWT, uploadLimiter, uploadMiddleware.single('
     const ext = req.file.originalname.split('.').pop() || 'jpg';
     const key = `messages/${req.user!.userId}/${timestamp}-${randomId}.${ext}`;
 
-    await s3Service.uploadFile(key, req.file.buffer, req.file.mimetype);
+    await storageService.uploadFile(key, req.file.buffer, req.file.mimetype);
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     res.json({ publicUrl: `${baseUrl}/api/media/${key}` });

@@ -137,6 +137,17 @@ export const WorkoutRepository = {
     await apiClient.delete(`/api/workouts/schedule/${id}`)
   },
 
+  async updateSchedule(id: string, updates: {
+    scheduled_for?: string
+    status?: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED' | 'RESCHEDULED'
+    started_at?: string
+    completed_at?: string
+    custom_name?: string
+  }): Promise<ScheduledWorkout> {
+    const res = await apiClient.patch<{ scheduled: ScheduledWorkout }>(`/api/workouts/schedule/${id}`, updates)
+    return res.scheduled
+  },
+
   async listInstances(limit = 20, offset = 0): Promise<{ instances: WorkoutInstance[]; total: number }> {
     const res = await apiClient.get<{ instances: WorkoutInstance[]; total: number }>(
       `/api/workouts?limit=${limit}&offset=${offset}`

@@ -11,12 +11,12 @@
 - **Real-time**: Socket.io client for progress/achievement events
 
 ### Backend
-- **Framework**: Express + Socket.io hosted on Railway (self-hosted Node service)
-- **Database**: Prisma-managed PostgreSQL (Railway or self-hosted)
+- **Framework**: Express + Socket.io Node service
+- **Database**: Prisma-managed PostgreSQL
 - **Authentication**: JWT-based auth with bcrypt password hashing
 - **API**: RESTful Express routes consumed via `apiClient`
 - **Real-time**: Socket.io channels for challenge progress + achievement notifications
-- **Storage**: AWS S3 buckets for progress photo uploads
+- **Storage**: Local disk uploads served through the backend media proxy
 
 ### Development Tools
 - **Testing**: Vitest (unit), Playwright (E2E), Testing Library
@@ -236,11 +236,11 @@ interface GoalButtonProps {
 - `PUT /api/goals/[id]` - Update goal
 - `DELETE /api/goals/[id]` - Delete goal
 
-## Deployment & Hosting
-- **Railway service** (`backend/` Express app) handles REST + Socket.io; configure `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_SOCKET_URL` with the Railway domain so the Next.js frontend points at your deployed API.
-- **Environments** store `DATABASE_URL`, `JWT_SECRET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, and `S3_BUCKET_NAME`; these must match your PostgreSQL and S3 setup before deployments succeed.
-- **Migrations**: Run `npx prisma migrate deploy` (or `npx prisma migrate dev` locally) before releasing, so the schema in `prisma/schema.prisma` matches the production database.
-- **Healthcheck**: Use `/health` as the Railway healthcheck endpoint; the backend already exposes it in `backend/src/server.ts`.
+## Runtime & Hosting
+- The `backend/` Express app handles REST + Socket.io; configure `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_SOCKET_URL` so the frontend points at the API.
+- Environments store `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `FRONTEND_URL`, and optional `LOCAL_STORAGE_DIR`.
+- Migrations: Run `npx prisma migrate deploy` for deployed environments or `npx prisma migrate dev` locally.
+- Healthcheck: The backend exposes `/health` in `backend/src/server.ts`.
 
 ## Real-time Subscriptions
 
@@ -357,7 +357,7 @@ CREATE TABLE fitness_goals (
 ### Access Controls
 - All operations go through Express middleware that enforces user ownership, trainer/admin roles, and token validation.
 - JWTs are signed with `JWT_SECRET` and refreshed via `/api/auth/refresh`.
-- Uploaded photos are stored in S3 with signed URLs (no public buckets).
+- Uploaded files are stored on local disk and served through `/api/media/*`.
 
 ### API Security
 - JWT tokens for authentication
@@ -379,4 +379,4 @@ CREATE TABLE fitness_goals (
 ### Real-time Optimization
  - Use Socket.io rooms (`challenge:{id}`) so clients only listen to their active challenges
  - Debounced progress updates to prevent spammy broadcasts
- - Socket.io scaling via Railway replicas if traffic grows
+ - Socket.io can be scaled with sticky sessions or a shared adapter if traffic grows

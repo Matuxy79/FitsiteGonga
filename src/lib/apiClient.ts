@@ -1,6 +1,6 @@
 /**
  * API Client - Replaces Supabase client
- * Handles HTTP requests to Railway backend with JWT authentication
+ * Handles HTTP requests to the backend API with JWT authentication
  */
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';

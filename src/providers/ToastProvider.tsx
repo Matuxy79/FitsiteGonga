@@ -187,7 +187,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       
       {/* Notification Container - centered top */}
       <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence>
           {notifications.map((n) => (
             <TerminalNotificationItem 
               key={n.id} 

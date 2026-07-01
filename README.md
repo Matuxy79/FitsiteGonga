@@ -1,6 +1,6 @@
 # FitsiteGonga
 
-Discord-inspired fitness command center built with **Next.js 14 (App Router)** + **Tailwind**, backed by an **Express + Prisma + PostgreSQL** API (with **Socket.io** realtime + optional **S3-compatible** uploads).
+Discord-inspired fitness command center built with **Next.js 14 (App Router)** + **Tailwind**, backed by an **Express + Prisma + PostgreSQL** API with **Socket.io** realtime and local disk uploads.
 
 ## Features
 
@@ -18,9 +18,9 @@ Discord-inspired fitness command center built with **Next.js 14 (App Router)** +
 ## Tech stack
 
 - **Frontend**: Next.js, React, TypeScript, Tailwind, Zustand (ready), React Hook Form, Zod, Framer Motion
-- **Backend**: Node.js, Express, Prisma, PostgreSQL, JWT, Socket.io, S3-compatible object storage (Railway Object Storage / Tigris)
+- **Backend**: Node.js, Express, Prisma, PostgreSQL, JWT, Socket.io, local file storage
 - **Tooling**: ESLint, Prettier, Vitest, Playwright, Storybook
-- **Deployment**: Railway (backend + Postgres + Object Storage), AWS Route 53 (DNS)
+- **Deployment**: Bring your own host; local development is the default path
 
 ## Quick start (full stack locally)
 
@@ -47,7 +47,7 @@ npm run dev:all
 - Backend API: `http://localhost:4000`
 - Backend health check: `http://localhost:4000/health`
 
-> Object storage (avatars, meal photos, progress photos) is optional for local dev. If `RAILWAY_OBJECT_STORAGE_*` vars are not set, storage endpoints return a 503-style error instead of crashing.
+> Uploads for avatars, meal photos, progress photos, and chat media are stored locally under `backend/uploads` by default.
 
 ### Manual start (two terminals)
 
@@ -75,9 +75,9 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 
 See `backend/.env.example` for the full list. The local defaults use Docker Compose Postgres on `localhost:5432`.
 
-### Production (Railway + Route 53)
+### Deployment
 
-See `docs/deployment.md` for DNS records, Railway variables, and SSL setup.
+No provider-specific deployment config is required. Point `NEXT_PUBLIC_API_URL` at the deployed backend and set backend environment variables for your database, JWT secrets, CORS origin, and optional `LOCAL_STORAGE_DIR`.
 
 ## Scripts
 
@@ -110,7 +110,6 @@ npm run storybook     # storybook dev server
 ## Further reading
 
 - `docs/architecture.md`
-- `docs/deployment.md`
 - `TECHNICAL_AUDIT.md`
 - `backend/README.md`
 

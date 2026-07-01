@@ -57,7 +57,8 @@ describe('Auth Schema Validation', () => {
       const validData = {
         email: 'test@example.com',
         password: 'Password123',
-        confirmPassword: 'Password123'
+        confirmPassword: 'Password123',
+        displayName: 'Test User'
       }
       
       const result = signupSchema.safeParse(validData)
@@ -68,7 +69,8 @@ describe('Auth Schema Validation', () => {
       const invalidData = {
         email: 'test@example.com',
         password: 'Password123',
-        confirmPassword: 'Different123'
+        confirmPassword: 'Different123',
+        displayName: 'Test User'
       }
       
       const result = signupSchema.safeParse(invalidData)
@@ -83,7 +85,8 @@ describe('Auth Schema Validation', () => {
       const invalidData = {
         email: 'test@example.com',
         password: 'weakpass',
-        confirmPassword: 'weakpass'
+        confirmPassword: 'weakpass',
+        displayName: 'Test User'
       }
       
       const result = signupSchema.safeParse(invalidData)
