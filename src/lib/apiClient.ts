@@ -3,7 +3,10 @@
  * Handles HTTP requests to the backend API with JWT authentication
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+let API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+if (API_URL && !API_URL.startsWith('http') && !API_URL.startsWith('/')) {
+  API_URL = `https://${API_URL}`;
+}
 
 export interface ApiError {
   error: string;
