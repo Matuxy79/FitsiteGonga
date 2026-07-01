@@ -7,26 +7,26 @@
 // ENUMS & CONSTANTS
 // -----------------------------------------------------------------------------
 
-export type MuscleGroup = 
+type MuscleGroup = 
   | 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'forearms'
   | 'quads' | 'hamstrings' | 'glutes' | 'calves' | 'abs' | 'obliques'
   | 'traps' | 'lats' | 'erectors' | 'hip_flexors' | 'adductors' | 'abductors'
 
-export type EquipmentType = 
+type EquipmentType = 
   | 'barbell' | 'dumbbell' | 'cable' | 'machine' | 'smith_machine'
   | 'kettlebell' | 'bodyweight' | 'resistance_band' | 'ez_bar'
   | 'trap_bar' | 'specialty_bar' | 'plate' | 'medicine_ball'
 
-export type MovementPattern = 
+type MovementPattern = 
   | 'push_horizontal' | 'push_vertical' | 'pull_horizontal' | 'pull_vertical'
   | 'squat' | 'hinge' | 'lunge' | 'carry' | 'rotation' | 'isolation'
 
-export type ExerciseCategory = 
+type ExerciseCategory = 
   | 'compound' | 'isolation' | 'plyometric' | 'isometric' | 'cardio'
 
-export type ForceType = 'push' | 'pull' | 'static'
+type ForceType = 'push' | 'pull' | 'static'
 
-export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'elite'
+type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'elite'
 
 // -----------------------------------------------------------------------------
 // EXERCISE INTERFACE
@@ -63,7 +63,7 @@ export interface Exercise {
 // EXERCISE DATABASE - CHEST
 // -----------------------------------------------------------------------------
 
-export const CHEST_EXERCISES: Exercise[] = [
+const CHEST_EXERCISES: Exercise[] = [
   {
     id: 'barbell-bench-press',
     name: 'Barbell Bench Press',
@@ -277,7 +277,7 @@ export const CHEST_EXERCISES: Exercise[] = [
 // EXERCISE DATABASE - BACK
 // -----------------------------------------------------------------------------
 
-export const BACK_EXERCISES: Exercise[] = [
+const BACK_EXERCISES: Exercise[] = [
   {
     id: 'conventional-deadlift',
     name: 'Conventional Deadlift',
@@ -494,7 +494,7 @@ export const BACK_EXERCISES: Exercise[] = [
 // EXERCISE DATABASE - SHOULDERS
 // -----------------------------------------------------------------------------
 
-export const SHOULDER_EXERCISES: Exercise[] = [
+const SHOULDER_EXERCISES: Exercise[] = [
   {
     id: 'overhead-press',
     name: 'Overhead Press',
@@ -648,7 +648,7 @@ export const SHOULDER_EXERCISES: Exercise[] = [
 // EXERCISE DATABASE - LEGS
 // -----------------------------------------------------------------------------
 
-export const LEG_EXERCISES: Exercise[] = [
+const LEG_EXERCISES: Exercise[] = [
   {
     id: 'barbell-back-squat',
     name: 'Barbell Back Squat',
@@ -955,7 +955,7 @@ export const LEG_EXERCISES: Exercise[] = [
 // EXERCISE DATABASE - ARMS
 // -----------------------------------------------------------------------------
 
-export const ARM_EXERCISES: Exercise[] = [
+const ARM_EXERCISES: Exercise[] = [
   {
     id: 'barbell-curl',
     name: 'Barbell Curl',
@@ -1164,7 +1164,7 @@ export const ARM_EXERCISES: Exercise[] = [
 // EXERCISE DATABASE - CORE
 // -----------------------------------------------------------------------------
 
-export const CORE_EXERCISES: Exercise[] = [
+const CORE_EXERCISES: Exercise[] = [
   {
     id: 'plank',
     name: 'Plank',
@@ -1329,25 +1329,25 @@ export const EXERCISE_MAP = new Map<string, Exercise>(
   ALL_EXERCISES.map(ex => [ex.id, ex])
 )
 
-export function getExercisesByMuscle(muscle: MuscleGroup): Exercise[] {
+function getExercisesByMuscle(muscle: MuscleGroup): Exercise[] {
   return ALL_EXERCISES.filter(
     ex => ex.primaryMuscles.includes(muscle) || ex.secondaryMuscles.includes(muscle)
   )
 }
 
-export function getExercisesByEquipment(equipment: EquipmentType): Exercise[] {
+function getExercisesByEquipment(equipment: EquipmentType): Exercise[] {
   return ALL_EXERCISES.filter(ex => ex.equipment.includes(equipment))
 }
 
-export function getExercisesByMovement(pattern: MovementPattern): Exercise[] {
+function getExercisesByMovement(pattern: MovementPattern): Exercise[] {
   return ALL_EXERCISES.filter(ex => ex.movementPattern === pattern)
 }
 
-export function getOneRepMaxExercises(): Exercise[] {
+function getOneRepMaxExercises(): Exercise[] {
   return ALL_EXERCISES.filter(ex => ex.supportsOneRepMax)
 }
 
-export function searchExercises(query: string): Exercise[] {
+function searchExercises(query: string): Exercise[] {
   const q = query.toLowerCase().trim()
   if (!q) return []
   
@@ -1360,7 +1360,7 @@ export function searchExercises(query: string): Exercise[] {
   )
 }
 
-export const MUSCLE_GROUPS: Record<MuscleGroup, { name: string; bodyPart: string }> = {
+const MUSCLE_GROUPS: Record<MuscleGroup, { name: string; bodyPart: string }> = {
   chest: { name: 'Chest', bodyPart: 'upper' },
   back: { name: 'Back', bodyPart: 'upper' },
   shoulders: { name: 'Shoulders', bodyPart: 'upper' },
@@ -1381,7 +1381,7 @@ export const MUSCLE_GROUPS: Record<MuscleGroup, { name: string; bodyPart: string
   abductors: { name: 'Abductors', bodyPart: 'lower' },
 }
 
-export const EQUIPMENT_INFO: Record<EquipmentType, { name: string; icon: string }> = {
+const EQUIPMENT_INFO: Record<EquipmentType, { name: string; icon: string }> = {
   barbell: { name: 'Barbell', icon: '🏋️' },
   dumbbell: { name: 'Dumbbell', icon: '💪' },
   cable: { name: 'Cable Machine', icon: '🔗' },

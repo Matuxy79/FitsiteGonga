@@ -27,7 +27,7 @@ export interface User {
 // CHALLENGES (Original System)
 // -----------------------------------------------------------------------------
 
-export interface Challenge {
+interface Challenge {
   id: string;
   name: string;
   description?: string;
@@ -43,7 +43,7 @@ export interface Challenge {
   created_at: string;
 }
 
-export interface ProgressLog {
+interface ProgressLog {
   id: string;
   user_id: string;
   challenge_id: string;
@@ -57,13 +57,13 @@ export interface ProgressLog {
   challenge?: Challenge;
 }
 
-export interface ProgressReaction {
+interface ProgressReaction {
   id: string;
   reaction: string;
   user_id?: string;
 }
 
-export interface ProgressEntryProps {
+interface ProgressEntryProps {
   log: ProgressLog;
   user: User;
   onReact: (reaction: string) => void;
@@ -72,7 +72,7 @@ export interface ProgressEntryProps {
   reactions?: ProgressReaction[];
 }
 
-export interface ProgressFeedProps {
+interface ProgressFeedProps {
   logs: ProgressLog[];
   onReact: (logId: string, reaction: string) => void;
   onComment: (logId: string, comment: string) => void;
@@ -83,10 +83,10 @@ export interface ProgressFeedProps {
 // ACHIEVEMENTS
 // -----------------------------------------------------------------------------
 
-export type AchievementTier = 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | 'DIAMOND' | 'LEGENDARY';
-export type AchievementCategory = 'WORKOUT' | 'CONSISTENCY' | 'MILESTONE' | 'SOCIAL';
+type AchievementTier = 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | 'DIAMOND' | 'LEGENDARY';
+type AchievementCategory = 'WORKOUT' | 'CONSISTENCY' | 'MILESTONE' | 'SOCIAL';
 
-export interface Achievement {
+interface Achievement {
   id: string;
   name: string;
   description: string;
@@ -104,7 +104,7 @@ export interface Achievement {
   created_at: string;
 }
 
-export interface UserAchievement {
+interface UserAchievement {
   id: string;
   user_id: string;
   achievement_id: string;
@@ -117,10 +117,10 @@ export interface UserAchievement {
 // LIFT TRACKING (The Forge)
 // -----------------------------------------------------------------------------
 
-export type WeightUnit = 'LBS' | 'KG';
-export type LiftTrend = 'up' | 'down' | 'stable';
+type WeightUnit = 'LBS' | 'KG';
+type LiftTrend = 'up' | 'down' | 'stable';
 
-export interface TrackedLift {
+interface TrackedLift {
   id: string;
   user_id: string;
   exercise_id: string;
@@ -151,7 +151,7 @@ export interface TrackedLift {
   totalSets?: number;
 }
 
-export interface SetLog {
+interface SetLog {
   id: string;
   lift_id: string;
   user_id: string;
@@ -171,10 +171,10 @@ export interface SetLog {
   created_at: string;
 }
 
-export type GoalType = 'ONE_REP_MAX' | 'WORKING_WEIGHT' | 'VOLUME' | 'CONSISTENCY' | 'REPS';
-export type GoalStatus = 'ACTIVE' | 'COMPLETED' | 'FAILED' | 'PAUSED';
+type GoalType = 'ONE_REP_MAX' | 'WORKING_WEIGHT' | 'VOLUME' | 'CONSISTENCY' | 'REPS';
+type GoalStatus = 'ACTIVE' | 'COMPLETED' | 'FAILED' | 'PAUSED';
 
-export interface LiftGoal {
+interface LiftGoal {
   id: string;
   lift_id: string;
   user_id: string;
@@ -188,7 +188,7 @@ export interface LiftGoal {
 }
 
 // Active session (client-side)
-export interface ActiveSet {
+interface ActiveSet {
   id: string;
   weight: number;
   reps: number;
@@ -199,7 +199,7 @@ export interface ActiveSet {
   restTime?: number;
 }
 
-export interface LiftSession {
+interface LiftSession {
   liftId: string;
   exerciseId: string;
   exerciseName: string;
@@ -213,10 +213,10 @@ export interface LiftSession {
 // WORKOUT PLANNING
 // -----------------------------------------------------------------------------
 
-export type WorkoutType = 'PUSH' | 'PULL' | 'LEGS' | 'UPPER' | 'LOWER' | 'FULL_BODY' | 'CARDIO' | 'REST' | 'CUSTOM';
-export type WorkoutStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED' | 'RESCHEDULED';
+type WorkoutType = 'PUSH' | 'PULL' | 'LEGS' | 'UPPER' | 'LOWER' | 'FULL_BODY' | 'CARDIO' | 'REST' | 'CUSTOM';
+type WorkoutStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED' | 'RESCHEDULED';
 
-export interface WorkoutTemplate {
+interface WorkoutTemplate {
   id: string;
   user_id: string;
   name: string;
@@ -235,7 +235,7 @@ export interface WorkoutTemplate {
   updated_at: string;
 }
 
-export interface ScheduledWorkout {
+interface ScheduledWorkout {
   id: string;
   user_id: string;
   template_id: string | null;
@@ -252,9 +252,9 @@ export interface ScheduledWorkout {
 // MESSAGING (The Nexus)
 // -----------------------------------------------------------------------------
 
-export type ChannelType = 'GLOBAL' | 'SQUAD' | 'DIRECT' | 'TRAINER';
+type ChannelType = 'GLOBAL' | 'SQUAD' | 'DIRECT' | 'TRAINER';
 
-export interface Message {
+interface Message {
   id: string;
   content: string;
   sender_id: string;
@@ -277,7 +277,7 @@ export interface Message {
   _count?: { replies: number };
 }
 
-export interface MessageReaction {
+interface MessageReaction {
   id: string;
   message_id: string;
   user_id: string;
@@ -289,11 +289,11 @@ export interface MessageReaction {
 // SQUADS (Alpha Squads)
 // -----------------------------------------------------------------------------
 
-export type SquadVisibility = 'PUBLIC' | 'INVITE_ONLY' | 'PRIVATE';
-export type SquadRole = 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER';
-export type InviteStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
+type SquadVisibility = 'PUBLIC' | 'INVITE_ONLY' | 'PRIVATE';
+type SquadRole = 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER';
+type InviteStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
 
-export interface Squad {
+interface Squad {
   id: string;
   name: string;
   description: string | null;
@@ -311,7 +311,7 @@ export interface Squad {
   role?: SquadRole;
 }
 
-export interface SquadMember {
+interface SquadMember {
   id: string;
   squad_id: string;
   user_id: string;
@@ -321,7 +321,7 @@ export interface SquadMember {
   user?: User;
 }
 
-export interface SquadInvite {
+interface SquadInvite {
   id: string;
   squad_id: string;
   inviter_id: string;
@@ -337,10 +337,10 @@ export interface SquadInvite {
 // SOCIAL (Friendships & Trainer Links)
 // -----------------------------------------------------------------------------
 
-export type FriendshipStatus = 'PENDING' | 'ACCEPTED' | 'BLOCKED';
-export type TrainerClientStatus = 'PENDING' | 'ACTIVE' | 'PAUSED' | 'ENDED';
+type FriendshipStatus = 'PENDING' | 'ACCEPTED' | 'BLOCKED';
+type TrainerClientStatus = 'PENDING' | 'ACTIVE' | 'PAUSED' | 'ENDED';
 
-export interface Friendship {
+interface Friendship {
   id: string;
   user_a_id: string;
   user_b_id: string;
@@ -351,7 +351,7 @@ export interface Friendship {
   friend?: User; // The other user
 }
 
-export interface TrainerClient {
+interface TrainerClient {
   id: string;
   trainer_id: string;
   client_id: string;
@@ -369,15 +369,15 @@ export interface TrainerClient {
 // TRI-SECTOR SIDEBAR STATE
 // -----------------------------------------------------------------------------
 
-export type SectorId = 'nexus' | 'forge' | 'identity';
+type SectorId = 'nexus' | 'forge' | 'identity';
 
-export type NexusPanel = 'global-feed' | 'trainer-link' | 'alpha-squads';
-export type ForgePanel = 'active-lifts' | 'week-planner' | 'challenges';
-export type IdentityPanel = 'profile' | 'friends' | 'settings';
+type NexusPanel = 'global-feed' | 'trainer-link' | 'alpha-squads';
+type ForgePanel = 'active-lifts' | 'week-planner' | 'challenges';
+type IdentityPanel = 'profile' | 'friends' | 'settings';
 
-export type SidebarPanel = NexusPanel | ForgePanel | IdentityPanel;
+type SidebarPanel = NexusPanel | ForgePanel | IdentityPanel;
 
-export interface SidebarState {
+interface SidebarState {
   activeSector: SectorId;
   activePanel: SidebarPanel;
   notifications: {
@@ -391,13 +391,13 @@ export interface SidebarState {
 // API RESPONSES
 // -----------------------------------------------------------------------------
 
-export interface ApiResponse<T> {
+interface ApiResponse<T> {
   data: T;
   error?: string;
   message?: string;
 }
 
-export interface PaginatedResponse<T> {
+interface PaginatedResponse<T> {
   data: T[];
   total: number;
   page: number;
@@ -405,7 +405,7 @@ export interface PaginatedResponse<T> {
   hasMore: boolean;
 }
 
-export interface CursorPaginatedResponse<T> {
+interface CursorPaginatedResponse<T> {
   data: T[];
   nextCursor: string | null;
   hasMore: boolean;
@@ -415,7 +415,7 @@ export interface CursorPaginatedResponse<T> {
 // FORM TYPES
 // -----------------------------------------------------------------------------
 
-export interface CreateLiftForm {
+interface CreateLiftForm {
   exercise_id: string;
   exercise_name: string;
   working_weight: number;
@@ -424,7 +424,7 @@ export interface CreateLiftForm {
   goal_date?: string;
 }
 
-export interface LogSetForm {
+interface LogSetForm {
   weight: number;
   reps: number;
   unit: WeightUnit;
@@ -436,7 +436,7 @@ export interface LogSetForm {
   notes?: string;
 }
 
-export interface LogSessionForm {
+interface LogSessionForm {
   exercise_id: string;
   sets: LogSetForm[];
   notes?: string;
@@ -444,14 +444,14 @@ export interface LogSessionForm {
   end_time: string;
 }
 
-export interface CreateSquadForm {
+interface CreateSquadForm {
   name: string;
   description?: string;
   visibility: SquadVisibility;
   max_members: number;
 }
 
-export interface SendMessageForm {
+interface SendMessageForm {
   content: string;
   channel_type: ChannelType;
   squad_id?: string;
@@ -464,12 +464,12 @@ export interface SendMessageForm {
 // REALTIME EVENTS
 // -----------------------------------------------------------------------------
 
-export interface MessageEvent {
+interface MessageEvent {
   type: 'message:global' | 'message:squad' | 'message:direct';
   message: Message;
 }
 
-export interface ReactionEvent {
+interface ReactionEvent {
   type: 'message:reaction';
   messageId: string;
   emoji: string;
@@ -477,26 +477,26 @@ export interface ReactionEvent {
   action: 'added' | 'removed';
 }
 
-export interface SquadEvent {
+interface SquadEvent {
   type: 'squad:invite' | 'squad:member-joined' | 'squad:member-left';
   squadId: string;
   userId: string;
 }
 
-export interface LiftEvent {
+interface LiftEvent {
   type: 'lift:pr' | 'lift:session-complete';
   liftId: string;
   userId: string;
   data: Record<string, unknown>;
 }
 
-export type RealtimeEvent = MessageEvent | ReactionEvent | SquadEvent | LiftEvent;
+type RealtimeEvent = MessageEvent | ReactionEvent | SquadEvent | LiftEvent;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
 // -----------------------------------------------------------------------------
 
-export const ACHIEVEMENT_TIERS = {
+const ACHIEVEMENT_TIERS = {
   BRONZE: { color: '#cd7f32', bgColor: '#cd7f3220' },
   SILVER: { color: '#c0c0c0', bgColor: '#c0c0c020' },
   GOLD: { color: '#ffd700', bgColor: '#ffd70020' },
@@ -505,20 +505,20 @@ export const ACHIEVEMENT_TIERS = {
   LEGENDARY: { color: '#ff6b6b', bgColor: '#ff6b6b20' },
 } as const;
 
-export const CHALLENGE_CATEGORIES = {
+const CHALLENGE_CATEGORIES = {
   STRENGTH: { icon: '💪', color: '#ff6b6b', name: 'Strength' },
   CARDIO: { icon: '🏃', color: '#4ecdc4', name: 'Cardio' },
   NUTRITION: { icon: '🥗', color: '#45b7d1', name: 'Nutrition' },
   CUSTOM: { icon: '🎯', color: '#96ceb4', name: 'Custom' },
 } as const;
 
-export const SECTOR_COLORS = {
+const SECTOR_COLORS = {
   nexus: '#10b981',    // Emerald/Green
   forge: '#a855f7',    // Purple
   identity: '#06b6d4', // Cyan
 } as const;
 
-export const WORKOUT_TYPES = {
+const WORKOUT_TYPES = {
   PUSH: { icon: '💪', color: '#ef4444', name: 'Push' },
   PULL: { icon: '🔙', color: '#3b82f6', name: 'Pull' },
   LEGS: { icon: '🦵', color: '#22c55e', name: 'Legs' },
