@@ -6,10 +6,12 @@ import { ProgramRepository, type Program, type CalendarEvent } from '@/repositor
 import { WorkoutRepository, type WorkoutTemplate } from '@/repositories/WorkoutRepository'
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, Loader2, Crown, Check, X, Clock, Dumbbell, Flame, Heart, Zap, Moon, Play, Trash2 } from 'lucide-react'
-import { WORKOUT_TYPE_CONFIG, getWorkoutTypeConfig } from '@/lib/workoutTypes'
+import { CalendarDays, ChevronLeft, ChevronRight, Plus, Loader2, Crown, Check, X, Dumbbell, Trash2, Eye, Target } from 'lucide-react'
+import { getWorkoutTypeConfig } from '@/lib/workoutTypes'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { ProgramForgeBuilder } from '@/components/programs/ProgramForgeBuilder'
+import { ProgramPreviewDrawer } from '@/components/programs/ProgramPreviewDrawer'
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
 }
@@ -42,8 +44,11 @@ export default function ProgramsPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([])
+  const [templatesLoading, setTemplatesLoading] = useState(false)
   const [showDayPanel, setShowDayPanel] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
+  const [previewProgram, setPreviewProgram] = useState<Program | null>(null)
+  const [enrollingProgramId, setEnrollingProgramId] = useState<string | null>(null)
 
   const loadCalendar = async () => {
     const start = startOfMonth(currentDate)
@@ -62,12 +67,19 @@ export default function ProgramsPage() {
     }
   }
 
-  // Load templates when panel opens
+  // Load templates when the calendar drawer or Program Forge needs them.
   useEffect(() => {
-    if (showDayPanel && templates.length === 0) {
-      WorkoutRepository.listTemplates().then(setTemplates).catch(console.error)
+    if ((showDayPanel || showCreate) && templates.length === 0 && !templatesLoading) {
+      setTemplatesLoading(true)
+      WorkoutRepository.listTemplates()
+        .then(setTemplates)
+        .catch((err) => {
+          console.error(err)
+          toast(mapApiErrorToToast(err, { action: 'load workout templates' }))
+        })
+        .finally(() => setTemplatesLoading(false))
     }
-  }, [showDayPanel, templates.length])
+  }, [showDayPanel, showCreate, templates.length, templatesLoading, toast])
 
   useEffect(() => {
     setLoading(true)
@@ -154,6 +166,36 @@ export default function ProgramsPage() {
     }
   }
 
+  const handleEnrollProgram = async (program: Program) => {
+    setEnrollingProgramId(program.id)
+    try {
+      await ProgramRepository.enroll(program.id)
+      toast({ title: 'Enrolled', variant: 'success' })
+      await Promise.all([loadPrograms(), loadCalendar()])
+      setPreviewProgram(null)
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'enroll in this program' }))
+    } finally {
+      setEnrollingProgramId(null)
+    }
+  }
+
+  if (showCreate && isTrainer) {
+    return (
+      <ProgramForgeBuilder
+        userId={user?.id}
+        templates={templates}
+        loadingTemplates={templatesLoading}
+        onCancel={() => setShowCreate(false)}
+        onPublished={() => {
+          loadPrograms()
+          loadCalendar()
+          setShowCreate(false)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -166,7 +208,7 @@ export default function ProgramsPage() {
             onClick={() => setShowCreate(true)}
             className="px-4 py-2.5 bg-[#ff5d4f] text-white rounded-xl text-sm font-bold hover:bg-[#e54d3f] flex items-center gap-2"
           >
-            <Plus className="w-4 h-4" /> Create program
+            <Plus className="w-4 h-4" /> Program Forge
           </button>
         )}
       </div>
@@ -273,16 +315,7 @@ export default function ProgramsPage() {
                   program={program}
                   enrolled={enrolledIds.has(program.id)}
                   isPaid={isPaid}
-                  onEnroll={async () => {
-                    try {
-                      await ProgramRepository.enroll(program.id)
-                      toast({ title: 'Enrolled', variant: "success" })
-                      loadPrograms()
-                      loadCalendar()
-                    } catch (err) {
-                      toast(mapApiErrorToToast(err, { action: 'enroll in this program' }))
-                    }
-                  }}
+                  onPreview={() => setPreviewProgram(program)}
                 />
               ))}
             </div>
@@ -290,19 +323,18 @@ export default function ProgramsPage() {
         </>
       )}
 
-      {showCreate && isTrainer && (
-        <CreateProgramModal
-          templates={[]}
-          onClose={() => setShowCreate(false)}
-          onCreated={() => {
-            loadPrograms()
-            setShowCreate(false)
-          }}
-        />
-      )}
-
       {/* Day Detail Panel - Full Workout Widget */}
       <AnimatePresence>
+        {previewProgram && (
+          <ProgramPreviewDrawer
+            program={previewProgram}
+            enrolled={enrolledIds.has(previewProgram.id)}
+            isPaid={isPaid}
+            enrolling={enrollingProgramId === previewProgram.id}
+            onClose={() => setPreviewProgram(null)}
+            onEnroll={() => handleEnrollProgram(previewProgram)}
+          />
+        )}
         {showDayPanel && selectedDate && (
           <DayDetailPanel
             date={selectedDate}
@@ -325,116 +357,86 @@ function ProgramCard({
   program,
   enrolled,
   isPaid,
-  onEnroll,
+  onPreview,
 }: {
   program: Program
   enrolled: boolean
   isPaid: boolean
-  onEnroll: () => void
+  onPreview: () => void
 }) {
+  const workoutCount = program.weeks.reduce((acc, week) => acc + week.workouts.length, 0)
+  const weeklyCadence = program.weeks.length ? workoutCount / program.weeks.length : 0
+  const previewWeeks = program.weeks.slice(0, 4)
+
   return (
-    <div className="border border-gray-100 rounded-2xl p-5">
-      <div className="flex items-start justify-between mb-2">
-        <h3 className="font-bold">{program.name}</h3>
-        <span className="text-xs font-bold uppercase bg-gray-100 px-2 py-1 rounded-full">{program.difficulty}</span>
+    <div className="rounded-2xl border border-clean-border bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-lg font-black text-clean-text">{program.name}</h3>
+          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-clean-muted">
+            {program.duration_weeks} weeks / {weeklyCadence.toFixed(weeklyCadence % 1 === 0 ? 0 : 1)} workouts per week
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-clean-bg px-2.5 py-1 text-[11px] font-black uppercase text-clean-muted">
+          {program.difficulty}
+        </span>
       </div>
-      <p className="text-sm text-gray-500 mb-3 line-clamp-2">{program.description || 'No description'}</p>
-      <p className="text-xs text-gray-400 mb-4">
-        {program.duration_weeks} weeks • {program.weeks.reduce((acc, w) => acc + w.workouts.length, 0)} workouts
+
+      <p className="mb-4 line-clamp-2 text-sm leading-6 text-clean-muted">
+        {program.description || 'A structured training arc ready to preview and enroll.'}
       </p>
+
+      <div className="mb-4 grid grid-cols-3 gap-2">
+        <div className="rounded-xl bg-clean-bg p-2">
+          <div className="flex items-center gap-1.5 text-[11px] font-black uppercase text-clean-muted">
+            <Target className="h-3.5 w-3.5" /> Load
+          </div>
+          <p className="mt-1 text-base font-black text-clean-text">{workoutCount}</p>
+        </div>
+        <div className="rounded-xl bg-clean-bg p-2">
+          <div className="flex items-center gap-1.5 text-[11px] font-black uppercase text-clean-muted">
+            <CalendarDays className="h-3.5 w-3.5" /> Weeks
+          </div>
+          <p className="mt-1 text-base font-black text-clean-text">{program.duration_weeks}</p>
+        </div>
+        <div className="rounded-xl bg-[#d7fb48]/50 p-2">
+          <div className="flex items-center gap-1.5 text-[11px] font-black uppercase text-clean-text">
+            <Eye className="h-3.5 w-3.5" /> Map
+          </div>
+          <p className="mt-1 text-base font-black text-clean-text">{program.weeks.length}</p>
+        </div>
+      </div>
+
+      <div className="mb-4 flex gap-1.5 overflow-hidden">
+        {previewWeeks.map((week) => (
+          <div key={week.id} className="min-w-0 flex-1 rounded-lg bg-clean-bg p-2">
+            <p className="text-[10px] font-black uppercase text-clean-muted">W{week.week_number}</p>
+            <div className="mt-1 flex gap-1">
+              {Array.from({ length: Math.min(week.workouts.length, 4) }).map((_, index) => (
+                <span key={index} className="h-1.5 flex-1 rounded-full bg-clean-accent" />
+              ))}
+              {week.workouts.length === 0 && <span className="h-1.5 flex-1 rounded-full bg-clean-border" />}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {enrolled ? (
-        <div className="flex items-center gap-2 text-sm font-bold text-[#d7fb48] bg-black px-3 py-2 rounded-xl w-fit">
+        <div className="flex w-fit items-center gap-2 rounded-xl bg-black px-3 py-2 text-sm font-bold text-[#d7fb48]">
           <Check className="w-4 h-4" /> Enrolled
         </div>
       ) : isPaid ? (
         <button
-          onClick={onEnroll}
-          className="px-4 py-2 bg-[#ff5d4f] text-white rounded-xl text-sm font-bold hover:bg-[#e54d3f]"
+          onClick={onPreview}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-clean-accent px-4 py-2.5 text-sm font-black text-white hover:bg-[#d83d31]"
         >
-          Enroll
+          <Eye className="h-4 w-4" /> Preview plan
         </button>
       ) : (
-        <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
+        <div className="flex items-center gap-2 text-xs font-bold text-clean-muted">
           <Crown className="w-3.5 h-3.5" /> Paid feature
         </div>
       )}
-    </div>
-  )
-}
-
-function CreateProgramModal({ templates, onClose, onCreated }: { templates: WorkoutTemplate[]; onClose: () => void; onCreated: () => void }) {
-  const { toast } = useToast()
-  const [saving, setSaving] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setSaving(true)
-    const form = e.currentTarget
-    const formData = new FormData(form)
-
-    try {
-      await ProgramRepository.createProgram({
-        name: formData.get('name') as string,
-        description: (formData.get('description') as string) || undefined,
-        duration_weeks: parseInt(formData.get('duration') as string) || 4,
-        difficulty: (formData.get('difficulty') as any) || 'BEGINNER',
-        is_public: true,
-        weeks: [
-          {
-            week_number: 1,
-            focus: 'Week 1',
-            workouts: [],
-          },
-        ],
-      })
-      toast({ title: 'Program created', variant: "success" })
-      onCreated()
-    } catch (err) {
-      toast(mapApiErrorToToast(err, { action: 'create this program' }))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl w-full max-w-lg p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg">Create program</h2>
-          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            ✕
-          </button>
-        </div>
-        <input name="name" required placeholder="Program name" className="w-full px-4 py-2.5 rounded-xl border border-gray-200" />
-        <textarea
-          name="description"
-          placeholder="Description"
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 min-h-[80px]"
-        />
-        <div className="grid grid-cols-2 gap-3">
-          <input
-            name="duration"
-            type="number"
-            min={1}
-            defaultValue={4}
-            placeholder="Weeks"
-            className="px-4 py-2.5 rounded-xl border border-gray-200"
-          />
-          <select name="difficulty" className="px-4 py-2.5 rounded-xl border border-gray-200">
-            <option value="BEGINNER">Beginner</option>
-            <option value="INTERMEDIATE">Intermediate</option>
-            <option value="ADVANCED">Advanced</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full py-2.5 bg-[#ff5d4f] text-white rounded-xl font-bold hover:bg-[#e54d3f] disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          Create program
-        </button>
-      </form>
     </div>
   )
 }

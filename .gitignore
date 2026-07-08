@@ -59,4 +59,5 @@ Thumbs.db
 next-env.d.ts
 
 # Misc
-.turbo.claude/
+.turbo
+.claude/

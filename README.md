@@ -93,6 +93,7 @@ npm run lint          # eslint
 npm run type-check    # tsc (loads .env.local)
 npm run format        # prettier
 npm test              # vitest
+npm run knip          # find unused files, exports, and dependencies
 npm run test:e2e      # playwright
 npm run storybook     # storybook dev server
 ```
@@ -101,8 +102,8 @@ npm run storybook     # storybook dev server
 
 - `src/app/dashboard` - tabbed dashboard (overview, workouts, programs, nutrition, progress, community, challenges, settings)
 - `src/components` - UI + feature components
-- `src/hooks`, `src/repositories`, `src/controllers` - data + state layer
-- `src/lib` - `apiClient`, `socketClient`, `metric-engine`, exercise DB
+- `src/hooks`, `src/repositories` - data + state layer
+- `src/lib` - `apiClient`, `socketClient`, exercise DB
 - `backend` - Express API (separate Node project)
 - `docs` - architecture + deployment guides
 - `e2e` - Playwright tests
@@ -110,7 +111,6 @@ npm run storybook     # storybook dev server
 ## Further reading
 
 - `docs/architecture.md`
-- `TECHNICAL_AUDIT.md`
 - `backend/README.md`
 
 ## License

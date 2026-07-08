@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { authenticateJWT, requirePaid, requireAdmin } from '../middleware/authMiddleware';
+import { authenticateJWT, requirePaid } from '../middleware/authMiddleware';
 import { programRepository } from '../repositories/programRepository';
 
 const router: Router = Router();
@@ -118,7 +118,7 @@ router.get('/:id', authenticateJWT, async (req, res) => {
     if (!program) return res.status(404).json({ error: 'Program not found' });
 
     const isOwner = program.user_id === req.user!.userId;
-    const canViewPublic = program.is_public && program.user_id === null && (req.user!.membership_tier === 'PAID' || req.user!.role !== 'CLIENT');
+    const canViewPublic = program.is_public && (req.user!.membership_tier === 'PAID' || req.user!.role !== 'CLIENT');
     if (!isOwner && !canViewPublic) {
       return res.status(403).json({ error: 'Access denied' });
     }

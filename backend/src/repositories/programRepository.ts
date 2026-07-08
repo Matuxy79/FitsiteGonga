@@ -34,7 +34,7 @@ export const programRepository = {
       where: {
         is_active: true,
         OR: includePublic
-          ? [{ user_id: userId }, { is_public: true, user_id: null }]
+          ? [{ user_id: userId }, { is_public: true }]
           : [{ user_id: userId }],
       },
       include: {
