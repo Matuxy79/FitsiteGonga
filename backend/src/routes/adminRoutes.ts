@@ -2,11 +2,15 @@ import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../db/client';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
+import adminCommunityRoutes from './adminCommunityRoutes';
 
 const router: Router = Router();
 
 router.use(authenticateJWT);
 router.use(requireRole(['ADMIN']));
+
+// Community moderation surface: /api/admin/community/*
+router.use('/community', adminCommunityRoutes);
 
 function startOfDay(date: Date): Date {
   const next = new Date(date);

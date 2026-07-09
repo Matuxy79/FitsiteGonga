@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { challengeRepository } from '../repositories/challengeRepository';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
 import { getIO } from '../socket/socketServer';
+import { awardXp } from '../services/xpService';
 
 const router: Router = Router();
 
@@ -130,6 +131,8 @@ router.post('/:id/join', authenticateJWT, async (req, res) => {
     });
 
     res.json({ data: challenge });
+
+    void awardXp(req.user!.userId, 'CHALLENGE_JOINED', { refId: `challenge:${req.params.id}` });
   } catch (error: any) {
     console.error('Join challenge error:', error);
     res.status(500).json({ error: error.message || 'Failed to join challenge' });

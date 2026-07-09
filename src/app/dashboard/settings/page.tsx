@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { UserRepository } from '@/repositories/UserRepository'
-import { Camera, ShieldCheck, Crown, Users, Loader2, Check, Lock, Sparkles, KeyRound } from 'lucide-react'
+import { AuthRepository } from '@/repositories/AuthRepository'
+import { BillingRepository, type BillingStatus } from '@/repositories/BillingRepository'
+import { Camera, ShieldCheck, Crown, Users, Loader2, Check, Lock, Sparkles, KeyRound, CreditCard, AlertTriangle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
@@ -59,6 +61,8 @@ export default function SettingsPage() {
   const [switchingPlan, setSwitchingPlan] = useState(false)
   const [redeemCodeInput, setRedeemCodeInput] = useState('')
   const [redeeming, setRedeeming] = useState(false)
+  const [billing, setBilling] = useState<BillingStatus | null>(null)
+  const [billingBusy, setBillingBusy] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -67,6 +71,74 @@ export default function SettingsPage() {
       setGoals((user.goals || []).join(', '))
     }
   }, [user])
+
+  const loadBilling = useCallback(() => {
+    BillingRepository.getStatus().then(setBilling).catch(() => setBilling(null))
+  }, [])
+
+  useEffect(() => {
+    loadBilling()
+  }, [loadBilling])
+
+  // Handle return from Stripe Checkout: ?checkout=success|cancelled
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const checkout = params.get('checkout')
+    if (!checkout) return
+    window.history.replaceState({}, '', window.location.pathname)
+
+    if (checkout === 'cancelled') {
+      toast({ title: 'Checkout cancelled — no changes made', variant: 'default' })
+      return
+    }
+    if (checkout !== 'success') return
+
+    toast({ title: 'Payment received — activating your PRO membership…', variant: 'success' })
+    let tries = 0
+    const poll = async () => {
+      tries += 1
+      try {
+        const status = await BillingRepository.getStatus()
+        setBilling(status)
+        if (status.membership_tier === 'PAID') {
+          // Reissue the access token so JWT claims carry the new tier.
+          await AuthRepository.refreshToken().catch(() => undefined)
+          await refreshUser()
+          window.dispatchEvent(new Event('auth:changed'))
+          toast({ title: 'Welcome to PRO 👑', variant: 'success' })
+          return
+        }
+      } catch {
+        // keep polling
+      }
+      if (tries < 10) setTimeout(poll, 2000)
+    }
+    poll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleStripeUpgrade = async () => {
+    setBillingBusy(true)
+    try {
+      const url = await BillingRepository.createCheckout()
+      window.location.href = url
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'start checkout' }))
+      setBillingBusy(false)
+    }
+  }
+
+  const handleManageBilling = async () => {
+    setBillingBusy(true)
+    try {
+      const url = await BillingRepository.openPortal()
+      window.location.href = url
+    } catch (err) {
+      toast(mapApiErrorToToast(err, { action: 'open the billing portal' }))
+      setBillingBusy(false)
+    }
+  }
 
   const tierLabel = user?.role === 'ADMIN' ? 'Admin' : user?.membership_tier === 'PAID' ? 'Paid' : 'Free'
   const TierIcon = user?.role === 'ADMIN' ? ShieldCheck : user?.membership_tier === 'PAID' ? Crown : Users
@@ -316,8 +388,40 @@ export default function SettingsPage() {
               <div>
                 <h2 className="font-bold text-lg mb-1">Membership plan</h2>
                 <p className="text-sm text-gray-500 mb-4">
-                  This is a demo — switch your plan anytime, no payment required.
+                  {billing?.stripeConfigured
+                    ? 'Secure payments powered by Stripe. Cancel anytime from the billing portal.'
+                    : 'This is a demo — switch your plan anytime, no payment required.'}
                 </p>
+
+                {billing?.stripeConfigured && billing.subscription_status === 'PAST_DUE' && (
+                  <div className="mb-4 flex items-center gap-2 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    Your last payment failed. Update your payment method to keep PRO benefits.
+                    <button onClick={handleManageBilling} className="ml-auto font-bold underline shrink-0">
+                      Fix payment
+                    </button>
+                  </div>
+                )}
+
+                {billing?.stripeConfigured && user?.membership_tier === 'PAID' && (
+                  <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-600">
+                    <CreditCard className="w-4 h-4 shrink-0 text-[#ff5d4f]" />
+                    <span>
+                      {billing.cancel_at_period_end
+                        ? `PRO ends ${billing.current_period_end ? new Date(billing.current_period_end).toLocaleDateString() : 'at period end'}`
+                        : billing.current_period_end
+                          ? `Renews ${new Date(billing.current_period_end).toLocaleDateString()}`
+                          : 'Active subscription'}
+                    </span>
+                    <button
+                      onClick={handleManageBilling}
+                      disabled={billingBusy}
+                      className="ml-auto text-xs font-bold text-[#ff5d4f] hover:underline shrink-0 disabled:opacity-50"
+                    >
+                      Manage billing
+                    </button>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(['FREE', 'PAID'] as const).map((tier) => {
                     const isCurrentTier = user?.membership_tier === tier
@@ -377,6 +481,29 @@ export default function SettingsPage() {
 
                         {isCurrentTier ? (
                           <span className="text-xs font-bold text-[#ff5d4f]">Current plan</span>
+                        ) : billing?.stripeConfigured ? (
+                          isPaidTier ? (
+                            <motion.button
+                              type="button"
+                              whileTap={{ scale: 0.96 }}
+                              disabled={billingBusy}
+                              onClick={handleStripeUpgrade}
+                              className="w-full text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-50 bg-[#ff5d4f] text-white hover:bg-[#e54d3f] flex items-center justify-center gap-1.5"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                              {billingBusy ? 'Redirecting…' : 'Upgrade with Stripe'}
+                            </motion.button>
+                          ) : (
+                            <motion.button
+                              type="button"
+                              whileTap={{ scale: 0.96 }}
+                              disabled={billingBusy}
+                              onClick={handleManageBilling}
+                              className="w-full text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-50 border border-gray-200 hover:bg-gray-50"
+                            >
+                              Cancel in billing portal
+                            </motion.button>
+                          )
                         ) : (
                           <motion.button
                             type="button"

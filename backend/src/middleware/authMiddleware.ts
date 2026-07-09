@@ -77,14 +77,31 @@ export const requireRole = (allowedRoles: string[]) => {
 };
 
 /**
- * Middleware to require a paid subscription or admin role
+ * Middleware to require a paid subscription or admin role.
+ * The JWT claim can lag a Stripe-webhook upgrade by up to the token lifetime,
+ * so a FREE claim falls back to one DB read before rejecting (PAID users
+ * never pay the extra query).
  */
-export const requirePaid = (req: Request, res: Response, next: NextFunction) => {
+export const requirePaid = async (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   if (req.user.membership_tier !== 'PAID' && req.user.role !== 'ADMIN') {
+    try {
+      const { prisma } = await import('../db/client');
+      const fresh = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: { membership_tier: true, role: true },
+      });
+      if (fresh && (fresh.membership_tier === 'PAID' || fresh.role === 'ADMIN')) {
+        req.user.membership_tier = fresh.membership_tier;
+        req.user.role = fresh.role;
+        return next();
+      }
+    } catch (error) {
+      console.error('requirePaid fresh lookup failed:', error);
+    }
     return res.status(403).json({
       error: 'Forbidden - Paid subscription or admin access required',
     });

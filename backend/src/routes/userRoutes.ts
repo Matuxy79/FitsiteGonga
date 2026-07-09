@@ -2,12 +2,22 @@ import { Router, Response } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
+import { prisma } from '../db/client';
 import { authenticateJWT, requireAdmin } from '../middleware/authMiddleware';
+import { searchLimiter } from '../middleware/rateLimiters';
 import { userRepository } from '../repositories/userRepository';
 import { storageService } from '../services/storageService';
 import { authService } from '../services/authService';
+import { isStripeConfigured } from '../services/stripeService';
 
 const router: Router = Router();
+
+// When Stripe billing is live, self-service tier toggles are disabled in
+// production so the webhook stays the single source of billing truth.
+function demoTierSwitchAllowed(): boolean {
+  if (process.env.ALLOW_DEMO_TIER_SWITCH === 'true') return true;
+  return !isStripeConfigured();
+}
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 const updateProfileSchema = z.object({
@@ -108,6 +118,12 @@ router.patch('/me', authenticateJWT, async (req, res) => {
  */
 router.patch('/me/plan', authenticateJWT, async (req, res) => {
   try {
+    if (!demoTierSwitchAllowed()) {
+      return res.status(403).json({
+        error: 'Plan changes are managed through billing',
+        code: 'USE_BILLING',
+      });
+    }
     const validated = updatePlanSchema.parse(req.body);
     const user = await userRepository.updateMembership(req.user!.userId, validated.membership_tier);
 
@@ -147,6 +163,15 @@ router.patch('/me/access-mode', authenticateJWT, async (req, res) => {
     if (validated.mode === 'ADMIN' && validated.code !== secret) {
       console.warn(`Failed admin mode switch attempt by user ${req.user!.userId}`);
       return res.status(400).json({ error: 'Invalid code' });
+    }
+
+    // With Stripe live, PAID must come from checkout and FREE-downgrade must
+    // not desync an active subscription; only the code-gated ADMIN path stays.
+    if (validated.mode !== 'ADMIN' && !demoTierSwitchAllowed()) {
+      return res.status(403).json({
+        error: 'Plan changes are managed through billing',
+        code: 'USE_BILLING',
+      });
     }
 
     const user = await userRepository.updateAccessMode(req.user!.userId, {
@@ -195,6 +220,41 @@ router.post('/me/avatar', authenticateJWT, upload.single('avatar'), async (req, 
   } catch (error: any) {
     console.error('Avatar upload error:', error);
     res.status(500).json({ error: 'Failed to upload avatar', message: error.message });
+  }
+});
+
+/**
+ * GET /api/users/search?q=
+ * Lightweight user lookup for @mentions and friend finding.
+ */
+router.get('/search', authenticateJWT, searchLimiter, async (req, res) => {
+  try {
+    const q = (req.query.q as string | undefined)?.trim();
+    if (!q || q.length < 2) {
+      return res.json({ users: [] });
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        display_name: { contains: q, mode: 'insensitive' },
+        is_active: true,
+        id: { not: req.user!.userId },
+      },
+      select: {
+        id: true,
+        display_name: true,
+        avatar_url: true,
+        role: true,
+        membership_tier: true,
+        stats: { select: { level: true } },
+      },
+      take: 8,
+    });
+
+    res.json({ users });
+  } catch (error) {
+    console.error('User search error:', error);
+    res.status(500).json({ error: 'Failed to search users' });
   }
 });
 

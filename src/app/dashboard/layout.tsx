@@ -7,11 +7,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { UserRepository, type AccessMode } from '@/repositories/UserRepository'
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { AchievementToast } from '@/components/community/AchievementToast'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Activity,
   Apple,
-  Bell,
   CalendarDays,
   Check,
   Crown,
@@ -507,10 +508,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <h1 className="text-lg font-bold text-clean-text">{currentSectionName}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-full text-clean-muted hover:bg-clean-hover">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-clean-accent rounded-full border-2 border-white" />
-            </button>
+            <NotificationBell />
           </div>
         </header>
 
@@ -533,10 +531,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               />
             </div>
 
-            <button className="relative p-2.5 rounded-full bg-white border border-clean-border text-clean-muted hover:bg-clean-hover transition-colors shadow-sm hover:shadow">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-clean-accent rounded-full border border-white" />
-            </button>
+            <NotificationBell />
           </div>
         </header>
 
@@ -545,6 +540,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+
+      {/* Global gamification celebrations (achievement/level-up socket events) */}
+      <AchievementToast />
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-clean-border bottom-bar-safe z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">

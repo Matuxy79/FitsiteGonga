@@ -75,4 +75,87 @@ export const AdminRepository = {
     const response = await apiClient.put<{ data: AdminUser }>(`/api/admin/users/${userId}/status`, { is_active })
     return extractPayload(response)
   },
+
+  // ---- Community moderation ---------------------------------------------------
+
+  async getReports(status = 'OPEN', take = 25, skip = 0): Promise<{ reports: CommunityReport[]; total: number }> {
+    return apiClient.get(`/api/admin/community/reports?status=${status}&take=${take}&skip=${skip}`)
+  },
+
+  async resolveReport(
+    reportId: string,
+    input: { status: 'RESOLVED' | 'DISMISSED'; resolution_note?: string; deleteMessage?: boolean; muteMinutes?: number },
+  ): Promise<void> {
+    await apiClient.patch(`/api/admin/community/reports/${reportId}`, input)
+  },
+
+  async getCommunityMessages(params: { search?: string; take?: number; skip?: number } = {}): Promise<{ messages: any[]; total: number }> {
+    const query = new URLSearchParams()
+    if (params.search) query.set('search', params.search)
+    if (typeof params.take === 'number') query.set('take', String(params.take))
+    if (typeof params.skip === 'number') query.set('skip', String(params.skip))
+    return apiClient.get(`/api/admin/community/messages?${query}`)
+  },
+
+  async deleteCommunityMessage(messageId: string, reason?: string): Promise<void> {
+    await apiClient.delete(`/api/admin/community/messages/${messageId}`)
+    void reason
+  },
+
+  async getCommunityMedia(take = 30, skip = 0): Promise<{ items: CommunityMediaItem[] }> {
+    return apiClient.get(`/api/admin/community/media?take=${take}&skip=${skip}`)
+  },
+
+  async deleteCommunityMedia(messageId: string, url: string): Promise<void> {
+    // apiClient.delete has no body support; the backend accepts DELETE with JSON via fetch,
+    // so use a POST-style request through apiClient's underlying request options.
+    await apiClient.post('/api/admin/community/media/delete', { messageId, url })
+  },
+
+  async muteCommunityUser(userId: string, minutes: number, reason?: string): Promise<void> {
+    await apiClient.post(`/api/admin/community/users/${userId}/mute`, { minutes, reason })
+  },
+
+  async unmuteCommunityUser(userId: string): Promise<void> {
+    await apiClient.delete(`/api/admin/community/users/${userId}/mute`)
+  },
+
+  async getMutedUsers(): Promise<{ users: MutedUser[] }> {
+    return apiClient.get('/api/admin/community/muted')
+  },
+}
+
+export interface CommunityReport {
+  id: string
+  reason: string
+  details: string | null
+  status: 'OPEN' | 'RESOLVED' | 'DISMISSED'
+  created_at: string
+  resolution_note: string | null
+  reporter: { id: string; display_name: string; avatar_url: string | null }
+  message: {
+    id: string
+    content: string
+    media_urls: string[]
+    is_deleted: boolean
+    created_at: string
+    sender: { id: string; display_name: string; avatar_url: string | null; community_muted_until: string | null }
+  }
+}
+
+export interface CommunityMediaItem {
+  messageId: string
+  url: string
+  isDeleted: boolean
+  created_at: string
+  sender: { id: string; display_name: string; avatar_url: string | null }
+}
+
+export interface MutedUser {
+  id: string
+  display_name: string
+  avatar_url: string | null
+  community_muted_until: string
+  community_mute_reason: string | null
+  community_muted_by: string | null
 }

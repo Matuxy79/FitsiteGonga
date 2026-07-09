@@ -20,6 +20,32 @@ export interface UpdateUserDTO {
   goals?: string[];
 }
 
+// Shared select clause — every method returns the same shape so the
+// UserWithoutPassword type is satisfied even after schema additions.
+const userSelect = {
+  id: true,
+  email: true,
+  display_name: true,
+  avatar_url: true,
+  role: true,
+  membership_tier: true,
+  subscription_status: true,
+  trial_ends_at: true,
+  is_active: true,
+  fitness_level: true,
+  goals: true,
+  created_at: true,
+  updated_at: true,
+  stripe_customer_id: true,
+  stripe_subscription_id: true,
+  stripe_price_id: true,
+  current_period_end: true,
+  cancel_at_period_end: true,
+  community_muted_until: true,
+  community_mute_reason: true,
+  community_muted_by: true,
+} as const;
+
 export const userRepository = {
   /**
    * Find user by email
@@ -36,21 +62,7 @@ export const userRepository = {
   async findById(id: string): Promise<UserWithoutPassword | null> {
     return prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        email: true,
-        display_name: true,
-        avatar_url: true,
-        role: true,
-        membership_tier: true,
-        subscription_status: true,
-        trial_ends_at: true,
-        is_active: true,
-        fitness_level: true,
-        goals: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: userSelect,
     });
   },
 
@@ -67,21 +79,7 @@ export const userRepository = {
         fitness_level: data.fitness_level || 'BEGINNER',
         goals: data.goals || [],
       },
-      select: {
-        id: true,
-        email: true,
-        display_name: true,
-        avatar_url: true,
-        role: true,
-        membership_tier: true,
-        subscription_status: true,
-        trial_ends_at: true,
-        is_active: true,
-        fitness_level: true,
-        goals: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: userSelect,
     });
   },
 
@@ -92,21 +90,7 @@ export const userRepository = {
     return prisma.user.update({
       where: { id },
       data,
-      select: {
-        id: true,
-        email: true,
-        display_name: true,
-        avatar_url: true,
-        role: true,
-        membership_tier: true,
-        subscription_status: true,
-        trial_ends_at: true,
-        is_active: true,
-        fitness_level: true,
-        goals: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: userSelect,
     });
   },
 
@@ -117,21 +101,7 @@ export const userRepository = {
     return prisma.user.update({
       where: { id },
       data: { membership_tier, subscription_status },
-      select: {
-        id: true,
-        email: true,
-        display_name: true,
-        avatar_url: true,
-        role: true,
-        membership_tier: true,
-        subscription_status: true,
-        trial_ends_at: true,
-        is_active: true,
-        fitness_level: true,
-        goals: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: userSelect,
     });
   },
 
@@ -142,21 +112,7 @@ export const userRepository = {
     return prisma.user.update({
       where: { id },
       data,
-      select: {
-        id: true,
-        email: true,
-        display_name: true,
-        avatar_url: true,
-        role: true,
-        membership_tier: true,
-        subscription_status: true,
-        trial_ends_at: true,
-        is_active: true,
-        fitness_level: true,
-        goals: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: userSelect,
     });
   },
 
@@ -167,21 +123,7 @@ export const userRepository = {
     return prisma.user.update({
       where: { id },
       data: { role },
-      select: {
-        id: true,
-        email: true,
-        display_name: true,
-        avatar_url: true,
-        role: true,
-        membership_tier: true,
-        subscription_status: true,
-        trial_ends_at: true,
-        is_active: true,
-        fitness_level: true,
-        goals: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: userSelect,
     });
   },
 
@@ -193,21 +135,7 @@ export const userRepository = {
     return prisma.user.update({
       where: { id },
       data: { is_active },
-      select: {
-        id: true,
-        email: true,
-        display_name: true,
-        avatar_url: true,
-        role: true,
-        membership_tier: true,
-        subscription_status: true,
-        trial_ends_at: true,
-        is_active: true,
-        fitness_level: true,
-        goals: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: userSelect,
     });
   },
 
@@ -228,5 +156,3 @@ export const userRepository = {
     });
   },
 };
-
-

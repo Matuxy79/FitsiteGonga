@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/useToast'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
 import { AdminRepository, type AdminStats, type AdminUser, type AdminActivity } from '@/repositories/AdminRepository'
 import HomepagePeopleEditor from '@/components/admin/HomepagePeopleEditor'
+import CommunityModeration from '@/components/admin/CommunityModeration'
 
 // ============================================
 // COMPONENTS
@@ -266,6 +267,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
   const [activity, setActivity] = useState<AdminActivity[]>([])
+  const [activeTab, setActiveTab] = useState<'overview' | 'community'>('overview')
   
   // UI states
   const [loadingStats, setLoadingStats] = useState(true)
@@ -469,6 +471,29 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Tabs */}
+        <div className="flex gap-1 mb-8 bg-zinc-900 border border-zinc-800 rounded p-1 w-fit">
+          {(
+            [
+              ['overview', 'Overview'],
+              ['community', 'Community'],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${
+                activeTab === key ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'community' && <CommunityModeration />}
+
+        <div className={activeTab === 'overview' ? '' : 'hidden'}>
         {/* Stats Grid */}
         <section className="mb-8">
           <h2 className="text-[10px] uppercase tracking-[0.4em] text-slate-500 mb-4">{'// System Overview'}</h2>
@@ -583,6 +608,7 @@ export default function AdminDashboard() {
               )}
             </div>
           </section>
+        </div>
         </div>
       </main>
 

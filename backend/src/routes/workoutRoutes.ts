@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticateJWT, requirePaid } from '../middleware/authMiddleware';
 import { workoutRepository } from '../repositories/workoutRepository';
 import { getIO } from '../socket/socketServer';
+import { awardXp } from '../services/xpService';
 
 const router: Router = Router();
 
@@ -338,6 +339,8 @@ router.post('/', authenticateJWT, async (req, res) => {
     }
 
     res.status(201).json({ instance });
+
+    void awardXp(req.user!.userId, 'WORKOUT_COMPLETED', { refId: `workout:${instance.id}` });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });

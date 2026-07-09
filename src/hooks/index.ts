@@ -1,37 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Socket } from 'socket.io-client'
-import { initSocket } from '@/lib/socketClient'
+import { initSocket, getSocket } from '@/lib/socketClient'
+import { CommunityRepository, type SendMessageInput } from '@/repositories/CommunityRepository'
 
 // =============================================================================
-// API BASE
-// =============================================================================
-
-const RAW_API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
-const API_ORIGIN = RAW_API_ORIGIN.replace(/\/+$/, '')
-const API_BASE = API_ORIGIN.endsWith('/api') ? API_ORIGIN : `${API_ORIGIN}/api`
-
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
-  
-  const response = await fetch(`${API_BASE}${url}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  })
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Request failed' }))
-    throw new Error(error.error || 'Request failed')
-  }
-  
-  return response.json()
-}
-
-// =============================================================================
-// MESSAGING HOOKS
+// MESSAGE TYPE + TRANSFORM
 // =============================================================================
 
 export interface Message {
@@ -43,28 +16,28 @@ export interface Message {
     displayName: string
     avatarUrl: string | null
     role: string
+    membershipTier: string
+    level: number | null
   }
-  channelType: 'GLOBAL' | 'SQUAD' | 'DIRECT' | 'TRAINER'
+  channelType: 'GLOBAL' | 'SQUAD' | 'DIRECT' | 'TRAINER' | 'TEXT'
+  channelId: string | null
   squadId: string | null
   recipientId: string | null
   parentId: string | null
   mediaUrls: string[]
+  mentions: string[]
   isEdited: boolean
   editedAt: string | null
   isDeleted: boolean
+  isSystem: boolean
+  isPinned: boolean
   createdAt: string
-  reactions: Array<{
-    id: string
-    userId: string
-    emoji: string
-    user: { id: string; displayName: string }
-  }>
-  reactionSummary?: Record<string, { count: number; hasReacted: boolean }>
-  _count?: { replies: number }
+  reactionSummary: Record<string, { count: number; hasReacted: boolean }>
+  replyCount: number
 }
 
 // Transform backend snake_case to frontend camelCase
-function transformMessage(raw: any): Message {
+export function transformMessage(raw: any): Message {
   return {
     id: raw.id,
     content: raw.content,
@@ -74,157 +47,535 @@ function transformMessage(raw: any): Message {
       displayName: raw.sender?.display_name || 'Unknown',
       avatarUrl: raw.sender?.avatar_url || null,
       role: raw.sender?.role || 'CLIENT',
+      membershipTier: raw.sender?.membership_tier || 'FREE',
+      level: raw.sender?.stats?.level ?? null,
     },
     channelType: raw.channel_type,
-    squadId: raw.squad_id,
-    recipientId: raw.recipient_id,
-    parentId: raw.parent_id,
+    channelId: raw.channel_id ?? null,
+    squadId: raw.squad_id ?? null,
+    recipientId: raw.recipient_id ?? null,
+    parentId: raw.parent_id ?? null,
     mediaUrls: raw.media_urls || [],
+    mentions: raw.mentions || [],
     isEdited: raw.is_edited || false,
-    editedAt: raw.edited_at,
+    editedAt: raw.edited_at ?? null,
     isDeleted: raw.is_deleted || false,
+    isSystem: raw.is_system || false,
+    isPinned: raw.is_pinned || false,
     createdAt: raw.created_at,
-    reactions: (raw.reactions || []).map((r: any) => ({
-      id: r.id,
-      userId: r.user_id,
-      emoji: r.emoji,
-      user: {
-        id: r.user?.id || r.user_id,
-        displayName: r.user?.display_name || 'Unknown',
-      },
-    })),
-    reactionSummary: raw.reactionSummary || raw.reaction_summary,
-    _count: raw._count,
+    reactionSummary: raw.reactionSummary || raw.reaction_summary || {},
+    replyCount: raw._count?.replies ?? 0,
   }
 }
 
-export function useGlobalFeed() {
+// =============================================================================
+// SHARED FEED STATE HELPERS
+// =============================================================================
+
+function applyReaction(
+  messages: Message[],
+  payload: { messageId: string; emoji: string; userId: string; action: 'added' | 'removed' },
+  currentUserId: string,
+): Message[] {
+  return messages.map((m) => {
+    if (m.id !== payload.messageId) return m
+    const summary = { ...m.reactionSummary }
+    const entry = summary[payload.emoji] || { count: 0, hasReacted: false }
+    if (payload.action === 'added') {
+      summary[payload.emoji] = {
+        count: entry.count + 1,
+        hasReacted: entry.hasReacted || payload.userId === currentUserId,
+      }
+    } else {
+      const nextCount = Math.max(0, entry.count - 1)
+      if (nextCount === 0) {
+        delete summary[payload.emoji]
+      } else {
+        summary[payload.emoji] = {
+          count: nextCount,
+          hasReacted: payload.userId === currentUserId ? false : entry.hasReacted,
+        }
+      }
+    }
+    return { ...m, reactionSummary: summary }
+  })
+}
+
+export interface TypingUser {
+  userId: string
+  displayName: string
+}
+
+export interface Feed {
+  messages: Message[]
+  loading: boolean
+  hasMore: boolean
+  sendMessage: (content: string, opts?: Omit<SendMessageInput, 'content'>) => Promise<Message>
+  addReaction: (messageId: string, emoji: string) => Promise<void>
+  loadMore: () => void
+  refresh: () => void
+  typingUsers: TypingUser[]
+  emitTyping: () => void
+  connected: boolean
+}
+
+function useSocketInstance(): Socket | null {
+  const [socket, setSocket] = useState<Socket | null>(null)
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    if (!token) return
+    try {
+      setSocket(initSocket())
+    } catch {
+      setSocket(null)
+    }
+  }, [])
+  return socket
+}
+
+function useConnected(socket: Socket | null): boolean {
+  const [connected, setConnected] = useState(socket?.connected ?? false)
+  useEffect(() => {
+    if (!socket) return
+    setConnected(socket.connected)
+    const onConnect = () => setConnected(true)
+    const onDisconnect = () => setConnected(false)
+    socket.on('connect', onConnect)
+    socket.on('disconnect', onDisconnect)
+    return () => {
+      socket.off('connect', onConnect)
+      socket.off('disconnect', onDisconnect)
+    }
+  }, [socket])
+  return connected
+}
+
+function useTypingState(
+  socket: Socket | null,
+  matches: (payload: any) => boolean,
+  currentUserId: string,
+): TypingUser[] {
+  const [typing, setTyping] = useState<Record<string, { displayName: string; expires: number }>>({})
+
+  useEffect(() => {
+    if (!socket) return
+    const onTyping = (payload: any) => {
+      if (!matches(payload) || payload.userId === currentUserId) return
+      setTyping((prev) => ({
+        ...prev,
+        [payload.userId]: { displayName: payload.displayName || 'Someone', expires: Date.now() + 3000 },
+      }))
+    }
+    socket.on('typing', onTyping)
+    const interval = setInterval(() => {
+      setTyping((prev) => {
+        const now = Date.now()
+        const next = Object.fromEntries(Object.entries(prev).filter(([, v]) => v.expires > now))
+        return Object.keys(next).length === Object.keys(prev).length ? prev : next
+      })
+    }, 1000)
+    return () => {
+      socket.off('typing', onTyping)
+      clearInterval(interval)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, currentUserId])
+
+  return Object.entries(typing).map(([userId, v]) => ({ userId, displayName: v.displayName }))
+}
+
+// =============================================================================
+// CHANNEL FEED
+// =============================================================================
+
+export function useChannelFeed(channelId: string | null, currentUserId: string): Feed & {
+  pinned: Message[]
+  refreshPinned: () => void
+} {
   const [messages, setMessages] = useState<Message[]>([])
+  const [pinned, setPinned] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
-  const [cursor, setCursor] = useState<string | null>(null)
-  const socketRef = useRef<Socket | null>(null)
+  const cursorRef = useRef<string | null>(null)
+  const socket = useSocketInstance()
+  const connected = useConnected(socket)
+  const lastTypingEmit = useRef(0)
 
-  // Load messages
   const loadMessages = useCallback(async (refresh = false) => {
+    if (!channelId) return
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (!refresh && cursor) params.set('cursor', cursor)
-      
-      const data = await fetchWithAuth(`/messages/global?${params}`)
+      const data = await CommunityRepository.getChannelMessages(channelId, refresh ? undefined : cursorRef.current || undefined)
       const transformed = (data.messages || []).map(transformMessage)
-
       if (refresh) {
         setMessages(transformed)
       } else {
-        setMessages(prev => {
-          const existingIds = new Set(prev.map(m => m.id))
-          const newMessages = transformed.filter((m: Message) => !existingIds.has(m.id))
-          return [...prev, ...newMessages]
+        setMessages((prev) => {
+          const existing = new Set(prev.map((m) => m.id))
+          return [...prev, ...transformed.filter((m) => !existing.has(m.id))]
         })
       }
-      setCursor(data.nextCursor)
+      cursorRef.current = data.nextCursor
       setHasMore(data.hasMore)
     } catch (err) {
-      console.error('Failed to load global feed:', err)
+      console.error('Failed to load channel feed:', err)
     } finally {
       setLoading(false)
     }
-  }, [cursor])
+  }, [channelId])
 
-  // Initial load
+  const refreshPinned = useCallback(() => {
+    if (!channelId) return
+    CommunityRepository.getPinnedMessages(channelId)
+      .then((data) => setPinned((data.messages || []).map(transformMessage)))
+      .catch(() => setPinned([]))
+  }, [channelId])
+
+  // Initial + channel-change load
   useEffect(() => {
-    loadMessages(true)
-  }, [])
+    setMessages([])
+    setPinned([])
+    cursorRef.current = null
+    setHasMore(true)
+    if (channelId) {
+      loadMessages(true)
+      refreshPinned()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channelId])
 
-  // Real-time updates (shared socket connection)
+  // Socket room + listeners
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
-    if (!token) return
+    if (!socket || !channelId) return
 
-    let socket: Socket
-    try {
-      socket = initSocket()
-    } catch {
-      return
+    socket.emit('join:channel', channelId)
+
+    const onMessage = ({ channelId: cid, message: raw }: any) => {
+      if (cid !== channelId) return
+      const msg = transformMessage(raw)
+      if (msg.parentId) {
+        // Reply: bump the parent's thread count instead of inserting top-level.
+        setMessages((prev) => prev.map((m) => (m.id === msg.parentId ? { ...m, replyCount: m.replyCount + 1 } : m)))
+        return
+      }
+      setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [msg, ...prev]))
     }
 
-    const onGlobal = (rawMessage: any) => {
-      const msg = transformMessage(rawMessage)
-      setMessages(prev => {
-        if (prev.some(m => m.id === msg.id)) return prev
-        return [msg, ...prev]
-      })
-    }
-
-    const onUpdated = (rawUpdated: any) => {
-      const updated = transformMessage(rawUpdated)
-      setMessages(prev => prev.map(m => m.id === updated.id ? updated : m))
+    const onUpdated = (raw: any) => {
+      const updated = transformMessage(raw)
+      setMessages((prev) => prev.map((m) => (m.id === updated.id ? { ...m, ...updated, replyCount: m.replyCount } : m)))
     }
 
     const onDeleted = ({ id }: { id: string }) => {
-      setMessages(prev => prev.filter(m => m.id !== id))
+      setMessages((prev) => prev.filter((m) => m.id !== id))
+      setPinned((prev) => prev.filter((m) => m.id !== id))
     }
 
-    const onReaction = ({ messageId, emoji, userId, action }: any) => {
-      setMessages(prev => prev.map(m => {
-        if (m.id !== messageId) return m
-
-        if (action === 'added') {
-          return {
-            ...m,
-            reactions: [...m.reactions, { id: '', userId, emoji, user: { id: userId, displayName: '' } }],
-          }
-        } else {
-          return {
-            ...m,
-            reactions: m.reactions.filter(r => !(r.userId === userId && r.emoji === emoji)),
-          }
-        }
-      }))
+    const onReaction = (payload: any) => {
+      setMessages((prev) => applyReaction(prev, payload, currentUserId))
     }
 
-    socket.on('message:global', onGlobal)
+    const onPinned = ({ channelId: cid, message: raw }: any) => {
+      if (cid !== channelId || !raw) return
+      const msg = transformMessage(raw)
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, isPinned: true } : m)))
+      setPinned((prev) => (prev.some((m) => m.id === msg.id) ? prev : [msg, ...prev]))
+    }
+
+    const onUnpinned = ({ messageId, channelId: cid }: any) => {
+      if (cid !== channelId) return
+      setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, isPinned: false } : m)))
+      setPinned((prev) => prev.filter((m) => m.id !== messageId))
+    }
+
+    socket.on('message:channel', onMessage)
+    socket.on('message:updated', onUpdated)
+    socket.on('message:deleted', onDeleted)
+    socket.on('message:reaction', onReaction)
+    socket.on('message:pinned', onPinned)
+    socket.on('message:unpinned', onUnpinned)
+
+    return () => {
+      socket.emit('leave:channel', channelId)
+      socket.off('message:channel', onMessage)
+      socket.off('message:updated', onUpdated)
+      socket.off('message:deleted', onDeleted)
+      socket.off('message:reaction', onReaction)
+      socket.off('message:pinned', onPinned)
+      socket.off('message:unpinned', onUnpinned)
+    }
+  }, [socket, channelId, currentUserId])
+
+  const typingUsers = useTypingState(socket, (p) => p.channelId === channelId, currentUserId)
+
+  const emitTyping = useCallback(() => {
+    if (!socket?.connected || !channelId) return
+    const now = Date.now()
+    if (now - lastTypingEmit.current < 2000) return
+    lastTypingEmit.current = now
+    socket.emit('typing', { channelId })
+  }, [socket, channelId])
+
+  const sendMessage = useCallback(async (content: string, opts: Omit<SendMessageInput, 'content'> = {}) => {
+    if (!channelId) throw new Error('No channel selected')
+    const raw = await CommunityRepository.sendChannelMessage(channelId, { content, ...opts })
+    return transformMessage(raw)
+  }, [channelId])
+
+  const addReaction = useCallback(async (messageId: string, emoji: string) => {
+    await CommunityRepository.toggleReaction(messageId, emoji)
+  }, [])
+
+  const loadMore = useCallback(() => {
+    if (!loading && hasMore) loadMessages()
+  }, [loading, hasMore, loadMessages])
+
+  return {
+    messages,
+    pinned,
+    refreshPinned,
+    loading,
+    hasMore,
+    sendMessage,
+    addReaction,
+    loadMore,
+    refresh: () => loadMessages(true),
+    typingUsers,
+    emitTyping,
+    connected,
+  }
+}
+
+// =============================================================================
+// SQUAD FEED
+// =============================================================================
+
+export function useSquadFeed(squadId: string | null, currentUserId: string): Feed & {
+  squad: any | null
+  membership: any | null
+} {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [squad, setSquad] = useState<any | null>(null)
+  const [membership, setMembership] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
+  const socket = useSocketInstance()
+  const connected = useConnected(socket)
+  const lastTypingEmit = useRef(0)
+
+  const load = useCallback(async () => {
+    if (!squadId) return
+    try {
+      setLoading(true)
+      const data = await CommunityRepository.getSquad(squadId)
+      setSquad(data.squad)
+      setMembership(data.membership)
+      setMessages((data.messages || []).map(transformMessage))
+      void CommunityRepository.markSquadSeen(squadId).catch(() => undefined)
+    } catch (err) {
+      console.error('Failed to load squad:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [squadId])
+
+  useEffect(() => {
+    setMessages([])
+    setSquad(null)
+    setMembership(null)
+    if (squadId) load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [squadId])
+
+  useEffect(() => {
+    if (!socket || !squadId) return
+
+    socket.emit('join:squad', squadId)
+
+    const onMessage = (raw: any) => {
+      if (raw.squad_id !== squadId) return
+      const msg = transformMessage(raw)
+      if (msg.parentId) {
+        setMessages((prev) => prev.map((m) => (m.id === msg.parentId ? { ...m, replyCount: m.replyCount + 1 } : m)))
+        return
+      }
+      setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]))
+      void CommunityRepository.markSquadSeen(squadId).catch(() => undefined)
+    }
+
+    const onUpdated = (raw: any) => {
+      const updated = transformMessage(raw)
+      setMessages((prev) => prev.map((m) => (m.id === updated.id ? { ...m, ...updated, replyCount: m.replyCount } : m)))
+    }
+
+    const onDeleted = ({ id }: { id: string }) => {
+      setMessages((prev) => prev.filter((m) => m.id !== id))
+    }
+
+    const onReaction = (payload: any) => {
+      setMessages((prev) => applyReaction(prev, payload, currentUserId))
+    }
+
+    const onMemberChange = () => load()
+
+    socket.on('message:squad', onMessage)
+    socket.on('message:updated', onUpdated)
+    socket.on('message:deleted', onDeleted)
+    socket.on('message:reaction', onReaction)
+    socket.on('squad:member-joined', onMemberChange)
+    socket.on('squad:member-left', onMemberChange)
+
+    return () => {
+      socket.emit('leave:squad', squadId)
+      socket.off('message:squad', onMessage)
+      socket.off('message:updated', onUpdated)
+      socket.off('message:deleted', onDeleted)
+      socket.off('message:reaction', onReaction)
+      socket.off('squad:member-joined', onMemberChange)
+      socket.off('squad:member-left', onMemberChange)
+    }
+  }, [socket, squadId, currentUserId, load])
+
+  const typingUsers = useTypingState(socket, (p) => p.squadId === squadId, currentUserId)
+
+  const emitTyping = useCallback(() => {
+    if (!socket?.connected || !squadId) return
+    const now = Date.now()
+    if (now - lastTypingEmit.current < 2000) return
+    lastTypingEmit.current = now
+    socket.emit('typing', { squadId })
+  }, [socket, squadId])
+
+  const sendMessage = useCallback(async (content: string, opts: Omit<SendMessageInput, 'content'> = {}) => {
+    if (!squadId) throw new Error('No squad selected')
+    const raw = await CommunityRepository.sendSquadMessage(squadId, { content, ...opts })
+    return transformMessage(raw)
+  }, [squadId])
+
+  const addReaction = useCallback(async (messageId: string, emoji: string) => {
+    await CommunityRepository.toggleReaction(messageId, emoji)
+  }, [])
+
+  return {
+    messages,
+    squad,
+    membership,
+    loading,
+    hasMore: false,
+    sendMessage,
+    addReaction,
+    loadMore: () => undefined,
+    refresh: load,
+    typingUsers,
+    emitTyping,
+    connected,
+  }
+}
+
+// =============================================================================
+// DIRECT MESSAGE FEED
+// =============================================================================
+
+export function useDirectFeed(peerId: string | null, currentUserId: string): Feed {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [loading, setLoading] = useState(true)
+  const [hasMore, setHasMore] = useState(true)
+  const cursorRef = useRef<string | null>(null)
+  const socket = useSocketInstance()
+  const connected = useConnected(socket)
+  const lastTypingEmit = useRef(0)
+
+  const load = useCallback(async (refresh = false) => {
+    if (!peerId) return
+    try {
+      setLoading(true)
+      const data = await CommunityRepository.getDirectMessages(peerId, refresh ? undefined : cursorRef.current || undefined)
+      const transformed = (data.messages || []).map(transformMessage)
+      if (refresh) {
+        setMessages(transformed)
+      } else {
+        setMessages((prev) => {
+          const existing = new Set(prev.map((m) => m.id))
+          return [...transformed.filter((m) => !existing.has(m.id)), ...prev]
+        })
+      }
+      cursorRef.current = data.nextCursor
+      setHasMore(data.hasMore)
+      void CommunityRepository.markConversationRead(peerId).catch(() => undefined)
+    } catch (err) {
+      console.error('Failed to load conversation:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [peerId])
+
+  useEffect(() => {
+    setMessages([])
+    cursorRef.current = null
+    setHasMore(true)
+    if (peerId) load(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peerId])
+
+  useEffect(() => {
+    if (!socket || !peerId) return
+
+    const onDirect = (raw: any) => {
+      const msg = transformMessage(raw)
+      const isThisConversation =
+        (msg.senderId === peerId && msg.recipientId === currentUserId) ||
+        (msg.senderId === currentUserId && msg.recipientId === peerId)
+      if (!isThisConversation) return
+      setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]))
+      if (msg.senderId === peerId) {
+        void CommunityRepository.markConversationRead(peerId).catch(() => undefined)
+      }
+    }
+
+    const onUpdated = (raw: any) => {
+      const updated = transformMessage(raw)
+      setMessages((prev) => prev.map((m) => (m.id === updated.id ? { ...m, ...updated } : m)))
+    }
+
+    const onDeleted = ({ id }: { id: string }) => {
+      setMessages((prev) => prev.filter((m) => m.id !== id))
+    }
+
+    const onReaction = (payload: any) => {
+      setMessages((prev) => applyReaction(prev, payload, currentUserId))
+    }
+
+    socket.on('message:direct', onDirect)
     socket.on('message:updated', onUpdated)
     socket.on('message:deleted', onDeleted)
     socket.on('message:reaction', onReaction)
 
-    socketRef.current = socket
-
     return () => {
-      socket.off('message:global', onGlobal)
+      socket.off('message:direct', onDirect)
       socket.off('message:updated', onUpdated)
       socket.off('message:deleted', onDeleted)
       socket.off('message:reaction', onReaction)
     }
-  }, [])
+  }, [socket, peerId, currentUserId])
 
-  const sendMessage = useCallback(async (content: string, mediaUrls?: string[]) => {
-    const data = await fetchWithAuth('/messages', {
-      method: 'POST',
-      body: JSON.stringify({
-        content,
-        channelType: 'GLOBAL',
-        mediaUrls,
-      }),
-    })
-    // Message will be added via socket event
-    return data.message
-  }, [])
+  const typingUsers = useTypingState(socket, (p) => p.dmUserId === peerId, currentUserId)
+
+  const emitTyping = useCallback(() => {
+    if (!socket?.connected || !peerId) return
+    const now = Date.now()
+    if (now - lastTypingEmit.current < 2000) return
+    lastTypingEmit.current = now
+    socket.emit('typing', { dmUserId: peerId })
+  }, [socket, peerId])
+
+  const sendMessage = useCallback(async (content: string, opts: Omit<SendMessageInput, 'content'> = {}) => {
+    if (!peerId) throw new Error('No conversation selected')
+    const raw = await CommunityRepository.sendDirectMessage(peerId, { content, ...opts })
+    return transformMessage(raw)
+  }, [peerId])
 
   const addReaction = useCallback(async (messageId: string, emoji: string) => {
-    await fetchWithAuth(`/messages/${messageId}/reactions`, {
-      method: 'POST',
-      body: JSON.stringify({ emoji }),
-    })
+    await CommunityRepository.toggleReaction(messageId, emoji)
   }, [])
-
-  const loadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      loadMessages()
-    }
-  }, [loading, hasMore, loadMessages])
 
   return {
     messages,
@@ -232,20 +583,54 @@ export function useGlobalFeed() {
     hasMore,
     sendMessage,
     addReaction,
-    loadMore,
-    refresh: () => loadMessages(true),
+    loadMore: () => {
+      if (!loading && hasMore) load()
+    },
+    refresh: () => load(true),
+    typingUsers,
+    emitTyping,
+    connected,
   }
+}
+
+// =============================================================================
+// PRESENCE
+// =============================================================================
+
+export function usePresence(): { online: number; userIds: string[] } {
+  const socket = useSocketInstance()
+  const [presence, setPresence] = useState<{ online: number; userIds: string[] }>({ online: 0, userIds: [] })
+
+  useEffect(() => {
+    if (!socket) return
+    const onPresence = (payload: { online: number; userIds: string[] }) => setPresence(payload)
+    socket.on('presence:update', onPresence)
+    return () => {
+      socket.off('presence:update', onPresence)
+    }
+  }, [socket])
+
+  return presence
 }
 
 // =============================================================================
 // MEDIA UPLOAD HOOK
 // =============================================================================
 
-export function useMediaUpload() {
+const RAW_API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_ORIGIN = RAW_API_ORIGIN.replace(/\/+$/, '')
+const API_BASE = API_ORIGIN.endsWith('/api') ? API_ORIGIN : `${API_ORIGIN}/api`
+
+export function useMediaUpload(maxBytes?: number) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
 
   const upload = useCallback(async (file: File): Promise<string> => {
+    if (maxBytes && file.size > maxBytes) {
+      const mb = Math.round(maxBytes / (1024 * 1024))
+      throw { error: `File exceeds your plan's ${mb}MB upload limit`, status: 413, meta: { code: 'TIER_LIMIT' } }
+    }
+
     setUploading(true)
     setProgress(0)
 
@@ -268,7 +653,11 @@ export function useMediaUpload() {
             const data = JSON.parse(xhr.responseText)
             resolve(data.publicUrl)
           } else {
-            reject(new Error('Upload failed'))
+            let parsed: any = null
+            try {
+              parsed = JSON.parse(xhr.responseText)
+            } catch { /* not json */ }
+            reject(parsed ? { ...parsed, status: xhr.status } : new Error('Upload failed'))
           }
         }
 
@@ -285,12 +674,9 @@ export function useMediaUpload() {
       setUploading(false)
       setProgress(0)
     }
-  }, [])
+  }, [maxBytes])
 
   return { upload, uploading, progress }
 }
 
-export default {
-  useGlobalFeed,
-  useMediaUpload,
-}
+export { getSocket }

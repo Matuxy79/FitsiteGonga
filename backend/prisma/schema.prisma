@@ -22,6 +22,18 @@ model User {
   subscription_status SubscriptionStatus @default(ACTIVE)
   trial_ends_at DateTime?
   is_active     Boolean  @default(true)
+
+  // Stripe billing (one subscription per user)
+  stripe_customer_id     String?  @unique
+  stripe_subscription_id String?  @unique
+  stripe_price_id        String?
+  current_period_end     DateTime?
+  cancel_at_period_end   Boolean  @default(false)
+
+  // Community moderation
+  community_muted_until  DateTime?
+  community_mute_reason  String?
+  community_muted_by     String?
   fitness_level FitnessLevel @default(BEGINNER)
   goals         String[] @default([])
   created_at    DateTime @default(now())
@@ -71,6 +83,13 @@ model User {
   // Trainer Relationships
   trainer_relationships TrainerClient[] @relation("TrainerRole")
   client_relationships  TrainerClient[] @relation("ClientRole")
+
+  // Community expansion
+  message_reports_filed   MessageReport[] @relation("ReportReporter")
+  notifications_received  Notification[]  @relation("NotificationRecipient")
+  notifications_acted     Notification[]  @relation("NotificationActor")
+  stats                   UserStats?
+  xp_events               XpEvent[]
 
   @@index([email])
   @@index([role])
@@ -188,10 +207,20 @@ model Message {
   edited_at     DateTime?
   is_deleted    Boolean      @default(false)
   deleted_at    DateTime?
-  
+  deleted_by    String?      // user id of deleter (sender, squad mod, or admin)
+  deleted_reason String?
+
+  is_system     Boolean      @default(false)  // gamification/system cards (e.g. #wins auto-posts)
+  mentions      String[]     @default([])     // mentioned user ids
+
+  is_pinned     Boolean      @default(false)
+  pinned_at     DateTime?
+  pinned_by     String?
+
   created_at    DateTime     @default(now())
-  
+
   reactions     MessageReaction[]
+  reports       MessageReport[]
 
   @@index([sender_id])
   @@index([squad_id])
@@ -200,6 +229,7 @@ model Message {
   @@index([channel_type])
   @@index([created_at(sort: Desc)])
   @@index([parent_id])
+  @@index([channel_id, is_pinned])
   @@map("messages")
 }
 
@@ -257,7 +287,8 @@ model SquadMember {
   
   role        SquadRole @default(MEMBER)
   joined_at   DateTime  @default(now())
-  
+  last_seen_at DateTime @default(now())
+
   notifications_enabled Boolean @default(true)
   
   @@unique([squad_id, user_id])
@@ -733,16 +764,23 @@ model NutritionLog {
 
 model Channel {
   id          String   @id @default(uuid())
-  squad_id    String
-  squad       Squad    @relation(fields: [squad_id], references: [id], onDelete: Cascade)
-  
+  squad_id    String?  // null = top-level global channel
+  squad       Squad?   @relation(fields: [squad_id], references: [id], onDelete: Cascade)
+
+  slug        String?  @unique // 'general', 'wins', ... global channels only
   name        String
   description String?
   channel_type ChannelType @default(SQUAD)
-  
-  created_by  String
-  user        User     @relation(fields: [created_by], references: [id], onDelete: Cascade)
-  
+  emoji       String?  // sidebar icon hint, e.g. "🏆"
+
+  required_tier  MembershipTier       @default(FREE) // FREE = everyone; PAID = paid/admin only
+  posting_policy ChannelPostingPolicy @default(EVERYONE)
+  is_default  Boolean  @default(false) // the #general channel
+  sort_order  Int      @default(0)
+
+  created_by  String?  // null = system-seeded
+  user        User?    @relation(fields: [created_by], references: [id], onDelete: Cascade)
+
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
@@ -750,7 +788,115 @@ model Channel {
   messages    Message[]
 
   @@index([squad_id, is_active])
+  @@index([squad_id, sort_order])
   @@map("channels")
+}
+
+// =============================================================================
+// COMMUNITY MODERATION
+// =============================================================================
+
+model MessageReport {
+  id            String   @id @default(uuid())
+  message_id    String
+  message       Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  reporter_id   String
+  reporter      User     @relation("ReportReporter", fields: [reporter_id], references: [id], onDelete: Cascade)
+
+  reason        ReportReason
+  details       String?
+  status        ReportStatus @default(OPEN)
+  resolved_by   String?
+  resolved_at   DateTime?
+  resolution_note String?
+  created_at    DateTime @default(now())
+
+  @@unique([message_id, reporter_id])
+  @@index([status, created_at(sort: Desc)])
+  @@map("message_reports")
+}
+
+// =============================================================================
+// NOTIFICATIONS
+// =============================================================================
+
+model Notification {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation("NotificationRecipient", fields: [user_id], references: [id], onDelete: Cascade)
+  actor_id   String?
+  actor      User?    @relation("NotificationActor", fields: [actor_id], references: [id], onDelete: SetNull)
+
+  type       NotificationType
+  title      String
+  body       String?
+  link       String?  // frontend route, e.g. /dashboard/community?channel=general
+  ref_id     String?
+  read_at    DateTime?
+  created_at DateTime @default(now())
+
+  @@index([user_id, read_at])
+  @@index([user_id, created_at(sort: Desc)])
+  @@map("notifications")
+}
+
+// =============================================================================
+// GAMIFICATION (XP / LEVELS / STREAKS)
+// =============================================================================
+
+model UserStats {
+  id                 String   @id @default(uuid())
+  user_id            String   @unique
+  user               User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  xp                 Int      @default(0)
+  level              Int      @default(1)
+  current_streak     Int      @default(0)
+  longest_streak     Int      @default(0)
+  last_active_date   DateTime? // midnight-truncated UTC
+
+  messages_sent      Int      @default(0)
+  reactions_given    Int      @default(0)
+  reactions_received Int      @default(0)
+  workouts_completed Int      @default(0)
+  progress_logs      Int      @default(0)
+  challenges_joined  Int      @default(0)
+  squads_joined      Int      @default(0)
+  squads_created     Int      @default(0)
+  friends_count      Int      @default(0)
+  updated_at         DateTime @updatedAt
+
+  @@index([xp(sort: Desc)])
+  @@map("user_stats")
+}
+
+model XpEvent {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  amount     Int
+  source     XpSource
+  ref_id     String?  // dedupe key, e.g. "reaction:<messageId>:<emoji>:<reactorId>"
+  created_at DateTime @default(now())
+
+  @@index([user_id, source, created_at])
+  @@index([user_id, source, ref_id])
+  @@index([created_at(sort: Desc)])
+  @@map("xp_events")
+}
+
+// =============================================================================
+// DM READ TRACKING
+// =============================================================================
+
+model ConversationRead {
+  id           String   @id @default(uuid())
+  user_id      String
+  peer_id      String
+  last_read_at DateTime @default(now())
+
+  @@unique([user_id, peer_id])
+  @@map("conversation_reads")
 }
 
 // =============================================================================
@@ -843,6 +989,53 @@ enum FriendshipStatus {
   PENDING
   ACCEPTED
   BLOCKED
+}
+
+enum ChannelPostingPolicy {
+  EVERYONE
+  ADMIN_ONLY
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE
+  OFF_TOPIC
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum NotificationType {
+  REPLY
+  MENTION
+  SQUAD_INVITE
+  FRIEND_REQUEST
+  FRIEND_ACCEPTED
+  DIRECT_MESSAGE
+  ACHIEVEMENT
+  LEVEL_UP
+  ANNOUNCEMENT
+  MODERATION
+}
+
+enum XpSource {
+  MESSAGE
+  REPLY_RECEIVED
+  REACTION_RECEIVED
+  REACTION_GIVEN
+  WORKOUT_COMPLETED
+  PROGRESS_LOG
+  CHALLENGE_JOINED
+  SQUAD_JOINED
+  SQUAD_CREATED
+  FRIEND_ADDED
+  ACHIEVEMENT
+  STREAK_BONUS
 }
 
 enum WeightUnit {

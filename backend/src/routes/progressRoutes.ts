@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { progressRepository } from '../repositories/progressRepository';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
 import { getIO } from '../socket/socketServer';
+import { awardXp } from '../services/xpService';
 
 const router: Router = Router();
 
@@ -90,6 +91,8 @@ router.post('/', authenticateJWT, async (req, res) => {
     });
 
     res.status(201).json({ data: log });
+
+    void awardXp(req.user!.userId, 'PROGRESS_LOG', { refId: `progress:${log.id}` });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Validation error', details: error.errors });

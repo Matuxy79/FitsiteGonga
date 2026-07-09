@@ -10,6 +10,10 @@ import workoutRoutes from './workoutRoutes';
 import programRoutes from './programRoutes';
 import nutritionRoutes from './nutritionRoutes';
 import channelRoutes from './channelRoutes';
+import communityRoutes from './communityRoutes';
+import friendRoutes from './friendRoutes';
+import notificationRoutes from './notificationRoutes';
+import billingRoutes from './billingRoutes';
 import { storageService } from '../services/storageService';
 
 export const initRoutes = (app: Express) => {
@@ -23,6 +27,10 @@ export const initRoutes = (app: Express) => {
   app.use('/api/workouts', workoutRoutes);
   app.use('/api/programs', programRoutes);
   app.use('/api/nutrition', nutritionRoutes);
+  app.use('/api/community', communityRoutes);
+  app.use('/api/friends', friendRoutes);
+  app.use('/api/notifications', notificationRoutes);
+  app.use('/api/billing', billingRoutes);
   app.use('/api/messages/squads/:squadId/channels', channelRoutes);
 
   app.get('/api/media/*', async (req, res) => {

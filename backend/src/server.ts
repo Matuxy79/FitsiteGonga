@@ -9,6 +9,8 @@ import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { initSocketServer, setIO, SocketIOServer } from './socket/socketServer';
 import { initRoutes } from './routes';
+import { stripeWebhookHandler } from './routes/billingWebhook';
+import { bootstrapCommunity } from './services/communityBootstrap';
 
 const app = express();
 const httpServer = createServer(app);
@@ -36,8 +38,14 @@ app.use(rateLimit({
   limit: 200,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
-  skip: (req) => req.path === '/health',
+  // Stripe retries can burst; its webhook authenticates via signature instead.
+  skip: (req) => req.path === '/health' || req.path === '/api/billing/webhook',
 }));
+
+// Stripe webhook needs the raw body for signature verification, so it must be
+// mounted before express.json() consumes the stream.
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), stripeWebhookHandler);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -86,6 +94,9 @@ httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📡 Socket.io server initialized`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  // Idempotent seed of global channels + achievement catalog.
+  void bootstrapCommunity();
 });
 
 // Graceful shutdown
