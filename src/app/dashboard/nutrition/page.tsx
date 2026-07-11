@@ -6,12 +6,8 @@ import { NutritionRepository, type Meal, type MealType } from '@/repositories/Nu
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
 import { Apple, Loader2, Plus, Camera, Trash2 } from 'lucide-react'
+import { mediaUrl } from '@/lib/media'
 
-function mediaUrl(key?: string) {
-  if (!key) return undefined
-  if (key.startsWith('http')) return key
-  return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/media/${key}`
-}
 
 export default function NutritionPage() {
   const { user } = useAuth()
@@ -88,7 +84,7 @@ export default function NutritionPage() {
               <div className="flex flex-col md:flex-row gap-6">
                 {meal.image_url && (
                   <img
-                    src={mediaUrl(meal.image_url)}
+                    src={mediaUrl(meal.image_url) ?? undefined}
                     alt={meal.name}
                     className="w-full md:w-64 h-48 object-cover rounded-2xl"
                   />
@@ -141,7 +137,7 @@ export default function NutritionPage() {
                     </button>
                   )}
                   {m.image_url && (
-                    <img src={mediaUrl(m.image_url)} alt={m.name} className="w-full h-32 object-cover rounded-xl mb-3" />
+                    <img src={mediaUrl(m.image_url) ?? undefined} alt={m.name} className="w-full h-32 object-cover rounded-xl mb-3" />
                   )}
                   <span className="text-xs font-bold uppercase text-[#ff5d4f]">{m.meal_type}</span>
                   <h3 className="font-bold mt-1">{m.name}</h3>

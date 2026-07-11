@@ -9,6 +9,7 @@ import { Camera, ShieldCheck, Crown, Users, Loader2, Check, Lock, Sparkles, KeyR
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
+import { mediaUrl } from '@/lib/media'
 
 const TIER_STEPS = [
   { key: 'FREE', label: 'Free', icon: Users },
@@ -42,11 +43,6 @@ function initials(name: string) {
     .toUpperCase()
 }
 
-function avatarUrl(key?: string | null) {
-  if (!key) return undefined
-  if (key.startsWith('http')) return key
-  return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/media/${key}`
-}
 
 export default function SettingsPage() {
   const { user, loading, refreshUser } = useAuth()
@@ -237,7 +233,7 @@ export default function SettingsPage() {
             className="relative w-24 h-24 rounded-full overflow-hidden group border-4 border-white shadow-lg disabled:opacity-60"
           >
             {user?.avatar_url ? (
-              <img src={avatarUrl(user.avatar_url)} alt="" className="w-full h-full object-cover" />
+              <img src={mediaUrl(user.avatar_url) ?? undefined} alt="" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-[#ff5d4f] to-[#ff8a80] flex items-center justify-center text-white text-2xl font-bold">
                 {initials(user?.display_name || 'GF')}

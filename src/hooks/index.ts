@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Socket } from 'socket.io-client'
 import { initSocket, getSocket } from '@/lib/socketClient'
 import { CommunityRepository, type SendMessageInput } from '@/repositories/CommunityRepository'
+import { API_URL } from '@/lib/apiClient'
 
 // =============================================================================
 // MESSAGE TYPE + TRANSFORM
@@ -617,13 +618,8 @@ export function usePresence(): { online: number; userIds: string[] } {
 // MEDIA UPLOAD HOOK
 // =============================================================================
 
-const RAW_API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
-const API_ORIGIN_RAW = RAW_API_ORIGIN.replace(/\/+$/, '')
-// Ensure protocol prefix so XHR doesn't treat it as a relative path
-const API_ORIGIN = API_ORIGIN_RAW.startsWith('http') || API_ORIGIN_RAW.startsWith('/')
-  ? API_ORIGIN_RAW
-  : `https://${API_ORIGIN_RAW}`
-const API_BASE = API_ORIGIN.endsWith('/api') ? API_ORIGIN : `${API_ORIGIN}/api`
+// Reuse the validated backend URL from apiClient (includes protocol + no trailing slash)
+const API_BASE = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`
 
 export function useMediaUpload(maxBytes?: number) {
   const [uploading, setUploading] = useState(false)

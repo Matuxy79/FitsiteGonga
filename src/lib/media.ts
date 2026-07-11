@@ -1,7 +1,4 @@
-let API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
-if (API_URL && !API_URL.startsWith('http') && !API_URL.startsWith('/')) {
-  API_URL = `https://${API_URL}`
-}
+import { API_URL } from '@/lib/apiClient'
 
 /**
  * Resolves a stored media key (e.g. "avatars/<id>.jpg") or an already-absolute

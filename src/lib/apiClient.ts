@@ -7,6 +7,11 @@ let API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 if (API_URL && !API_URL.startsWith('http') && !API_URL.startsWith('/')) {
   API_URL = `https://${API_URL}`;
 }
+// Strip trailing slashes for consistent concatenation
+API_URL = API_URL.replace(/\/+$/, '');
+
+/** Resolved backend origin with protocol, for use by other modules (e.g. XHR uploads). */
+export { API_URL };
 
 export interface ApiError {
   error: string;
