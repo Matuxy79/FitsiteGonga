@@ -84,7 +84,7 @@ export function AchievementToast() {
             initial={{ opacity: 0, y: -30, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="flex items-center gap-3 px-5 py-3.5 bg-zinc-950/95 backdrop-blur border border-amber-500/40 rounded-2xl shadow-[0_0_40px_rgba(245,158,11,0.25)]"
+            className="flex items-center gap-3 px-5 py-3.5 bg-white/95 backdrop-blur border border-amber-400 rounded-2xl shadow-lg shadow-amber-500/20"
           >
             <motion.span
               className="text-3xl"
@@ -95,8 +95,8 @@ export function AchievementToast() {
               {current.icon}
             </motion.span>
             <div>
-              <div className="text-sm font-bold text-amber-300">{current.title}</div>
-              <div className="text-xs text-slate-400">{current.subtitle}</div>
+              <div className="text-sm font-bold text-amber-600">{current.title}</div>
+              <div className="text-xs text-clean-muted">{current.subtitle}</div>
             </div>
           </motion.div>
         )}

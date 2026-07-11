@@ -39,13 +39,13 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              'w-full bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl overflow-hidden',
+              'w-full bg-white border border-clean-border rounded-2xl shadow-2xl overflow-hidden',
               wide ? 'max-w-2xl' : 'max-w-md',
             )}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
-              <h3 className="text-sm font-semibold text-slate-100">{title}</h3>
-              <button onClick={onClose} className="p-1 hover:bg-white/5 rounded-lg text-slate-500 hover:text-slate-300">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-clean-border bg-gray-50/50">
+              <h3 className="text-sm font-semibold text-clean-text">{title}</h3>
+              <button onClick={onClose} className="p-1 hover:bg-clean-hover rounded-lg text-clean-muted hover:text-clean-text">
                 <X className="w-4 h-4" />
               </button>
             </div>

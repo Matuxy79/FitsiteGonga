@@ -150,15 +150,15 @@ export function ChatPanel({
   )
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 relative min-w-0">
+    <div className="h-full flex flex-col bg-white relative min-w-0">
       {header}
 
       {/* Pinned bar */}
       {pinned.length > 0 && (
-        <div className="border-b border-white/5 bg-amber-500/[0.03]">
+        <div className="border-b border-clean-border bg-amber-50">
           <button
             onClick={() => setShowPinned((v) => !v)}
-            className="w-full flex items-center gap-2 px-4 py-2 text-xs text-amber-400/90 hover:bg-white/[0.02]"
+            className="w-full flex items-center gap-2 px-4 py-2 text-xs text-amber-700 hover:bg-amber-100 transition-colors"
           >
             <Pin className="w-3.5 h-3.5" />
             {pinned.length} pinned {pinned.length === 1 ? 'message' : 'messages'}
@@ -185,12 +185,12 @@ export function ChatPanel({
       <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-4">
         {feed.loading && (
           <div className="flex items-center justify-center py-4">
-            <Loader2 className="w-5 h-5 text-[#ff8a80] animate-spin" />
+            <Loader2 className="w-5 h-5 text-clean-accent animate-spin" />
           </div>
         )}
 
         {!feed.loading && chronological.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-2">
+          <div className="h-full flex flex-col items-center justify-center text-clean-muted gap-2">
             <span className="text-3xl">💬</span>
             <p className="text-sm">No messages yet — start the conversation!</p>
           </div>
@@ -199,11 +199,11 @@ export function ChatPanel({
         {Object.entries(grouped).map(([date, dayMessages]) => (
           <div key={date}>
             <div className="flex items-center gap-4 my-6">
-              <div className="flex-1 h-px bg-white/5" />
-              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+              <div className="flex-1 h-px bg-clean-border" />
+              <span className="text-[10px] font-mono text-clean-muted uppercase tracking-wider">
                 {formatDateDivider(date)}
               </span>
-              <div className="flex-1 h-px bg-white/5" />
+              <div className="flex-1 h-px bg-clean-border" />
             </div>
 
             {dayMessages.map((message, idx) => {
@@ -224,11 +224,11 @@ export function ChatPanel({
 
       {/* Typing indicator */}
       {feed.typingUsers.length > 0 && (
-        <div className="px-4 py-1 text-xs text-slate-500 flex items-center gap-2">
+        <div className="px-4 py-1 text-xs text-clean-muted flex items-center gap-2">
           <span className="flex gap-0.5">
-            <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce [animation-delay:0ms]" />
-            <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce [animation-delay:150ms]" />
-            <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce [animation-delay:300ms]" />
+            <span className="w-1 h-1 bg-clean-muted rounded-full animate-bounce [animation-delay:0ms]" />
+            <span className="w-1 h-1 bg-clean-muted rounded-full animate-bounce [animation-delay:150ms]" />
+            <span className="w-1 h-1 bg-clean-muted rounded-full animate-bounce [animation-delay:300ms]" />
           </span>
           {feed.typingUsers
             .slice(0, 3)
@@ -246,7 +246,7 @@ export function ChatPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             onClick={scrollToBottom}
-            className="absolute bottom-24 right-6 p-2 bg-[#E8453C] rounded-full shadow-lg hover:bg-[#ff5d4f] transition-colors z-30"
+            className="absolute bottom-24 right-6 p-2 bg-clean-accent rounded-full shadow-lg hover:bg-clean-accent/90 transition-colors z-30"
           >
             <ChevronDown className="w-5 h-5 text-white" />
           </motion.button>
@@ -286,22 +286,22 @@ export function ChatHeader({
   right?: ReactNode
 }) {
   return (
-    <div className="h-14 px-4 border-b border-white/5 flex items-center justify-between bg-black/40 shrink-0">
+    <div className="h-14 px-4 border-b border-clean-border flex items-center justify-between bg-clean-bg shrink-0">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#E8453C] to-[#ff8a80] flex items-center justify-center shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-clean-accent text-white flex items-center justify-center shrink-0">
           {icon}
         </div>
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-slate-100 truncate">{title}</div>
-          {subtitle && <div className="text-xs text-slate-500 truncate">{subtitle}</div>}
+          <div className="text-sm font-semibold text-clean-text truncate">{title}</div>
+          {subtitle && <div className="text-xs text-clean-muted truncate">{subtitle}</div>}
         </div>
       </div>
       <div className="flex items-center gap-3 shrink-0">
         {typeof online === 'number' && online > 0 && (
-          <span className="text-xs text-slate-500">{online} online</span>
+          <span className="text-xs text-clean-muted">{online} online</span>
         )}
-        <span className={cn('flex items-center gap-1.5 text-xs', connected ? 'text-emerald-400' : 'text-slate-600')}>
-          <span className={cn('w-2 h-2 rounded-full', connected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600')} />
+        <span className={cn('flex items-center gap-1.5 text-xs', connected ? 'text-emerald-500' : 'text-clean-muted')}>
+          <span className={cn('w-2 h-2 rounded-full', connected ? 'bg-emerald-500 animate-pulse' : 'bg-clean-muted')} />
           {connected ? 'Live' : 'Offline'}
         </span>
         {right}

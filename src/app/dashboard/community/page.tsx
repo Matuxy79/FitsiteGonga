@@ -41,7 +41,7 @@ export default function CommunityPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-[calc(100vh-140px)] flex items-center justify-center text-gray-400">
+        <div className="h-[calc(100vh-140px)] flex items-center justify-center text-clean-muted">
           <MessageSquare className="w-8 h-8 animate-pulse" />
         </div>
       }
@@ -254,7 +254,7 @@ function CommunityPageInner() {
   // ---- Loading gate ---------------------------------------------------------------
   if (authLoading || !user) {
     return (
-      <div className="h-[calc(100vh-140px)] flex items-center justify-center text-gray-400">
+      <div className="h-[calc(100vh-140px)] flex items-center justify-center text-clean-muted">
         <MessageSquare className="w-8 h-8 animate-pulse" />
       </div>
     )
@@ -270,7 +270,7 @@ function CommunityPageInner() {
       <ChatPanel
         header={
           <ChatHeader
-            icon={<Icon className="w-4 h-4 text-white" />}
+            icon={<Icon className="w-4 h-4 text-clean-muted" />}
             title={`#${channel.name}`}
             subtitle={channel.description || undefined}
             connected={channelFeed.connected}
@@ -303,7 +303,7 @@ function CommunityPageInner() {
       <ChatPanel
         header={
           <ChatHeader
-            icon={<Users className="w-4 h-4 text-white" />}
+            icon={<Users className="w-4 h-4 text-clean-muted" />}
             title={squadFeed.squad?.name || 'Squad'}
             subtitle={`${squadFeed.squad?.members?.length ?? 0} members · ${squadRole?.toLowerCase() ?? 'member'}`}
             connected={squadFeed.connected}
@@ -321,7 +321,7 @@ function CommunityPageInner() {
                       toast(mapApiErrorToToast(error, { action: 'leave this squad' }))
                     }
                   }}
-                  className="p-1.5 hover:bg-white/5 rounded-lg text-slate-500 hover:text-red-400"
+                  className="p-1.5 hover:bg-clean-hover rounded-lg text-clean-muted hover:text-red-500 transition-colors"
                   title="Leave squad"
                 >
                   <LogOut className="w-4 h-4" />
@@ -349,7 +349,7 @@ function CommunityPageInner() {
       <ChatPanel
         header={
           <ChatHeader
-            icon={<MessageCircle className="w-4 h-4 text-white" />}
+            icon={<MessageCircle className="w-4 h-4 text-clean-muted" />}
             title={dmPeer?.display_name || 'Direct message'}
             subtitle="Direct message"
             connected={dmFeed.connected}
@@ -369,7 +369,7 @@ function CommunityPageInner() {
     )
   } else {
     panel = (
-      <div className="h-full flex items-center justify-center text-slate-600 bg-zinc-950">
+      <div className="h-full flex items-center justify-center text-clean-muted bg-white">
         <MessageSquare className="w-8 h-8 animate-pulse" />
       </div>
     )
@@ -379,7 +379,7 @@ function CommunityPageInner() {
     view?.type === 'channel' ? channelFeed.sendMessage : view?.type === 'squad' ? squadFeed.sendMessage : dmFeed.sendMessage
 
   return (
-    <div className="h-[calc(100vh-140px)] bg-zinc-950 rounded-3xl border border-white/10 shadow-sm overflow-hidden flex relative">
+    <div className="h-[calc(100vh-140px)] bg-white rounded-3xl border border-clean-border shadow-sm overflow-hidden flex relative">
       {/* Sidebar (desktop) */}
       <ChannelSidebar
         className="hidden md:flex"
@@ -428,8 +428,8 @@ function CommunityPageInner() {
             onLockedChannel={onLockedChannel}
             squadInviteCount={inviteCount}
           />
-          <button className="flex-1 bg-black/60" onClick={() => setMobileSidebar(false)}>
-            <X className="w-6 h-6 text-white/70 m-4" />
+          <button className="flex-1 bg-black/40 backdrop-blur-sm" onClick={() => setMobileSidebar(false)}>
+            <X className="w-6 h-6 text-white m-4" />
           </button>
         </div>
       )}
@@ -494,7 +494,7 @@ function CommunityPageInner() {
 
 function MobileMenuButton({ onClick }: { onClick: () => void }) {
   return (
-    <button onClick={onClick} className="p-1.5 hover:bg-white/5 rounded-lg text-slate-400 md:hidden" aria-label="Menu">
+    <button onClick={onClick} className="p-1.5 hover:bg-clean-hover rounded-lg text-clean-muted md:hidden transition-colors" aria-label="Menu">
       <Menu className="w-4 h-4" />
     </button>
   )
@@ -543,19 +543,19 @@ function SquadMembersRail({
   const memberIds = new Set(members.map((m) => m.user?.id))
 
   return (
-    <aside className={cn('w-72 bg-black/40 border-l border-white/5 flex-col overflow-y-auto', className)}>
+    <aside className={cn('w-72 bg-clean-sidebar border-l border-clean-border flex-col overflow-y-auto', className)}>
       <div className="p-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-100 mb-3">
-          <Users className="w-4 h-4 text-[#ff8a80]" />
+        <div className="flex items-center gap-2 text-sm font-semibold text-clean-text mb-3">
+          <Users className="w-4 h-4 text-clean-accent" />
           Members
-          <span className="text-xs font-normal text-slate-500">{members.length}</span>
+          <span className="text-xs font-normal text-clean-muted">{members.length}</span>
         </div>
 
         <div className="space-y-1">
           {members.map((m) => (
-            <div key={m.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-white/[0.03]">
+            <div key={m.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-clean-hover transition-colors">
               <Avatar src={mediaUrl(m.user?.avatar_url)} name={m.user?.display_name || '?'} size={7} />
-              <span className={cn('text-xs truncate', m.user?.id === currentUserId ? 'text-[#ff8a80] font-semibold' : 'text-slate-300')}>
+              <span className={cn('text-xs truncate', m.user?.id === currentUserId ? 'text-clean-accent font-semibold' : 'text-clean-text')}>
                 {m.user?.display_name}
               </span>
               <FlairBadge role={m.user?.role} />
@@ -568,8 +568,8 @@ function SquadMembersRail({
       </div>
 
       {canInvite && (
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-2">
+        <div className="p-4 border-t border-clean-border">
+          <div className="flex items-center gap-2 text-xs font-semibold text-clean-muted mb-2">
             <UserPlus className="w-3.5 h-3.5" />
             Invite members
           </div>
@@ -577,16 +577,16 @@ function SquadMembersRail({
             value={inviteQuery}
             onChange={(e) => setInviteQuery(e.target.value)}
             placeholder="Search users…"
-            className="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-slate-200 placeholder:text-slate-600 focus:border-[#E8453C]/50 focus:outline-none"
+            className="w-full px-3 py-2 bg-white border border-clean-border rounded-xl text-xs text-clean-text placeholder-clean-muted focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
           />
           <div className="mt-2 space-y-1">
             {inviteResults
               .filter((u) => !memberIds.has(u.id))
               .slice(0, 5)
               .map((u) => (
-                <div key={u.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-zinc-900/60">
+                <div key={u.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-clean-bg border border-clean-border">
                   <Avatar src={mediaUrl(u.avatar_url)} name={u.display_name} size={6} />
-                  <span className="text-xs text-slate-300 truncate flex-1">{u.display_name}</span>
+                  <span className="text-xs text-clean-text truncate flex-1">{u.display_name}</span>
                   <button
                     onClick={async () => {
                       try {
@@ -598,7 +598,7 @@ function SquadMembersRail({
                         toast(mapApiErrorToToast(error, { action: 'send this invite' }))
                       }
                     }}
-                    className="px-2 py-1 bg-[#E8453C] hover:bg-[#ff5d4f] text-white text-[10px] font-semibold rounded-md"
+                    className="px-2 py-1 bg-clean-accent hover:bg-clean-accent/90 text-white text-[10px] font-semibold rounded-md transition-colors"
                   >
                     Invite
                   </button>

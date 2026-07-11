@@ -35,22 +35,22 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
   const earned = profile?.achievements.filter((a) => a.earned) ?? []
 
   return (
-    <aside className={cn('w-72 bg-black/40 border-l border-white/5 flex flex-col overflow-y-auto', className)}>
+    <aside className={cn('w-72 bg-clean-sidebar border-l border-clean-border flex flex-col overflow-y-auto', className)}>
       {/* Leaderboard */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-            <Trophy className="w-4 h-4 text-amber-400" />
+          <div className="flex items-center gap-2 text-sm font-semibold text-clean-text">
+            <Trophy className="w-4 h-4 text-amber-500" />
             Leaderboard
           </div>
-          <div className="flex bg-zinc-900 rounded-lg p-0.5">
+          <div className="flex bg-white rounded-lg p-0.5 border border-clean-border">
             {(['week', 'all'] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={cn(
                   'px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors',
-                  period === p ? 'bg-[#E8453C] text-white' : 'text-slate-500 hover:text-slate-300',
+                  period === p ? 'bg-clean-accent text-white' : 'text-clean-muted hover:text-clean-text',
                 )}
               >
                 {p === 'week' ? 'Week' : 'All time'}
@@ -61,27 +61,27 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
 
         <div className="space-y-1">
           {loading && !board && (
-            <div className="py-6 text-center text-xs text-slate-600">Loading…</div>
+            <div className="py-6 text-center text-xs text-clean-muted">Loading…</div>
           )}
           {board?.entries.length === 0 && (
-            <div className="py-6 text-center text-xs text-slate-600">No XP earned yet — get moving! 💪</div>
+            <div className="py-6 text-center text-xs text-clean-muted">No XP earned yet — get moving! 💪</div>
           )}
           {board?.entries.map((entry) => (
             <div
               key={entry.user.id}
               className={cn(
                 'flex items-center gap-2.5 px-2.5 py-2 rounded-xl',
-                entry.user.id === currentUserId ? 'bg-[#E8453C]/10 border border-[#E8453C]/20' : 'hover:bg-white/[0.03]',
+                entry.user.id === currentUserId ? 'bg-clean-accent/10 border border-clean-accent/20' : 'hover:bg-clean-hover',
               )}
             >
               <RankBadge rank={entry.rank} />
               <Avatar src={mediaUrl(entry.user.avatar_url)} name={entry.user.display_name} size={7} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold text-slate-200 truncate">{entry.user.display_name}</span>
+                  <span className="text-xs font-semibold text-clean-text truncate">{entry.user.display_name}</span>
                   <FlairBadge role={entry.user.role} membershipTier={entry.user.membership_tier} />
                 </div>
-                <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                <div className="flex items-center gap-2 text-[10px] text-clean-muted">
                   <span className="font-mono">Lv {entry.user.stats?.level ?? 1}</span>
                   {(entry.user.stats?.current_streak ?? 0) > 0 && (
                     <span className="flex items-center gap-0.5 text-orange-400">
@@ -91,27 +91,27 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
                   )}
                 </div>
               </div>
-              <span className="text-xs font-mono text-amber-400 shrink-0">{entry.xp.toLocaleString()}</span>
+              <span className="text-xs font-mono text-amber-500 shrink-0">{entry.xp.toLocaleString()}</span>
             </div>
           ))}
         </div>
 
         {board && board.me.rank > (board.entries.length || 0) && (
-          <div className="mt-2 px-2.5 py-2 rounded-xl bg-zinc-900 flex items-center justify-between text-xs">
-            <span className="text-slate-400">
-              Your rank: <span className="text-slate-200 font-semibold">#{board.me.rank}</span>
+          <div className="mt-2 px-2.5 py-2 rounded-xl bg-white border border-clean-border flex items-center justify-between text-xs">
+            <span className="text-clean-muted">
+              Your rank: <span className="text-clean-text font-semibold">#{board.me.rank}</span>
             </span>
-            <span className="font-mono text-amber-400">{board.me.xp.toLocaleString()} XP</span>
+            <span className="font-mono text-amber-500">{board.me.xp.toLocaleString()} XP</span>
           </div>
         )}
       </div>
 
       {/* Achievements */}
-      <div className="p-4 border-t border-white/5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-100 mb-3">
-          <Medal className="w-4 h-4 text-[#ff8a80]" />
+      <div className="p-4 border-t border-clean-border">
+        <div className="flex items-center gap-2 text-sm font-semibold text-clean-text mb-3">
+          <Medal className="w-4 h-4 text-clean-accent" />
           Achievements
-          <span className="text-xs font-normal text-slate-500">
+          <span className="text-xs font-normal text-clean-muted">
             {earned.length}/{profile?.achievements.length ?? 0}
           </span>
         </div>
@@ -124,7 +124,7 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
                 'aspect-square rounded-lg flex items-center justify-center text-lg border transition-transform hover:scale-110',
                 a.earned
                   ? 'bg-amber-500/10 border-amber-500/30'
-                  : 'bg-zinc-900 border-white/5 opacity-30 grayscale',
+                  : 'bg-white border-clean-border opacity-30 grayscale',
               )}
             >
               {a.icon}
@@ -138,9 +138,9 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
 
 function RankBadge({ rank }: { rank: number }) {
   if (rank <= 3) {
-    const colors = ['text-amber-400', 'text-slate-300', 'text-amber-700']
+    const colors = ['text-amber-500', 'text-gray-400', 'text-amber-700']
     return <Medal className={cn('w-4 h-4 shrink-0', colors[rank - 1])} />
   }
-  return <span className="w-4 text-[10px] font-mono text-slate-600 text-center shrink-0">{rank}</span>
+  return <span className="w-4 text-[10px] font-mono text-clean-muted text-center shrink-0">{rank}</span>
 }
 

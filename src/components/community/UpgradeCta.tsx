@@ -27,14 +27,14 @@ export function UpgradeCta({ open, onClose, featureName }: UpgradeCtaProps) {
         <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-3">
           <Crown className="w-7 h-7 text-black" />
         </div>
-        <p className="text-sm font-semibold text-slate-200">
+        <p className="text-sm font-semibold text-clean-text">
           {featureName ? `${featureName} is a PRO feature` : 'Unlock the full community'}
         </p>
       </div>
       <ul className="space-y-2 mb-5">
         {PRO_PERKS.map((perk) => (
-          <li key={perk} className="flex items-center gap-2.5 text-sm text-slate-300">
-            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <li key={perk} className="flex items-center gap-2.5 text-sm text-clean-text">
+            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
             {perk}
           </li>
         ))}
@@ -44,7 +44,7 @@ export function UpgradeCta({ open, onClose, featureName }: UpgradeCtaProps) {
           onClose()
           router.push('/dashboard/settings#membership-plan')
         }}
-        className="w-full py-3 bg-[#E8453C] hover:bg-[#ff5d4f] text-white text-sm font-semibold rounded-xl transition-colors"
+        className="w-full py-3 bg-clean-accent hover:bg-clean-accent/90 text-white text-sm font-semibold rounded-xl transition-colors"
       >
         See plans
       </button>

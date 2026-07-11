@@ -62,19 +62,19 @@ export function EmojiPicker({ open, onClose, onPick, align = 'right', direction 
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: direction === 'up' ? 6 : -6 }}
           className={cn(
-            'absolute z-40 w-72 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden',
+            'absolute z-40 w-72 bg-white border border-clean-border rounded-xl shadow-2xl overflow-hidden',
             align === 'right' ? 'right-0' : 'left-0',
             direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2',
           )}
         >
-          <div className="flex border-b border-white/5">
+          <div className="flex border-b border-clean-border">
             {EMOJI_CATEGORIES.map((cat, i) => (
               <button
                 key={cat.name}
                 onClick={() => setCategory(i)}
                 className={cn(
                   'flex-1 px-2 py-2 text-[11px] font-semibold transition-colors',
-                  i === category ? 'text-slate-100 bg-white/5' : 'text-slate-500 hover:text-slate-300',
+                  i === category ? 'text-clean-text bg-clean-hover' : 'text-clean-muted hover:text-clean-text',
                 )}
               >
                 {cat.name}
@@ -86,7 +86,7 @@ export function EmojiPicker({ open, onClose, onPick, align = 'right', direction 
               <button
                 key={emoji}
                 onClick={() => onPick(emoji)}
-                className="w-8 h-8 flex items-center justify-center text-lg hover:bg-white/10 rounded-lg transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-lg hover:bg-clean-hover rounded-lg transition-colors"
               >
                 {emoji}
               </button>

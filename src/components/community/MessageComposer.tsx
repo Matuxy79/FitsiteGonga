@@ -175,8 +175,8 @@ export function MessageComposer({
 
   if (disabled) {
     return (
-      <div className="p-4 border-t border-white/5 bg-black/40">
-        <div className="flex items-center gap-3 px-4 py-3 bg-zinc-900 border border-white/10 rounded-xl text-sm text-slate-500">
+      <div className="p-4 border-t border-clean-border bg-clean-bg">
+        <div className="flex items-center gap-3 px-4 py-3 bg-white border border-clean-border rounded-xl text-sm text-clean-muted">
           <Lock className="w-4 h-4 shrink-0" />
           {disabledReason || 'You cannot post here'}
         </div>
@@ -185,18 +185,18 @@ export function MessageComposer({
   }
 
   return (
-    <div className="p-4 border-t border-white/5 bg-black/40 relative">
+    <div className="p-4 border-t border-clean-border bg-clean-bg relative">
       {/* Reply preview */}
       {replyingTo && (
-        <div className="mb-3 flex items-center justify-between px-3 py-2 bg-zinc-900 rounded-lg border-l-2 border-[#E8453C]">
+        <div className="mb-3 flex items-center justify-between px-3 py-2 bg-white rounded-lg border-l-2 border-clean-accent shadow-sm">
           <div className="min-w-0">
-            <div className="text-xs text-slate-500">
-              Replying to <span className="text-[#ff8a80]">{replyingTo.sender.displayName}</span>
+            <div className="text-xs text-clean-muted">
+              Replying to <span className="text-clean-accent font-medium">{replyingTo.sender.displayName}</span>
             </div>
-            <div className="text-sm text-slate-400 truncate">{replyingTo.content}</div>
+            <div className="text-sm text-clean-text truncate">{replyingTo.content}</div>
           </div>
-          <button onClick={onCancelReply} className="p-1 hover:bg-white/5 rounded">
-            <X className="w-4 h-4 text-slate-500" />
+          <button onClick={onCancelReply} className="p-1 hover:bg-clean-hover rounded">
+            <X className="w-4 h-4 text-clean-muted" />
           </button>
         </div>
       )}
@@ -225,31 +225,31 @@ export function MessageComposer({
       {/* Upload progress */}
       {uploading && (
         <div className="mb-3">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-clean-muted">
             <Loader2 className="w-3 h-3 animate-spin" />
             Uploading... {progress}%
           </div>
-          <div className="mt-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
-            <div className="h-full bg-[#E8453C] transition-all" style={{ width: `${progress}%` }} />
+          <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-full bg-clean-accent transition-all" style={{ width: `${progress}%` }} />
           </div>
         </div>
       )}
 
       {/* Mention popover */}
       {mentionQuery !== null && mentionResults.length > 0 && (
-        <div className="absolute bottom-full left-4 right-4 mb-1 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-40">
-          <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+        <div className="absolute bottom-full left-4 right-4 mb-1 bg-white border border-clean-border rounded-xl shadow-xl overflow-hidden z-40">
+          <div className="px-3 py-1.5 text-[10px] font-semibold text-clean-muted uppercase tracking-wider flex items-center gap-1 bg-gray-50/50">
             <AtSign className="w-3 h-3" /> Mention
           </div>
           {mentionResults.slice(0, 5).map((u) => (
             <button
               key={u.id}
               onClick={() => insertMention(u)}
-              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-clean-hover text-left transition-colors"
             >
               <Avatar src={mediaUrl(u.avatar_url)} name={u.display_name} size={6} />
-              <span className="text-sm text-slate-200">{u.display_name}</span>
-              {u.stats?.level ? <span className="ml-auto text-[10px] text-slate-500 font-mono">Lv {u.stats.level}</span> : null}
+              <span className="text-sm text-clean-text font-medium">{u.display_name}</span>
+              {u.stats?.level ? <span className="ml-auto text-[10px] text-clean-muted font-mono">Lv {u.stats.level}</span> : null}
             </button>
           ))}
         </div>
@@ -260,7 +260,7 @@ export function MessageComposer({
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="p-2.5 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-slate-200 disabled:opacity-50"
+          className="p-2.5 hover:bg-clean-hover rounded-lg transition-colors text-clean-muted hover:text-clean-text disabled:opacity-50"
           title="Attach image or video"
         >
           <ImageIcon className="w-5 h-5" />
@@ -282,7 +282,7 @@ export function MessageComposer({
             onKeyDown={handleKeyPress}
             placeholder={placeholder}
             rows={1}
-            className="w-full px-4 py-3 bg-zinc-900 border border-white/10 rounded-xl text-sm text-slate-200 placeholder:text-slate-600 resize-none focus:border-[#E8453C]/50 focus:outline-none"
+            className="w-full px-4 py-3 bg-white border border-clean-border rounded-xl text-sm text-clean-text placeholder-clean-muted resize-none focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
             style={{ minHeight: '44px', maxHeight: '120px' }}
           />
         </div>
@@ -290,7 +290,7 @@ export function MessageComposer({
         <div className="relative">
           <button
             onClick={() => setPickerOpen((v) => !v)}
-            className="p-2.5 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-slate-200"
+            className="p-2.5 hover:bg-clean-hover rounded-lg transition-colors text-clean-muted hover:text-clean-text"
             title="Emoji"
           >
             <Smile className="w-5 h-5" />
@@ -313,8 +313,8 @@ export function MessageComposer({
           className={cn(
             'p-2.5 rounded-xl transition-all',
             (value.trim() || pendingMedia.length > 0) && !sending && !uploading
-              ? 'bg-[#E8453C] hover:bg-[#ff5d4f] text-white'
-              : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
+              ? 'bg-clean-accent hover:bg-clean-accent/90 text-white shadow-sm'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed',
           )}
         >
           {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}

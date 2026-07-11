@@ -85,10 +85,10 @@ export function MessageBubble({
   if (message.isSystem) {
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-3">
-        <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-500/10 to-orange-500/5 border border-amber-500/20 rounded-xl">
-          <Trophy className="w-5 h-5 text-amber-400 shrink-0" />
-          <div className="text-sm text-amber-100/90">{message.content}</div>
-          <span className="ml-auto text-[10px] text-slate-500 shrink-0">{formatTime(message.createdAt)}</span>
+        <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
+          <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
+          <div className="text-sm text-amber-800">{message.content}</div>
+          <span className="ml-auto text-[10px] text-clean-muted shrink-0">{formatTime(message.createdAt)}</span>
         </div>
       </motion.div>
     )
@@ -129,7 +129,7 @@ export function MessageBubble({
         setMenuOpen(false)
         setPickerOpen(false)
       }}
-      className={cn('group relative px-1 rounded-lg', compact ? 'mt-0.5' : 'mt-4', message.isPinned && 'bg-amber-500/[0.04]')}
+      className={cn('group relative px-1 rounded-lg', compact ? 'mt-0.5' : 'mt-4', message.isPinned && 'bg-amber-50')}
     >
       <div className="flex items-start gap-3">
         {!compact ? (
@@ -139,12 +139,12 @@ export function MessageBubble({
         <div className={cn('flex-1 min-w-0', compact && 'ml-[52px]')}>
           {!compact && (
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="font-medium text-slate-200">{message.sender.displayName}</span>
+              <span className="font-medium text-clean-text">{message.sender.displayName}</span>
               <FlairBadge role={message.sender.role} membershipTier={message.sender.membershipTier} />
               <LevelChip level={message.sender.level} />
-              <span className="text-xs text-slate-500">{formatTime(message.createdAt)}</span>
-              {message.isEdited && <span className="text-xs text-slate-600">(edited)</span>}
-              {message.isPinned && <Pin className="w-3 h-3 text-amber-400" />}
+              <span className="text-xs text-clean-muted">{formatTime(message.createdAt)}</span>
+              {message.isEdited && <span className="text-xs text-clean-muted">(edited)</span>}
+              {message.isPinned && <Pin className="w-3 h-3 text-amber-500" />}
             </div>
           )}
 
@@ -162,15 +162,15 @@ export function MessageBubble({
                 }}
                 rows={2}
                 autoFocus
-                className="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-lg text-sm text-slate-200 resize-none focus:border-[#E8453C]/50 focus:outline-none"
+                className="w-full px-3 py-2 bg-white border border-clean-border rounded-lg text-sm text-clean-text resize-none focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
               />
-              <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
+              <div className="mt-1 flex items-center gap-2 text-[11px] text-clean-muted">
                 {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                 <span>Enter to save · Esc to cancel</span>
               </div>
             </div>
           ) : (
-            <div className="text-sm text-slate-300 whitespace-pre-wrap break-words">
+            <div className="text-sm text-clean-text whitespace-pre-wrap break-words">
               {renderContentWithMentions(message.content)}
             </div>
           )}
@@ -204,10 +204,10 @@ export function MessageBubble({
                   key={emoji}
                   onClick={() => onReact(emoji)}
                   className={cn(
-                    'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors',
+                    'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors border',
                     hasReacted
-                      ? 'bg-[#E8453C]/20 text-[#ff8a80] border border-[#E8453C]/30'
-                      : 'bg-zinc-800 text-slate-400 hover:bg-zinc-700',
+                      ? 'bg-clean-accent/10 text-clean-accent border-clean-accent/30'
+                      : 'bg-white border-clean-border text-clean-muted hover:bg-clean-hover',
                   )}
                 >
                   <span>{emoji}</span>
@@ -220,7 +220,7 @@ export function MessageBubble({
           {showThreadButton && message.replyCount > 0 && (
             <button
               onClick={onOpenThread}
-              className="mt-2 text-xs text-[#ff8a80] hover:text-[#ffb3ab] flex items-center gap-1"
+              className="mt-2 text-xs text-clean-accent hover:opacity-80 flex items-center gap-1 transition-opacity"
             >
               <MessageSquare className="w-3 h-3" />
               {message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}
@@ -236,10 +236,10 @@ export function MessageBubble({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute -top-3 right-0 flex items-center gap-1 px-2 py-1 bg-zinc-800 rounded-lg border border-white/10 shadow-lg"
+            className="absolute -top-3 right-0 flex items-center gap-1 px-2 py-1 bg-white rounded-lg border border-clean-border shadow-lg"
           >
             {QUICK_REACTIONS.map((emoji) => (
-              <button key={emoji} onClick={() => onReact(emoji)} className="p-1 hover:bg-white/10 rounded transition-colors">
+              <button key={emoji} onClick={() => onReact(emoji)} className="p-1 hover:bg-clean-hover rounded transition-colors">
                 {emoji}
               </button>
             ))}
@@ -247,7 +247,7 @@ export function MessageBubble({
             <div className="relative">
               <button
                 onClick={() => setPickerOpen((v) => !v)}
-                className="p-1 hover:bg-white/10 rounded transition-colors text-slate-400 hover:text-slate-200"
+                className="p-1 hover:bg-clean-hover rounded transition-colors text-clean-muted hover:text-clean-text"
                 title="More reactions"
               >
                 <SmilePlus className="w-4 h-4" />
@@ -264,12 +264,12 @@ export function MessageBubble({
               />
             </div>
 
-            <div className="w-px h-4 bg-white/10 mx-1" />
+            <div className="w-px h-4 bg-clean-border mx-1" />
 
             {onReply && (
               <button
                 onClick={onReply}
-                className="p-1 hover:bg-white/10 rounded transition-colors text-slate-400 hover:text-slate-200"
+                className="p-1 hover:bg-clean-hover rounded transition-colors text-clean-muted hover:text-clean-text"
                 title="Reply in thread"
               >
                 <Reply className="w-4 h-4" />
@@ -279,7 +279,7 @@ export function MessageBubble({
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="p-1 hover:bg-white/10 rounded transition-colors text-slate-400 hover:text-slate-200"
+                className="p-1 hover:bg-clean-hover rounded transition-colors text-clean-muted hover:text-clean-text"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
@@ -290,7 +290,7 @@ export function MessageBubble({
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute right-0 top-full mt-1 w-44 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl py-1 z-40"
+                    className="absolute right-0 top-full mt-1 w-44 bg-white border border-clean-border rounded-xl shadow-xl py-1 z-40"
                   >
                     {isOwn && onEdit && (
                       <MenuItem icon={Pencil} label="Edit" onClick={() => { setEditing(true); setEditValue(message.content); setMenuOpen(false) }} />
@@ -322,7 +322,7 @@ export function MessageBubble({
       <Modal open={reportOpen} onClose={() => setReportOpen(false)} title="Report message">
         <div className="space-y-3">
           {REPORT_REASONS.map((r) => (
-            <label key={r.value} className="flex items-center gap-3 cursor-pointer text-sm text-slate-300">
+            <label key={r.value} className="flex items-center gap-3 cursor-pointer text-sm text-clean-text">
               <input
                 type="radio"
                 name="report-reason"
@@ -338,7 +338,7 @@ export function MessageBubble({
             onChange={(e) => setReportDetails(e.target.value)}
             placeholder="Add details (optional)"
             rows={3}
-            className="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-lg text-sm text-slate-200 placeholder:text-slate-600 resize-none focus:border-[#E8453C]/50 focus:outline-none"
+            className="w-full px-3 py-2 bg-white border border-clean-border rounded-lg text-sm text-clean-text placeholder-clean-muted resize-none focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
           />
           <button
             disabled={busy}
@@ -353,7 +353,7 @@ export function MessageBubble({
                 setBusy(false)
               }
             }}
-            className="w-full py-2.5 bg-[#E8453C] hover:bg-[#ff5d4f] text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+            className="w-full py-2.5 bg-clean-accent hover:bg-clean-accent/90 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
           >
             {busy ? 'Submitting…' : 'Submit report'}
           </button>
@@ -379,7 +379,7 @@ function MenuItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-colors',
-        danger ? 'text-red-400 hover:bg-red-500/10' : 'text-slate-300 hover:bg-white/5',
+        danger ? 'text-red-500 hover:bg-red-50' : 'text-clean-text hover:bg-clean-hover',
       )}
     >
       <Icon className="w-3.5 h-3.5" />
@@ -393,7 +393,7 @@ function renderContentWithMentions(content: string) {
   if (parts.length === 1) return content
   return parts.map((part, i) =>
     part.startsWith('@') ? (
-      <span key={i} className="text-[#ff8a80] bg-[#E8453C]/10 rounded px-0.5">
+      <span key={i} className="text-clean-accent bg-clean-accent/10 rounded px-1 font-medium">
         {part}
       </span>
     ) : (

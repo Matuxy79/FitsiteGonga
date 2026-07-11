@@ -99,30 +99,30 @@ export function ThreadDrawer({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'tween', duration: 0.2 }}
-          className="absolute inset-y-0 right-0 w-full sm:w-[420px] bg-zinc-950 border-l border-white/10 z-40 flex flex-col shadow-2xl"
+          className="absolute inset-y-0 right-0 w-full sm:w-[420px] bg-white border-l border-clean-border z-40 flex flex-col shadow-2xl"
         >
-          <div className="h-14 px-4 border-b border-white/5 flex items-center justify-between bg-black/40 shrink-0">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-              <MessageSquare className="w-4 h-4 text-[#ff8a80]" />
+          <div className="h-14 px-4 border-b border-clean-border flex items-center justify-between bg-clean-sidebar shrink-0">
+            <div className="flex items-center gap-2 text-sm font-semibold text-clean-text">
+              <MessageSquare className="w-4 h-4 text-clean-accent" />
               Thread
-              <span className="text-xs font-normal text-slate-500">
+              <span className="text-xs font-normal text-clean-muted">
                 {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
               </span>
             </div>
-            <button onClick={onClose} className="p-1.5 hover:bg-white/5 rounded-lg text-slate-500 hover:text-slate-300">
+            <button onClick={onClose} className="p-1.5 hover:bg-clean-hover rounded-lg text-clean-muted hover:text-clean-text">
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4 bg-clean-bg">
             {loading && (
               <div className="flex justify-center py-6">
-                <Loader2 className="w-5 h-5 text-[#ff8a80] animate-spin" />
+                <Loader2 className="w-5 h-5 text-clean-accent animate-spin" />
               </div>
             )}
 
             {parent && (
-              <div className="pb-4 border-b border-white/5">
+              <div className="pb-4 border-b border-clean-border">
                 <MessageBubble
                   message={parent}
                   currentUserId={currentUserId}

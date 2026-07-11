@@ -60,16 +60,16 @@ export function ChannelSidebar({
     : 0
 
   return (
-    <aside className={cn('w-64 bg-black/40 border-r border-white/5 flex flex-col overflow-hidden', className)}>
-      <div className="flex items-center gap-2 px-4 h-14 border-b border-white/5 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-[#E8453C] text-white flex items-center justify-center font-bold">G</div>
-        <span className="font-bold text-slate-100 text-sm">GongaFit Community</span>
+    <aside className={cn('w-64 bg-clean-sidebar border-r border-clean-border flex flex-col overflow-hidden', className)}>
+      <div className="flex items-center gap-2 px-4 h-14 border-b border-clean-border shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-clean-accent text-white flex items-center justify-center font-bold">G</div>
+        <span className="font-bold text-clean-text text-sm">GongaFit Community</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-6">
         {/* CHANNELS */}
         <div>
-          <div className="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Channels</div>
+          <div className="px-2 text-[10px] font-bold text-clean-muted uppercase tracking-widest mb-2">Channels</div>
           <div className="space-y-0.5">
             {channels.map((channel) => {
               const Icon = CHANNEL_ICONS[channel.slug || ''] || Hash
@@ -81,17 +81,17 @@ export function ChannelSidebar({
                   className={cn(
                     'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors',
                     active
-                      ? 'bg-[#E8453C]/15 text-[#ff8a80]'
+                      ? 'bg-clean-accent/10 text-clean-accent'
                       : channel.locked
-                        ? 'text-slate-600 hover:bg-white/[0.03]'
-                        : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+                        ? 'text-clean-muted hover:bg-clean-hover'
+                        : 'text-clean-muted hover:bg-clean-hover hover:text-clean-text',
                   )}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
                   <span className="truncate">{channel.name}</span>
                   {channel.locked && <Lock className="w-3.5 h-3.5 ml-auto text-amber-500/70" />}
                   {channel.posting_policy === 'ADMIN_ONLY' && !channel.locked && (
-                    <span className="ml-auto text-[9px] text-slate-600 font-mono">READ</span>
+                    <span className="ml-auto text-[9px] text-clean-muted font-mono">READ</span>
                   )}
                 </button>
               )
@@ -102,10 +102,10 @@ export function ChannelSidebar({
         {/* SQUADS */}
         <div>
           <div className="px-2 flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Squads</span>
+            <span className="text-[10px] font-bold text-clean-muted uppercase tracking-widest">Squads</span>
             <button
               onClick={onCreateSquad}
-              className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-slate-300"
+              className="p-1 hover:bg-clean-hover rounded text-clean-muted hover:text-clean-text transition-colors"
               title="Create squad"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -120,13 +120,13 @@ export function ChannelSidebar({
                   onClick={() => onSelectSquad(squad.id)}
                   className={cn(
                     'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors',
-                    active ? 'bg-[#E8453C]/15 text-[#ff8a80]' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+                    active ? 'bg-clean-accent/10 text-clean-accent' : 'text-clean-muted hover:bg-clean-hover hover:text-clean-text',
                   )}
                 >
                   <Users className="w-4 h-4 shrink-0" />
                   <span className="truncate">{squad.name}</span>
                   {(squad.unreadCount || 0) > 0 && (
-                    <span className="ml-auto min-w-[18px] h-[18px] px-1 bg-[#E8453C] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    <span className="ml-auto min-w-[18px] h-[18px] px-1 bg-clean-accent text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                       {squad.unreadCount! > 9 ? '9+' : squad.unreadCount}
                     </span>
                   )}
@@ -135,7 +135,7 @@ export function ChannelSidebar({
             })}
             <button
               onClick={onFindSquads}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-slate-500 hover:bg-white/5 hover:text-slate-300 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-clean-muted hover:bg-clean-hover hover:text-clean-text transition-colors"
             >
               <Plus className="w-4 h-4 shrink-0" />
               Find squads
@@ -151,10 +151,10 @@ export function ChannelSidebar({
         {/* DIRECT MESSAGES */}
         <div>
           <div className="px-2 flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Direct Messages</span>
+            <span className="text-[10px] font-bold text-clean-muted uppercase tracking-widest">Direct Messages</span>
             <button
               onClick={onOpenFriends}
-              className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-slate-300"
+              className="p-1 hover:bg-clean-hover rounded text-clean-muted hover:text-clean-text transition-colors"
               title="Friends"
             >
               <UserPlus className="w-3.5 h-3.5" />
@@ -164,7 +164,7 @@ export function ChannelSidebar({
             {conversations.length === 0 && (
               <button
                 onClick={onOpenFriends}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 hover:bg-white/[0.03] transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-clean-muted hover:bg-clean-hover transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
                 Message a friend
@@ -178,13 +178,13 @@ export function ChannelSidebar({
                   onClick={() => onSelectDm(conv.peer.id)}
                   className={cn(
                     'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors',
-                    active ? 'bg-[#E8453C]/15 text-[#ff8a80]' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+                    active ? 'bg-clean-accent/10 text-clean-accent' : 'text-clean-muted hover:bg-clean-hover hover:text-clean-text',
                   )}
                 >
                   <Avatar src={mediaUrl(conv.peer.avatar_url)} name={conv.peer.display_name} size={6} />
                   <span className="truncate">{conv.peer.display_name}</span>
                   {conv.unreadCount > 0 && (
-                    <span className="ml-auto min-w-[18px] h-[18px] px-1 bg-[#E8453C] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    <span className="ml-auto min-w-[18px] h-[18px] px-1 bg-clean-accent text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                       {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
                     </span>
                   )}
@@ -196,12 +196,12 @@ export function ChannelSidebar({
       </div>
 
       {/* Profile strip with level progress */}
-      <div className="p-3 border-t border-white/5 shrink-0">
+      <div className="p-3 border-t border-clean-border shrink-0">
         <div className="flex items-center gap-2 px-1">
           <Avatar src={mediaUrl(user?.avatar_url)} name={user?.display_name || 'GF'} size={8} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <p className="text-sm font-bold text-slate-200 truncate">{user?.display_name}</p>
+              <p className="text-sm font-bold text-clean-text truncate">{user?.display_name}</p>
               <FlairBadge role={user?.role} membershipTier={user?.membership_tier} />
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -214,13 +214,13 @@ export function ChannelSidebar({
         </div>
         {profile && (
           <div className="mt-2 px-1">
-            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#E8453C] to-amber-500 transition-all"
+                className="h-full bg-gradient-to-r from-clean-accent to-amber-500 transition-all"
                 style={{ width: `${levelPct}%` }}
               />
             </div>
-            <div className="mt-1 flex justify-between text-[9px] font-mono text-slate-600">
+            <div className="mt-1 flex justify-between text-[9px] font-mono text-clean-muted">
               <span>{profile.levelProgress.xpIntoLevel} XP</span>
               <span>{profile.levelProgress.xpForNextLevel} to Lv {profile.levelProgress.level + 1}</span>
             </div>
