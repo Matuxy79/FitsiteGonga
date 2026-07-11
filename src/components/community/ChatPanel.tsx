@@ -155,10 +155,10 @@ export function ChatPanel({
 
       {/* Pinned bar */}
       {pinned.length > 0 && (
-        <div className="border-b border-clean-border bg-amber-50">
+        <div className="border-b border-clean-border bg-warm-sand">
           <button
             onClick={() => setShowPinned((v) => !v)}
-            className="w-full flex items-center gap-2 px-4 py-2 text-xs text-amber-700 hover:bg-amber-100 transition-colors"
+            className="flex w-full items-center gap-2 px-4 py-2 text-xs font-medium text-warm-sand-text transition-colors hover:bg-[#FEF3C7]"
           >
             <Pin className="w-3.5 h-3.5" />
             {pinned.length} pinned {pinned.length === 1 ? 'message' : 'messages'}
@@ -172,7 +172,7 @@ export function ChatPanel({
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="px-4 pb-3 max-h-64 overflow-y-auto space-y-2">
+                <div className="max-h-64 space-y-2 overflow-y-auto clean-scrollbar px-4 pb-3">
                   {pinned.map((m) => renderBubble(m, false, true))}
                 </div>
               </motion.div>
@@ -182,7 +182,7 @@ export function ChatPanel({
       )}
 
       {/* Messages */}
-      <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto clean-scrollbar p-4 space-y-4 bg-white">
         {feed.loading && (
           <div className="flex items-center justify-center py-4">
             <Loader2 className="w-5 h-5 text-clean-accent animate-spin" />
@@ -246,7 +246,7 @@ export function ChatPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             onClick={scrollToBottom}
-            className="absolute bottom-24 right-6 p-2 bg-clean-accent rounded-full shadow-lg hover:bg-clean-accent/90 transition-colors z-30"
+            className="absolute bottom-24 right-6 z-30 rounded-full bg-clean-accent p-2 text-white shadow-pop transition-colors hover:bg-clean-accent-hover"
           >
             <ChevronDown className="w-5 h-5 text-white" />
           </motion.button>
@@ -286,9 +286,9 @@ export function ChatHeader({
   right?: ReactNode
 }) {
   return (
-    <div className="h-14 px-4 border-b border-clean-border flex items-center justify-between bg-clean-bg shrink-0">
+    <div className="h-14 shrink-0 flex items-center justify-between border-b border-clean-border bg-white px-4">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-8 h-8 rounded-lg bg-clean-accent text-white flex items-center justify-center shrink-0">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-clean-accent-soft text-clean-accent">
           {icon}
         </div>
         <div className="min-w-0">
@@ -300,8 +300,8 @@ export function ChatHeader({
         {typeof online === 'number' && online > 0 && (
           <span className="text-xs text-clean-muted">{online} online</span>
         )}
-        <span className={cn('flex items-center gap-1.5 text-xs', connected ? 'text-emerald-500' : 'text-clean-muted')}>
-          <span className={cn('w-2 h-2 rounded-full', connected ? 'bg-emerald-500 animate-pulse' : 'bg-clean-muted')} />
+        <span className={cn('inline-flex items-center gap-1.5 text-xs', connected ? 'text-status-success-text' : 'text-clean-muted')}>
+          <span className={cn('h-2 w-2 rounded-full', connected ? 'bg-status-success animate-pulse' : 'bg-gray-300')} />
           {connected ? 'Live' : 'Offline'}
         </span>
         {right}
@@ -320,4 +320,3 @@ function formatDateDivider(dateString: string): string {
   if (date.toDateString() === yesterday.toDateString()) return 'Yesterday'
   return date.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })
 }
-

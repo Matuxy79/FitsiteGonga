@@ -85,10 +85,10 @@ export function MessageBubble({
   if (message.isSystem) {
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-3">
-        <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
-          <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
-          <div className="text-sm text-amber-800">{message.content}</div>
-          <span className="ml-auto text-[10px] text-clean-muted shrink-0">{formatTime(message.createdAt)}</span>
+        <div className="flex items-center gap-3 rounded-xl border border-warm-sand-border bg-warm-sand px-4 py-3">
+          <Trophy className="w-5 h-5 shrink-0 text-status-warning" />
+          <div className="text-sm text-warm-sand-text">{message.content}</div>
+          <span className="ml-auto shrink-0 text-[10px] text-clean-muted">{formatTime(message.createdAt)}</span>
         </div>
       </motion.div>
     )
@@ -129,7 +129,15 @@ export function MessageBubble({
         setMenuOpen(false)
         setPickerOpen(false)
       }}
-      className={cn('group relative px-1 rounded-lg', compact ? 'mt-0.5' : 'mt-4', message.isPinned && 'bg-amber-50')}
+      className={cn(
+        'group relative rounded-lg px-2 py-0.5 transition-colors duration-150',
+        compact ? 'mt-0.5' : 'mt-4',
+        message.isPinned
+          ? 'bg-warm-sand hover:bg-[#FEF3C7]'
+          : isOwn
+            ? 'bg-clean-accent-softer hover:bg-clean-accent-soft/60'
+            : 'hover:bg-clean-hover/60',
+      )}
     >
       <div className="flex items-start gap-3">
         {!compact ? (
@@ -138,13 +146,13 @@ export function MessageBubble({
 
         <div className={cn('flex-1 min-w-0', compact && 'ml-[52px]')}>
           {!compact && (
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="font-medium text-clean-text">{message.sender.displayName}</span>
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              <span className={cn('font-medium', isOwn ? 'text-clean-accent' : 'text-clean-text')}>{message.sender.displayName}</span>
               <FlairBadge role={message.sender.role} membershipTier={message.sender.membershipTier} />
               <LevelChip level={message.sender.level} />
               <span className="text-xs text-clean-muted">{formatTime(message.createdAt)}</span>
               {message.isEdited && <span className="text-xs text-clean-muted">(edited)</span>}
-              {message.isPinned && <Pin className="w-3 h-3 text-amber-500" />}
+              {message.isPinned && <Pin className="w-3 h-3 text-status-warning" />}
             </div>
           )}
 
@@ -162,7 +170,7 @@ export function MessageBubble({
                 }}
                 rows={2}
                 autoFocus
-                className="w-full px-3 py-2 bg-white border border-clean-border rounded-lg text-sm text-clean-text resize-none focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
+                className="w-full resize-none rounded-xl border border-clean-border bg-white px-3 py-2.5 text-sm text-clean-text transition-colors duration-150 focus:border-clean-accent/50 focus:outline-none focus:ring-2 focus:ring-clean-accent/20"
               />
               <div className="mt-1 flex items-center gap-2 text-[11px] text-clean-muted">
                 {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
@@ -204,10 +212,10 @@ export function MessageBubble({
                   key={emoji}
                   onClick={() => onReact(emoji)}
                   className={cn(
-                    'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors border',
+                    'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors',
                     hasReacted
-                      ? 'bg-clean-accent/10 text-clean-accent border-clean-accent/30'
-                      : 'bg-white border-clean-border text-clean-muted hover:bg-clean-hover',
+                      ? 'border-clean-accent/30 bg-clean-accent-soft text-clean-accent'
+                      : 'border-clean-border bg-white text-clean-muted hover:bg-clean-hover',
                   )}
                 >
                   <span>{emoji}</span>
@@ -220,7 +228,7 @@ export function MessageBubble({
           {showThreadButton && message.replyCount > 0 && (
             <button
               onClick={onOpenThread}
-              className="mt-2 text-xs text-clean-accent hover:opacity-80 flex items-center gap-1 transition-opacity"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-clean-accent transition-opacity hover:opacity-80"
             >
               <MessageSquare className="w-3 h-3" />
               {message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}
@@ -236,7 +244,7 @@ export function MessageBubble({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute -top-3 right-0 flex items-center gap-1 px-2 py-1 bg-white rounded-lg border border-clean-border shadow-lg"
+            className="absolute -top-3 right-0 flex items-center gap-1 rounded-lg border border-clean-border bg-white px-2 py-1 shadow-pop"
           >
             {QUICK_REACTIONS.map((emoji) => (
               <button key={emoji} onClick={() => onReact(emoji)} className="p-1 hover:bg-clean-hover rounded transition-colors">
@@ -290,7 +298,7 @@ export function MessageBubble({
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute right-0 top-full mt-1 w-44 bg-white border border-clean-border rounded-xl shadow-xl py-1 z-40"
+                    className="absolute right-0 top-full z-40 mt-1 w-44 rounded-xl border border-clean-border bg-white py-1 shadow-pop"
                   >
                     {isOwn && onEdit && (
                       <MenuItem icon={Pencil} label="Edit" onClick={() => { setEditing(true); setEditValue(message.content); setMenuOpen(false) }} />
@@ -338,7 +346,7 @@ export function MessageBubble({
             onChange={(e) => setReportDetails(e.target.value)}
             placeholder="Add details (optional)"
             rows={3}
-            className="w-full px-3 py-2 bg-white border border-clean-border rounded-lg text-sm text-clean-text placeholder-clean-muted resize-none focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
+            className="w-full resize-none rounded-xl border border-clean-border bg-white px-3 py-2.5 text-sm text-clean-text placeholder:text-clean-muted transition-colors duration-150 focus:border-clean-accent/50 focus:outline-none focus:ring-2 focus:ring-clean-accent/20"
           />
           <button
             disabled={busy}
@@ -353,7 +361,7 @@ export function MessageBubble({
                 setBusy(false)
               }
             }}
-            className="w-full py-2.5 bg-clean-accent hover:bg-clean-accent/90 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+            className="w-full rounded-xl bg-clean-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-clean-accent-hover disabled:opacity-50"
           >
             {busy ? 'Submitting…' : 'Submit report'}
           </button>
@@ -379,7 +387,7 @@ function MenuItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-colors',
-        danger ? 'text-red-500 hover:bg-red-50' : 'text-clean-text hover:bg-clean-hover',
+        danger ? 'text-status-danger-text hover:bg-status-danger-soft' : 'text-clean-text hover:bg-clean-hover',
       )}
     >
       <Icon className="w-3.5 h-3.5" />
@@ -393,7 +401,7 @@ function renderContentWithMentions(content: string) {
   if (parts.length === 1) return content
   return parts.map((part, i) =>
     part.startsWith('@') ? (
-      <span key={i} className="text-clean-accent bg-clean-accent/10 rounded px-1 font-medium">
+      <span key={i} className="rounded bg-clean-accent-soft px-1 font-medium text-clean-accent">
         {part}
       </span>
     ) : (
@@ -406,4 +414,3 @@ function formatTime(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
-

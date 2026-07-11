@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { UserRepository, type AccessMode } from '@/repositories/UserRepository'
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
-import { mediaUrl } from '@/lib/media'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { AchievementToast } from '@/components/community/AchievementToast'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -65,16 +64,16 @@ const accountModeOptions = [
     label: 'Paid',
     description: 'Premium tools',
     icon: Crown,
-    badgeClass: 'bg-emerald-100 text-emerald-700',
-    iconClass: 'bg-emerald-100 text-emerald-700',
+    badgeClass: 'bg-status-success-soft text-status-success-text',
+    iconClass: 'bg-status-success-soft text-status-success-text',
   },
   {
     mode: 'ADMIN',
     label: 'Admin',
     description: 'Full platform access',
     icon: ShieldCheck,
-    badgeClass: 'bg-[#ff5d4f]/10 text-[#d83d31]',
-    iconClass: 'bg-[#ff5d4f]/10 text-[#d83d31]',
+    badgeClass: 'bg-clean-accent-soft text-clean-accent',
+    iconClass: 'bg-clean-accent-soft text-clean-accent',
   },
 ] as const
 
@@ -88,6 +87,11 @@ function initials(name: string) {
     .toUpperCase()
 }
 
+function avatarUrl(key?: string | null) {
+  if (!key) return undefined
+  if (key.startsWith('http')) return key
+  return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/media/${key}`
+}
 
 function getAccountMode(user: ReturnType<typeof useAuth>['user']): AccessMode {
   if (user?.role === 'ADMIN') return 'ADMIN'
@@ -289,7 +293,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <div className="relative shrink-0">
                 {user?.avatar_url ? (
-                  <img src={mediaUrl(user.avatar_url) ?? undefined} alt="" className="w-10 h-10 rounded-full object-cover" />
+                  <img src={avatarUrl(user.avatar_url)} alt="" className="w-10 h-10 rounded-full object-cover" />
                 ) : (
                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold bg-gray-100 text-gray-700">
                     {initials(user?.display_name || 'GF')}
@@ -408,7 +412,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto discord-scrollbar px-3 space-y-1 pb-4 overflow-x-hidden">
+        <nav className="flex-1 overflow-y-auto clean-scrollbar px-3 space-y-1 pb-4 overflow-x-hidden">
           {navItems.map((item) => {
             const isActive = isActiveRoute(item.href)
             return (

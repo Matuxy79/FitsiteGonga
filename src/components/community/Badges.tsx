@@ -6,21 +6,21 @@ import { cn } from '@/lib/utils'
 export function FlairBadge({ role, membershipTier, className }: { role?: string; membershipTier?: string; className?: string }) {
   if (role === 'ADMIN') {
     return (
-      <span className={cn('px-1.5 py-0.5 bg-[#E8453C]/20 text-[#ff8a80] text-[10px] font-semibold rounded', className)}>
+      <span className={cn('rounded bg-clean-accent-soft px-1.5 py-0.5 text-[10px] font-semibold text-clean-accent', className)}>
         ADMIN
       </span>
     )
   }
   if (role === 'TRAINER') {
     return (
-      <span className={cn('px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] font-semibold rounded', className)}>
+      <span className={cn('rounded bg-status-info-soft px-1.5 py-0.5 text-[10px] font-semibold text-status-info-text', className)}>
         TRAINER
       </span>
     )
   }
   if (membershipTier === 'PAID') {
     return (
-      <span className={cn('px-1.5 py-0.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 text-[10px] font-semibold rounded', className)}>
+      <span className={cn('rounded bg-status-warning-soft px-1.5 py-0.5 text-[10px] font-semibold text-status-warning-text', className)}>
         PRO
       </span>
     )
@@ -32,7 +32,7 @@ export function FlairBadge({ role, membershipTier, className }: { role?: string;
 export function LevelChip({ level, className }: { level?: number | null; className?: string }) {
   if (!level || level < 1) return null
   return (
-    <span className={cn('px-1.5 py-0.5 bg-zinc-800 text-slate-400 text-[10px] font-mono rounded border border-white/5', className)}>
+    <span className={cn('rounded border border-clean-border bg-clean-hover px-1.5 py-0.5 font-mono text-[10px] text-clean-muted', className)}>
       Lv {level}
     </span>
   )
@@ -57,7 +57,7 @@ export function Avatar({ src, name, size = 10, className }: { src?: string | nul
     <div
       style={{ width: px, height: px }}
       className={cn(
-        'rounded-full bg-gradient-to-br from-[#E8453C] to-[#ff8a80] flex items-center justify-center text-white font-bold shrink-0',
+        'rounded-full bg-gradient-to-br from-clean-accent to-[#F58A82] flex items-center justify-center font-bold text-white shrink-0',
         px <= 32 ? 'text-xs' : 'text-sm',
         className,
       )}

@@ -1,18 +1,30 @@
 'use client'
 
 import Link from 'next/link'
+import { motion, type Variants } from 'framer-motion'
 import { useAuth } from '@/hooks/useAuth'
 import {
-  Activity,
   Apple,
   CalendarDays,
   Dumbbell,
   LineChart,
   MessageCircle,
   Plus,
+  Settings,
+  ShieldCheck,
   Trophy,
   Users,
 } from 'lucide-react'
+
+const containerVariants: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.05 } },
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } },
+}
 
 function initials(name: string) {
   return name
@@ -38,10 +50,13 @@ function SectionCard({
   action?: { label: string; href: string }
 }) {
   return (
-    <div className="bg-white rounded-3xl p-6 border border-clean-border shadow-sm flex flex-col h-full">
+    <motion.div
+      variants={itemVariants}
+      className="group flex h-full flex-col rounded-3xl border border-clean-border bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-gray-300"
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-clean-accent/10 text-clean-accent flex items-center justify-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-clean-accent-soft text-clean-accent transition-colors duration-200 group-hover:bg-clean-accent group-hover:text-white">
             <Icon className="w-5 h-5" />
           </div>
           <h2 className="font-bold text-lg text-clean-text">{title}</h2>
@@ -49,7 +64,7 @@ function SectionCard({
         {action && (
           <Link
             href={action.href}
-            className="text-xs font-bold text-clean-accent hover:opacity-80 flex items-center gap-1"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-clean-accent transition-colors duration-150 hover:bg-clean-accent-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-clean-accent/25"
           >
             <Plus className="w-3.5 h-3.5" />
             {action.label}
@@ -59,19 +74,20 @@ function SectionCard({
       <div className="flex-1">{children}</div>
       <Link
         href={href}
-        className="mt-4 text-sm font-semibold text-clean-muted hover:text-clean-text flex items-center gap-1 transition-colors"
+        className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-clean-muted transition-colors duration-150 group-hover:text-clean-text focus:outline-none focus-visible:ring-2 focus-visible:ring-clean-accent/25 rounded"
       >
-        Open {title} <span className="text-lg leading-none">→</span>
+        Open {title}{' '}
+        <span className="text-lg leading-none transition-transform duration-200 group-hover:translate-x-0.5">→</span>
       </Link>
-    </div>
+    </motion.div>
   )
 }
 
 function EmptyState({ message, icon: Icon }: { message: string; icon: React.ElementType }) {
   return (
-    <div className="flex flex-col items-center justify-center h-32 text-center text-clean-muted">
-      <Icon className="w-8 h-8 mb-2 opacity-40" />
-      <p className="text-sm">{message}</p>
+    <div className="flex h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-clean-border bg-clean-surface-2 px-4 text-center">
+      <Icon className="h-8 w-8 text-clean-muted opacity-40" />
+      <p className="max-w-[28ch] text-sm leading-5 text-clean-muted">{message}</p>
     </div>
   )
 }
@@ -83,29 +99,61 @@ export default function DashboardOverview() {
   const isPaid = user?.membership_tier === 'PAID' || isAdmin
 
   return (
-    <div className="space-y-6">
+    <motion.div className="space-y-6" variants={containerVariants} initial="hidden" animate="show">
       {/* Quick stat row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-clean-border shadow-sm">
-          <p className="text-sm text-clean-muted mb-1">This week</p>
-          <p className="text-2xl font-bold text-clean-text">0</p>
-          <p className="text-xs text-clean-muted mt-1">workouts logged</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-clean-border shadow-sm">
-          <p className="text-sm text-clean-muted mb-1">Next up</p>
-          <p className="text-2xl font-bold text-clean-text">—</p>
-          <p className="text-xs text-clean-muted mt-1">scheduled session</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-clean-border shadow-sm">
-          <p className="text-sm text-clean-muted mb-1">Meal today</p>
-          <p className="text-2xl font-bold text-clean-text">—</p>
-          <p className="text-xs text-clean-muted mt-1">posted by admin</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-clean-border shadow-sm">
-          <p className="text-sm text-clean-muted mb-1">Community</p>
-          <p className="text-2xl font-bold text-clean-text">0</p>
-          <p className="text-xs text-clean-muted mt-1">new mentions</p>
-        </div>
+        <motion.div
+          variants={itemVariants}
+          className="group rounded-2xl border border-clean-border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-gray-300"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-clean-muted">This week</p>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-clean-accent-soft text-clean-accent">
+              <Dumbbell className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-3 text-2xl font-bold font-mono text-clean-text">0</p>
+          <p className="mt-1 text-xs text-clean-muted">workouts logged</p>
+        </motion.div>
+        <motion.div
+          variants={itemVariants}
+          className="group rounded-2xl border border-clean-border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-gray-300"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-clean-muted">Next up</p>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-clean-accent-soft text-clean-accent">
+              <CalendarDays className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-3 text-2xl font-bold font-mono text-clean-muted">—</p>
+          <p className="mt-1 text-xs text-clean-muted">scheduled session</p>
+        </motion.div>
+        <motion.div
+          variants={itemVariants}
+          className="group rounded-2xl border border-clean-border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-gray-300"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-clean-muted">Meal today</p>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-clean-accent-soft text-clean-accent">
+              <Apple className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-3 text-2xl font-bold font-mono text-clean-muted">—</p>
+          <p className="mt-1 text-xs text-clean-muted">posted by admin</p>
+        </motion.div>
+        <motion.div
+          variants={itemVariants}
+          className="group rounded-2xl border border-clean-border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-gray-300"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-clean-muted">Community</p>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-clean-accent-soft text-clean-accent">
+              <MessageCircle className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-3 text-2xl font-bold font-mono text-clean-text">0</p>
+          <p className="mt-1 text-xs text-clean-muted">new mentions</p>
+        </motion.div>
       </div>
 
       {/* Main grid */}
@@ -136,21 +184,35 @@ export default function DashboardOverview() {
       </div>
 
       {isAdmin && (
-        <div className="bg-white rounded-3xl p-6 border-2 border-clean-border shadow-sm">
-          <h3 className="font-bold text-lg mb-2 text-clean-text flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-clean-accent"></span>
-            Admin quick actions
-          </h3>
-          <div className="flex flex-wrap gap-3 mt-4">
-            <Link href="/admin" className="px-4 py-2 bg-clean-text text-white rounded-xl text-sm font-bold hover:bg-clean-text/80 transition-colors">
-              Admin console
+        <motion.div
+          variants={itemVariants}
+          className="rounded-3xl border border-clean-border bg-white p-6 shadow-sm"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-clean-text text-white">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-clean-text">Admin quick actions</h3>
+              <p className="text-xs text-clean-muted">Shortcuts for content and moderation</p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-2 rounded-xl bg-clean-text px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-clean-text/85 active:bg-clean-text/75"
+            >
+              <Settings className="h-4 w-4" /> Admin console
             </Link>
-            <Link href="/dashboard/nutrition" className="px-4 py-2 bg-clean-hover text-clean-text rounded-xl text-sm font-bold hover:bg-gray-200 transition-colors">
-              Post meal of the day
+            <Link
+              href="/dashboard/nutrition"
+              className="inline-flex items-center gap-2 rounded-xl bg-clean-hover px-4 py-2.5 text-sm font-semibold text-clean-text transition-colors duration-150 hover:bg-gray-200 active:bg-gray-300"
+            >
+              <Apple className="h-4 w-4" /> Post meal of the day
             </Link>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }

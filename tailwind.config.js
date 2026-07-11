@@ -8,44 +8,39 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Solarized Light palette
-        'sol-base03': '#002b36',   // darkest text / headings
-        'sol-base02': '#073642',   // strong emphasis
-        'sol-base01': '#586e75',   // emphasis / secondary text
-        'sol-base00': '#657b83',   // body text
-        'sol-base0': '#839496',    // (dark mode body – unused in light)
-        'sol-base1': '#93a1a1',    // muted / placeholders / borders
-        'sol-base2': '#eee8d5',    // panel / card background
-        'sol-base3': '#fdf6e3',    // main background
-        'sol-yellow': '#b58900',
-        'sol-orange': '#cb4b16',
-        'sol-red': '#dc322f',
-        'sol-magenta': '#d33682',
-        'sol-violet': '#6c71c4',
-        'sol-blue': '#268bd2',
-        'sol-cyan': '#2aa198',
-        'sol-green': '#859900',
+        // Clean Light — canonical (design anchor: dashboard sidebar shell)
+        'clean-bg': '#f5f5f7',     // App canvas / page background
+        'clean-sidebar': '#ffffff',// Sidebar + raised surfaces
+        'clean-accent': '#E8453C', // Primary accent (coral)
+        'clean-text': '#1a1a1a',   // Primary text
+        'clean-muted': '#6b7280',  // Secondary text / inactive icons / placeholders
+        'clean-border': '#e5e7eb', // Hairline borders / dividers
+        'clean-hover': '#f3f4f6',  // Neutral hover fill
 
-        // New Clean UI Palette
-        'clean-bg': '#f5f5f7',     // Main body background
-        'clean-sidebar': '#ffffff',// Sidebar background
-        'clean-accent': '#E8453C', // Coral red for active items
-        'clean-text': '#1a1a1a',   // Dark text
-        'clean-muted': '#6b7280',  // Muted text / icons
-        'clean-border': '#e5e7eb', // Subtle borders
-        'clean-hover': '#f3f4f6',  // Hover states
+        // Clean Light — extension (app reskin)
+        'clean-surface': '#ffffff',    // cards, panels, popovers
+        'clean-surface-2': '#fafafa',  // inset wells (composer footer, table headers)
+        'clean-accent-hover': '#D93A31',   // primary hover
+        'clean-accent-pressed': '#BE3329', // primary active/pressed
+        'clean-accent-soft': '#FDECEA',    // coral 8% tint — selected rows, mention chips
+        'clean-accent-softer': '#FEF5F4',  // coral 4% tint — own-message wash, pinned accents
+        'warm-sand': '#FFFBEB',        // celebration / system cards
+        'warm-sand-border': '#FDE68A', // celebration hairline
+        'warm-sand-text': '#92400E',   // celebration body text
 
-        // Legacy discord aliases mapped to solarized equivalents
-        'discord-darkest': '#002b36',
-        'discord-darker': '#073642',
-        'discord-dark': '#ffffff', // Shifted to white for consistency
-        'discord-medium': '#f5f5f7', // Shifted to light gray
-        'discord-light': '#1a1a1a', // Shifted to dark text
-        'discord-muted': '#6b7280', // Shifted to gray
-        'discord-accent': '#E8453C', // Shifted to coral red
-        'discord-success': '#10b981', // Clean green
-        'discord-warning': '#f59e0b', // Clean amber
-        'discord-error': '#E8453C', // Clean coral red
+        // Status scale (harmonized with coral — warm + desaturated)
+        'status-success': '#10B981',
+        'status-success-text': '#047857',
+        'status-success-soft': '#ECFDF5',
+        'status-warning': '#F59E0B',
+        'status-warning-text': '#B45309',
+        'status-warning-soft': '#FFFBEB',
+        'status-info': '#2A9D8F',      // muted teal — the ONLY secondary hue
+        'status-info-text': '#1F7A70',
+        'status-info-soft': '#E7F5F3',
+        'status-danger': '#E8453C',    // = accent; errors reuse coral
+        'status-danger-text': '#BE3329',
+        'status-danger-soft': '#FDECEA',
       },
       animation: {
         'fade-in': 'fadeIn 0.25s ease-in-out',

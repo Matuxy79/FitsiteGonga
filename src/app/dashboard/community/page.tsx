@@ -2,7 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Hash, Radio, Trophy, Crown, Megaphone, Users, MessageSquare, MessageCircle, Menu, X, LogOut, UserPlus } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Hash, Radio, Trophy, Crown, Megaphone, Users, MessageCircle, Menu, X, LogOut, UserPlus, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useChannelFeed, useSquadFeed, useDirectFeed, usePresence, type Message } from '@/hooks'
@@ -41,8 +42,8 @@ export default function CommunityPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-[calc(100vh-140px)] flex items-center justify-center text-clean-muted">
-          <MessageSquare className="w-8 h-8 animate-pulse" />
+        <div className="h-[calc(100vh-140px)] flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-clean-accent" />
         </div>
       }
     >
@@ -254,8 +255,8 @@ function CommunityPageInner() {
   // ---- Loading gate ---------------------------------------------------------------
   if (authLoading || !user) {
     return (
-      <div className="h-[calc(100vh-140px)] flex items-center justify-center text-clean-muted">
-        <MessageSquare className="w-8 h-8 animate-pulse" />
+      <div className="h-[calc(100vh-140px)] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-clean-accent" />
       </div>
     )
   }
@@ -270,7 +271,7 @@ function CommunityPageInner() {
       <ChatPanel
         header={
           <ChatHeader
-            icon={<Icon className="w-4 h-4 text-clean-muted" />}
+            icon={<Icon className="w-4 h-4" />}
             title={`#${channel.name}`}
             subtitle={channel.description || undefined}
             connected={channelFeed.connected}
@@ -321,7 +322,7 @@ function CommunityPageInner() {
                       toast(mapApiErrorToToast(error, { action: 'leave this squad' }))
                     }
                   }}
-                  className="p-1.5 hover:bg-clean-hover rounded-lg text-clean-muted hover:text-red-500 transition-colors"
+                  className="rounded-lg p-1.5 text-clean-muted transition-colors hover:bg-status-danger-soft hover:text-status-danger-text"
                   title="Leave squad"
                 >
                   <LogOut className="w-4 h-4" />
@@ -349,7 +350,7 @@ function CommunityPageInner() {
       <ChatPanel
         header={
           <ChatHeader
-            icon={<MessageCircle className="w-4 h-4 text-clean-muted" />}
+            icon={<MessageCircle className="w-4 h-4" />}
             title={dmPeer?.display_name || 'Direct message'}
             subtitle="Direct message"
             connected={dmFeed.connected}
@@ -369,8 +370,8 @@ function CommunityPageInner() {
     )
   } else {
     panel = (
-      <div className="h-full flex items-center justify-center text-clean-muted bg-white">
-        <MessageSquare className="w-8 h-8 animate-pulse" />
+      <div className="h-full flex items-center justify-center bg-white">
+        <Loader2 className="w-6 h-6 animate-spin text-clean-accent" />
       </div>
     )
   }
@@ -402,6 +403,12 @@ function CommunityPageInner() {
       {/* Sidebar (mobile drawer) */}
       {mobileSidebar && (
         <div className="absolute inset-0 z-50 flex md:hidden">
+          <motion.div
+            initial={{ x: -288 }}
+            animate={{ x: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="flex w-72 h-full"
+          >
           <ChannelSidebar
             className="flex w-72 h-full"
             channels={channels}
@@ -428,9 +435,16 @@ function CommunityPageInner() {
             onLockedChannel={onLockedChannel}
             squadInviteCount={inviteCount}
           />
-          <button className="flex-1 bg-black/40 backdrop-blur-sm" onClick={() => setMobileSidebar(false)}>
+          </motion.div>
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.16, ease: 'easeOut' }}
+            className="flex-1 bg-black/40 backdrop-blur-sm"
+            onClick={() => setMobileSidebar(false)}
+          >
             <X className="w-6 h-6 text-white m-4" />
-          </button>
+          </motion.button>
         </div>
       )}
 
@@ -494,7 +508,7 @@ function CommunityPageInner() {
 
 function MobileMenuButton({ onClick }: { onClick: () => void }) {
   return (
-    <button onClick={onClick} className="p-1.5 hover:bg-clean-hover rounded-lg text-clean-muted md:hidden transition-colors" aria-label="Menu">
+    <button onClick={onClick} className="rounded-lg p-1.5 text-clean-muted transition-colors hover:bg-clean-hover hover:text-clean-text md:hidden" aria-label="Menu">
       <Menu className="w-4 h-4" />
     </button>
   )
@@ -543,7 +557,7 @@ function SquadMembersRail({
   const memberIds = new Set(members.map((m) => m.user?.id))
 
   return (
-    <aside className={cn('w-72 bg-clean-sidebar border-l border-clean-border flex-col overflow-y-auto', className)}>
+    <aside className={cn('w-72 bg-clean-sidebar border-l border-clean-border flex-col overflow-y-auto clean-scrollbar', className)}>
       <div className="p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-clean-text mb-3">
           <Users className="w-4 h-4 text-clean-accent" />
@@ -560,7 +574,7 @@ function SquadMembersRail({
               </span>
               <FlairBadge role={m.user?.role} />
               {m.role !== 'MEMBER' && (
-                <span className="ml-auto text-[9px] font-mono text-amber-500/80 uppercase">{m.role}</span>
+                <span className="ml-auto font-mono text-[9px] uppercase text-status-warning-text">{m.role}</span>
               )}
             </div>
           ))}
@@ -577,7 +591,7 @@ function SquadMembersRail({
             value={inviteQuery}
             onChange={(e) => setInviteQuery(e.target.value)}
             placeholder="Search users…"
-            className="w-full px-3 py-2 bg-white border border-clean-border rounded-xl text-xs text-clean-text placeholder-clean-muted focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
+            className="w-full rounded-xl border border-clean-border bg-white px-3 py-2 text-xs text-clean-text placeholder:text-clean-muted transition-colors duration-150 focus:border-clean-accent/50 focus:outline-none focus:ring-2 focus:ring-clean-accent/20"
           />
           <div className="mt-2 space-y-1">
             {inviteResults
@@ -598,7 +612,7 @@ function SquadMembersRail({
                         toast(mapApiErrorToToast(error, { action: 'send this invite' }))
                       }
                     }}
-                    className="px-2 py-1 bg-clean-accent hover:bg-clean-accent/90 text-white text-[10px] font-semibold rounded-md transition-colors"
+                    className="rounded-md bg-clean-accent px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-clean-accent-hover"
                   >
                     Invite
                   </button>

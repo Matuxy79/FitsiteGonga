@@ -43,7 +43,7 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
             <Trophy className="w-4 h-4 text-amber-500" />
             Leaderboard
           </div>
-          <div className="flex bg-white rounded-lg p-0.5 border border-clean-border">
+          <div className="inline-flex rounded-lg border border-clean-border bg-white p-0.5">
             {(['week', 'all'] as const).map((p) => (
               <button
                 key={p}
@@ -70,8 +70,8 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
             <div
               key={entry.user.id}
               className={cn(
-                'flex items-center gap-2.5 px-2.5 py-2 rounded-xl',
-                entry.user.id === currentUserId ? 'bg-clean-accent/10 border border-clean-accent/20' : 'hover:bg-clean-hover',
+                'flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-colors',
+                entry.user.id === currentUserId ? 'border border-clean-accent/20 bg-clean-accent-soft' : 'hover:bg-clean-hover',
               )}
             >
               <RankBadge rank={entry.rank} />
@@ -84,24 +84,24 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
                 <div className="flex items-center gap-2 text-[10px] text-clean-muted">
                   <span className="font-mono">Lv {entry.user.stats?.level ?? 1}</span>
                   {(entry.user.stats?.current_streak ?? 0) > 0 && (
-                    <span className="flex items-center gap-0.5 text-orange-400">
+                    <span className="flex items-center gap-0.5 text-orange-500">
                       <Flame className="w-2.5 h-2.5" />
                       {entry.user.stats?.current_streak}
                     </span>
                   )}
                 </div>
               </div>
-              <span className="text-xs font-mono text-amber-500 shrink-0">{entry.xp.toLocaleString()}</span>
+              <span className="ml-auto shrink-0 font-mono text-xs text-status-warning-text">{entry.xp.toLocaleString()}</span>
             </div>
           ))}
         </div>
 
         {board && board.me.rank > (board.entries.length || 0) && (
-          <div className="mt-2 px-2.5 py-2 rounded-xl bg-white border border-clean-border flex items-center justify-between text-xs">
+          <div className="mt-2 flex items-center justify-between rounded-xl border border-clean-border bg-white px-2.5 py-2 text-xs">
             <span className="text-clean-muted">
-              Your rank: <span className="text-clean-text font-semibold">#{board.me.rank}</span>
+              Your rank: <span className="font-semibold text-clean-text">#{board.me.rank}</span>
             </span>
-            <span className="font-mono text-amber-500">{board.me.xp.toLocaleString()} XP</span>
+            <span className="font-mono text-status-warning-text">{board.me.xp.toLocaleString()} XP</span>
           </div>
         )}
       </div>
@@ -121,10 +121,10 @@ export function LeaderboardPanel({ currentUserId, profile, className }: Leaderbo
               key={a.id}
               title={`${a.name}${a.earned ? '' : ' (locked)'} — ${a.description}`}
               className={cn(
-                'aspect-square rounded-lg flex items-center justify-center text-lg border transition-transform hover:scale-110',
+                'flex aspect-square items-center justify-center rounded-lg border text-lg transition-transform duration-150 hover:scale-110',
                 a.earned
-                  ? 'bg-amber-500/10 border-amber-500/30'
-                  : 'bg-white border-clean-border opacity-30 grayscale',
+                  ? 'border-status-warning/30 bg-status-warning-soft'
+                  : 'border-clean-border bg-white opacity-30 grayscale',
               )}
             >
               {a.icon}
@@ -143,4 +143,3 @@ function RankBadge({ rank }: { rank: number }) {
   }
   return <span className="w-4 text-[10px] font-mono text-clean-muted text-center shrink-0">{rank}</span>
 }
-

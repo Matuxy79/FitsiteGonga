@@ -30,7 +30,7 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
           onClick={onClose}
         >
           <motion.div
@@ -39,17 +39,17 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              'w-full bg-white border border-clean-border rounded-2xl shadow-2xl overflow-hidden',
+              'w-full bg-white border border-clean-border rounded-2xl shadow-overlay overflow-hidden',
               wide ? 'max-w-2xl' : 'max-w-md',
             )}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-clean-border bg-gray-50/50">
+            <div className="flex items-center justify-between border-b border-clean-border bg-clean-surface-2 px-5 py-4">
               <h3 className="text-sm font-semibold text-clean-text">{title}</h3>
               <button onClick={onClose} className="p-1 hover:bg-clean-hover rounded-lg text-clean-muted hover:text-clean-text">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-5 max-h-[70vh] overflow-y-auto">{children}</div>
+            <div className="p-5 max-h-[70vh] overflow-y-auto clean-scrollbar">{children}</div>
           </motion.div>
         </motion.div>
       )}

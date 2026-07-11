@@ -99,9 +99,9 @@ export function ThreadDrawer({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'tween', duration: 0.2 }}
-          className="absolute inset-y-0 right-0 w-full sm:w-[420px] bg-white border-l border-clean-border z-40 flex flex-col shadow-2xl"
+          className="absolute inset-y-0 right-0 z-40 flex w-full flex-col border-l border-clean-border bg-white shadow-overlay sm:w-[420px]"
         >
-          <div className="h-14 px-4 border-b border-clean-border flex items-center justify-between bg-clean-sidebar shrink-0">
+          <div className="flex h-14 shrink-0 items-center justify-between border-b border-clean-border bg-clean-surface-2 px-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-clean-text">
               <MessageSquare className="w-4 h-4 text-clean-accent" />
               Thread
@@ -109,12 +109,12 @@ export function ThreadDrawer({
                 {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
               </span>
             </div>
-            <button onClick={onClose} className="p-1.5 hover:bg-clean-hover rounded-lg text-clean-muted hover:text-clean-text">
+            <button onClick={onClose} className="rounded-lg p-1.5 text-clean-muted transition-colors hover:bg-clean-hover hover:text-clean-text">
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 bg-clean-bg">
+          <div className="flex-1 overflow-y-auto clean-scrollbar bg-clean-bg p-4">
             {loading && (
               <div className="flex justify-center py-6">
                 <Loader2 className="w-5 h-5 text-clean-accent animate-spin" />
@@ -182,4 +182,3 @@ export function ThreadDrawer({
     </AnimatePresence>
   )
 }
-

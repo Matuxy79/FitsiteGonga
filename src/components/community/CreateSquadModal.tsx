@@ -54,14 +54,14 @@ export function CreateSquadModal({ open, onClose, onCreated, canCreate, onUpgrad
     return (
       <Modal open={open} onClose={onClose} title="Create a squad">
         <div className="text-center py-4">
-          <Crown className="w-10 h-10 text-amber-400 mx-auto mb-3" />
+          <Crown className="mx-auto mb-3 h-10 w-10 text-status-warning" />
           <p className="text-sm text-clean-text mb-1 font-semibold">Squad creation is a PRO feature</p>
           <p className="text-xs text-clean-muted mb-4">
             Upgrade to create your own squads, invite friends, and run private group chats.
           </p>
           <button
             onClick={onUpgrade}
-            className="px-4 py-2.5 bg-clean-accent hover:bg-clean-accent/90 text-white text-sm font-semibold rounded-xl transition-colors"
+            className="rounded-xl bg-clean-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-clean-accent-hover"
           >
             Upgrade to PRO
           </button>
@@ -74,37 +74,37 @@ export function CreateSquadModal({ open, onClose, onCreated, canCreate, onUpgrad
     <Modal open={open} onClose={onClose} title="Create a squad">
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-clean-muted mb-1.5">Name</label>
+          <label className="mb-1.5 block text-xs font-semibold text-clean-muted">Name</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={100}
             placeholder="e.g. Morning Grinders"
-            className="w-full px-3 py-2.5 bg-white border border-clean-border rounded-xl text-sm text-clean-text placeholder-clean-muted focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
+            className="w-full rounded-xl border border-clean-border bg-white px-3 py-2.5 text-sm text-clean-text placeholder:text-clean-muted transition-colors duration-150 focus:border-clean-accent/50 focus:outline-none focus:ring-2 focus:ring-clean-accent/20"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-clean-muted mb-1.5">Description (optional)</label>
+          <label className="mb-1.5 block text-xs font-semibold text-clean-muted">Description (optional)</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             maxLength={500}
             rows={2}
             placeholder="What's this squad about?"
-            className="w-full px-3 py-2.5 bg-white border border-clean-border rounded-xl text-sm text-clean-text placeholder-clean-muted resize-none focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
+            className="w-full resize-none rounded-xl border border-clean-border bg-white px-3 py-2.5 text-sm text-clean-text placeholder:text-clean-muted transition-colors duration-150 focus:border-clean-accent/50 focus:outline-none focus:ring-2 focus:ring-clean-accent/20"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-clean-muted mb-1.5">Visibility</label>
+          <label className="mb-1.5 block text-xs font-semibold text-clean-muted">Visibility</label>
           <div className="space-y-1.5">
             {VISIBILITIES.map((v) => (
               <button
                 key={v.value}
                 onClick={() => setVisibility(v.value)}
                 className={cn(
-                  'w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-left transition-colors',
+                  'flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-left transition-colors',
                   visibility === v.value
-                    ? 'border-clean-accent/50 bg-clean-accent/10'
+                    ? 'border-clean-accent/50 bg-clean-accent-soft'
                     : 'border-clean-border bg-white hover:bg-clean-hover',
                 )}
               >
@@ -114,7 +114,7 @@ export function CreateSquadModal({ open, onClose, onCreated, canCreate, onUpgrad
                 </div>
                 <div
                   className={cn(
-                    'w-4 h-4 rounded-full border-2',
+                    'h-4 w-4 rounded-full border-2',
                     visibility === v.value ? 'border-clean-accent bg-clean-accent' : 'border-gray-300',
                   )}
                 />
@@ -125,7 +125,7 @@ export function CreateSquadModal({ open, onClose, onCreated, canCreate, onUpgrad
         <button
           disabled={!name.trim() || busy}
           onClick={create}
-          className="w-full py-2.5 bg-clean-accent hover:bg-clean-accent/90 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-colors"
+          className="w-full rounded-xl bg-clean-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-clean-accent-hover disabled:opacity-40"
         >
           {busy ? 'Creating…' : 'Create squad'}
         </button>
@@ -133,4 +133,3 @@ export function CreateSquadModal({ open, onClose, onCreated, canCreate, onUpgrad
     </Modal>
   )
 }
-

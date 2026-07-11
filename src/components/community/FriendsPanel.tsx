@@ -75,7 +75,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
 
   return (
     <Modal open={open} onClose={onClose} title="Friends" wide>
-      <div className="flex gap-1 mb-4 bg-white border border-clean-border rounded-lg p-0.5 w-fit">
+      <div className="mb-4 inline-flex rounded-lg border border-clean-border bg-white p-0.5">
         {(
           [
             ['friends', `Friends${friends.length ? ` (${friends.length})` : ''}`],
@@ -110,7 +110,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
         ) : (
           <div className="space-y-2">
             {friends.map((f) => (
-              <div key={f.friendshipId} className="flex items-center gap-3 p-3 bg-white border border-clean-border rounded-xl">
+              <div key={f.friendshipId} className="flex items-center gap-3 rounded-xl border border-clean-border bg-white p-3 transition-colors duration-150 hover:border-gray-300 hover:shadow-card">
                 <Avatar src={mediaUrl(f.user.avatar_url)} name={f.user.display_name} size={9} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
@@ -124,7 +124,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
                     onMessage(f.user.id)
                     onClose()
                   }}
-                  className="p-2 bg-clean-accent/10 hover:bg-clean-accent/20 text-clean-accent rounded-lg transition-colors"
+                  className="rounded-lg bg-clean-accent-soft p-2 text-clean-accent transition-colors hover:bg-clean-accent/20"
                   title="Message"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -132,7 +132,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
                 <button
                   disabled={busyId === f.friendshipId}
                   onClick={() => run(f.friendshipId, () => FriendRepository.unfriend(f.friendshipId), 'unfriend')}
-                  className="p-2 hover:bg-clean-hover text-clean-muted hover:text-red-600 rounded-lg transition-colors"
+                  className="rounded-lg p-2 text-clean-muted transition-colors hover:bg-status-danger-soft hover:text-status-danger-text"
                   title="Unfriend"
                 >
                   <UserMinus className="w-4 h-4" />
@@ -150,10 +150,10 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
           )}
           {incoming.length > 0 && (
             <div>
-              <div className="text-[10px] font-bold text-clean-muted uppercase tracking-widest mb-2">Incoming</div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-clean-muted">Incoming</div>
               <div className="space-y-2">
                 {incoming.map((r) => (
-                  <div key={r.friendshipId} className="flex items-center gap-3 p-3 bg-white border border-clean-border rounded-xl">
+                  <div key={r.friendshipId} className="flex items-center gap-3 rounded-xl border border-clean-border bg-white p-3 transition-colors duration-150 hover:border-gray-300 hover:shadow-card">
                     <Avatar src={mediaUrl(r.user.avatar_url)} name={r.user.display_name} size={9} />
                     <div className="min-w-0 flex-1">
                       <span className="text-sm font-semibold text-clean-text">{r.user.display_name}</span>
@@ -161,14 +161,14 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
                     <button
                       disabled={busyId === r.friendshipId}
                       onClick={() => run(r.friendshipId, () => FriendRepository.acceptRequest(r.friendshipId), 'accept this request')}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors"
+                      className="rounded-lg bg-status-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#0EA271]"
                     >
                       Accept
                     </button>
                     <button
                       disabled={busyId === r.friendshipId}
                       onClick={() => run(r.friendshipId, () => FriendRepository.declineRequest(r.friendshipId), 'decline this request')}
-                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-clean-text text-xs font-semibold rounded-lg transition-colors"
+                      className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-clean-text transition-colors hover:bg-gray-200"
                     >
                       Decline
                     </button>
@@ -182,7 +182,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
               <div className="text-[10px] font-bold text-clean-muted uppercase tracking-widest mb-2">Sent</div>
               <div className="space-y-2">
                 {outgoing.map((r) => (
-                  <div key={r.friendshipId} className="flex items-center gap-3 p-3 bg-white border border-clean-border rounded-xl opacity-70">
+                  <div key={r.friendshipId} className="flex items-center gap-3 rounded-xl border border-clean-border bg-white p-3 opacity-70">
                     <Avatar src={mediaUrl(r.user.avatar_url)} name={r.user.display_name} size={9} />
                     <span className="text-sm text-clean-text flex-1 truncate">{r.user.display_name}</span>
                     <span className="flex items-center gap-1 text-xs text-clean-muted">
@@ -204,7 +204,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by display name…"
-              className="w-full pl-9 pr-3 py-2.5 bg-white border border-clean-border rounded-xl text-sm text-clean-text placeholder-clean-muted focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
+              className="w-full rounded-xl border border-clean-border bg-white pl-9 pr-3 py-2.5 text-sm text-clean-text placeholder:text-clean-muted transition-colors duration-150 focus:border-clean-accent/50 focus:outline-none focus:ring-2 focus:ring-clean-accent/20"
             />
           </div>
           <div className="space-y-2">
@@ -212,7 +212,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
               <div className="py-6 text-center text-sm text-clean-muted">No users found</div>
             )}
             {results.map((u) => (
-              <div key={u.id} className="flex items-center gap-3 p-3 bg-white border border-clean-border rounded-xl">
+              <div key={u.id} className="flex items-center gap-3 rounded-xl border border-clean-border bg-white p-3 transition-colors duration-150 hover:border-gray-300 hover:shadow-card">
                 <Avatar src={mediaUrl(u.avatar_url)} name={u.display_name} size={9} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
@@ -227,7 +227,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
                       onMessage(u.id)
                       onClose()
                     }}
-                    className="px-3 py-1.5 bg-clean-accent/10 text-clean-accent text-xs font-semibold rounded-lg"
+                    className="rounded-lg bg-clean-accent-soft px-3 py-1.5 text-xs font-semibold text-clean-accent"
                   >
                     Message
                   </button>
@@ -244,7 +244,7 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
                         toast({ title: 'Friend request sent', variant: 'success' })
                       }, 'send this friend request')
                     }
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-clean-accent hover:bg-clean-accent/90 text-white text-xs font-semibold rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 rounded-lg bg-clean-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-clean-accent-hover"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     Add
@@ -258,4 +258,3 @@ export function FriendsPanel({ open, onClose, onMessage }: FriendsPanelProps) {
     </Modal>
   )
 }
-

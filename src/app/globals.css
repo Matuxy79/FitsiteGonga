@@ -14,90 +14,58 @@
 }
 
 @layer components {
-  /* Solarized Light background patterns */
-  .discord-bg {
-    background: #fdf6e3;
-    background-image:
-      radial-gradient(circle at 20% 80%, rgba(38, 139, 210, 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(38, 139, 210, 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(38, 139, 210, 0.04) 0%, transparent 50%);
-  }
-
-  .discord-bg-pattern {
-    background: #fdf6e3;
-    background-image:
-      linear-gradient(rgba(38, 139, 210, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(38, 139, 210, 0.04) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
-  /* Solarized scrollbars */
-  .discord-scrollbar::-webkit-scrollbar {
+  /* Clean Light scrollbars — floating thumb on white panes */
+  .clean-scrollbar::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
   }
 
-  .discord-scrollbar::-webkit-scrollbar-track {
-    background: #eee8d5;
+  .clean-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
   }
 
-  .discord-scrollbar::-webkit-scrollbar-thumb {
-    background: #93a1a1;
-    border-radius: 4px;
+  .clean-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db; /* gray-300 */
+    border-radius: 9999px;
+    border: 2px solid #ffffff; /* floating-thumb inset on white panes */
   }
 
-  .discord-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #657b83;
-  }
-
-  /* Focus rings */
-  .discord-focus {
-    @apply focus:outline-none focus:ring-2 focus:ring-discord-accent focus:ring-offset-2 focus:ring-offset-sol-base3;
-  }
-
-  /* Buttons */
-  .discord-button {
-    @apply inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-discord-accent focus:ring-offset-2 focus:ring-offset-sol-base3 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .discord-button-primary {
-    @apply discord-button bg-sol-blue text-sol-base3 hover:bg-sol-blue/90 active:bg-sol-blue/80;
-  }
-
-  .discord-button-secondary {
-    @apply discord-button bg-sol-base2 text-sol-base03 hover:bg-sol-base2/80 active:bg-sol-base2/70;
-  }
-
-  .discord-button-subtle {
-    @apply discord-button bg-transparent text-sol-base01 hover:bg-sol-base2 active:bg-sol-base2/80;
-  }
-
-  .discord-button-danger {
-    @apply discord-button bg-sol-red text-sol-base3 hover:bg-sol-red/90 active:bg-sol-red/80;
+  .clean-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af; /* gray-400 */
   }
 
   /* Cards */
-  .discord-card {
-    @apply bg-sol-base2 border border-sol-base1/30 rounded-lg shadow-sm;
+  .clean-card {
+    @apply rounded-2xl border border-clean-border bg-white shadow-sm;
   }
 
-  .discord-card-hover {
-    @apply discord-card hover:bg-sol-base3 hover:border-sol-base1/50 transition-colors duration-200;
+  .clean-card-hover {
+    @apply clean-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-gray-300;
   }
 
   /* Inputs */
-  .discord-input {
-    @apply w-full bg-sol-base3 text-sol-base03 placeholder-sol-base1 border border-sol-base1/40 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sol-blue focus:border-sol-blue transition-colors duration-200;
+  .clean-input {
+    @apply w-full rounded-xl border border-clean-border bg-white px-3 py-2.5 text-sm text-clean-text placeholder:text-clean-muted transition-colors duration-150 focus:outline-none focus:border-clean-accent/50 focus:ring-2 focus:ring-clean-accent/20;
   }
 
-  .discord-input-error {
-    @apply discord-input border-sol-red focus:ring-sol-red focus:border-sol-red;
+  /* Buttons */
+  .clean-button-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-clean-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-clean-accent-hover active:bg-clean-accent-pressed disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-clean-accent/25;
+  }
+
+  .clean-button-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-clean-hover px-4 py-2.5 text-sm font-semibold text-clean-text transition-colors duration-150 hover:bg-gray-200 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-clean-accent/20;
+  }
+
+  .clean-button-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg p-2 text-clean-muted transition-colors duration-150 hover:bg-clean-hover hover:text-clean-text focus:outline-none focus-visible:ring-2 focus-visible:ring-clean-accent/20;
   }
 
   /* Sidebar and Nav enhancements */
   .sidebar-tooltip {
     @apply absolute left-full ml-4 px-3 py-1.5 bg-clean-text text-white text-xs font-bold rounded-md opacity-0 -translate-x-2 pointer-events-none transition-all duration-200 z-50 whitespace-nowrap shadow-md;
   }
-  
+
   .group:hover .sidebar-tooltip {
     @apply opacity-100 translate-x-0;
   }
@@ -136,48 +104,31 @@
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
-  .animate-glow {
-    animation: glow 2s ease-in-out infinite alternate;
-  }
-
-  /* Text gradients – solarized flavored */
-  .text-gradient-discord {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-sol-base03 to-sol-blue;
-  }
-
-  .text-gradient-success {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-sol-green to-sol-cyan;
-  }
-
-  .text-gradient-warning {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-sol-yellow to-sol-orange;
-  }
-
-  .text-gradient-error {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-sol-red to-sol-orange;
-  }
-
-  /* Shadows */
-  .shadow-discord {
+  /* Shadows — warm-tinted, layered */
+  .shadow-card {
     box-shadow:
-      0 4px 6px -1px rgba(0, 43, 54, 0.08),
-      0 2px 4px -1px rgba(0, 43, 54, 0.04);
+      0 1px 2px rgba(26, 26, 26, 0.04),
+      0 1px 3px rgba(26, 26, 26, 0.06);
   }
 
-  .shadow-discord-lg {
+  .shadow-card-hover {
     box-shadow:
-      0 10px 15px -3px rgba(0, 43, 54, 0.08),
-      0 4px 6px -2px rgba(0, 43, 54, 0.04);
+      0 4px 12px -2px rgba(26, 26, 26, 0.08),
+      0 2px 4px -1px rgba(26, 26, 26, 0.05);
   }
 
-  .shadow-discord-xl {
+  .shadow-pop {
+    /* dropdowns, emoji picker, hover action bar */
     box-shadow:
-      0 20px 25px -5px rgba(0, 43, 54, 0.08),
-      0 10px 10px -5px rgba(0, 43, 54, 0.03);
+      0 8px 24px -8px rgba(26, 26, 26, 0.16),
+      0 2px 6px -2px rgba(26, 26, 26, 0.08);
   }
 
-  .shadow-discord-glow {
-    box-shadow: 0 0 20px rgba(38, 139, 210, 0.25);
+  .shadow-overlay {
+    /* modals, thread drawer, toasts */
+    box-shadow:
+      0 24px 48px -12px rgba(26, 26, 26, 0.25),
+      0 8px 16px -8px rgba(26, 26, 26, 0.12);
   }
 }
 
@@ -235,14 +186,5 @@
   100% {
     transform: scale(1);
     opacity: 1;
-  }
-}
-
-@keyframes glow {
-  from {
-    box-shadow: 0 0 5px rgba(38, 139, 210, 0.15);
-  }
-  to {
-    box-shadow: 0 0 20px rgba(38, 139, 210, 0.3);
   }
 }

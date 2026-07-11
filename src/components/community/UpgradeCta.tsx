@@ -24,8 +24,8 @@ export function UpgradeCta({ open, onClose, featureName }: UpgradeCtaProps) {
   return (
     <Modal open={open} onClose={onClose} title="Upgrade to PRO">
       <div className="text-center mb-4">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-3">
-          <Crown className="w-7 h-7 text-black" />
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-status-warning to-[#EA580C]">
+          <Crown className="w-7 h-7 text-white" />
         </div>
         <p className="text-sm font-semibold text-clean-text">
           {featureName ? `${featureName} is a PRO feature` : 'Unlock the full community'}
@@ -34,7 +34,7 @@ export function UpgradeCta({ open, onClose, featureName }: UpgradeCtaProps) {
       <ul className="space-y-2 mb-5">
         {PRO_PERKS.map((perk) => (
           <li key={perk} className="flex items-center gap-2.5 text-sm text-clean-text">
-            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+            <Check className="w-4 h-4 shrink-0 text-status-success" />
             {perk}
           </li>
         ))}
@@ -44,11 +44,10 @@ export function UpgradeCta({ open, onClose, featureName }: UpgradeCtaProps) {
           onClose()
           router.push('/dashboard/settings#membership-plan')
         }}
-        className="w-full py-3 bg-clean-accent hover:bg-clean-accent/90 text-white text-sm font-semibold rounded-xl transition-colors"
+        className="w-full py-3 bg-clean-accent hover:bg-clean-accent-hover text-white text-sm font-semibold rounded-xl transition-colors"
       >
         See plans
       </button>
     </Modal>
   )
 }
-

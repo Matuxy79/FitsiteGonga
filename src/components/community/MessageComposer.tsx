@@ -175,8 +175,8 @@ export function MessageComposer({
 
   if (disabled) {
     return (
-      <div className="p-4 border-t border-clean-border bg-clean-bg">
-        <div className="flex items-center gap-3 px-4 py-3 bg-white border border-clean-border rounded-xl text-sm text-clean-muted">
+      <div className="border-t border-clean-border bg-clean-surface-2 p-4">
+        <div className="flex items-center gap-3 rounded-xl border border-clean-border bg-white px-4 py-3 text-sm text-clean-muted">
           <Lock className="w-4 h-4 shrink-0" />
           {disabledReason || 'You cannot post here'}
         </div>
@@ -185,17 +185,17 @@ export function MessageComposer({
   }
 
   return (
-    <div className="p-4 border-t border-clean-border bg-clean-bg relative">
+    <div className="relative border-t border-clean-border bg-clean-surface-2 p-4">
       {/* Reply preview */}
       {replyingTo && (
-        <div className="mb-3 flex items-center justify-between px-3 py-2 bg-white rounded-lg border-l-2 border-clean-accent shadow-sm">
+        <div className="mb-3 flex items-center justify-between rounded-lg border-l-2 border-clean-accent bg-white px-3 py-2 shadow-sm">
           <div className="min-w-0">
             <div className="text-xs text-clean-muted">
-              Replying to <span className="text-clean-accent font-medium">{replyingTo.sender.displayName}</span>
+              Replying to <span className="font-medium text-clean-accent">{replyingTo.sender.displayName}</span>
             </div>
-            <div className="text-sm text-clean-text truncate">{replyingTo.content}</div>
+            <div className="truncate text-sm text-clean-text">{replyingTo.content}</div>
           </div>
-          <button onClick={onCancelReply} className="p-1 hover:bg-clean-hover rounded">
+          <button onClick={onCancelReply} className="rounded p-1 hover:bg-clean-hover">
             <X className="w-4 h-4 text-clean-muted" />
           </button>
         </div>
@@ -213,7 +213,7 @@ export function MessageComposer({
                   delete remoteUrls.current[url]
                   setPendingMedia((prev) => prev.filter((_, i) => i !== idx))
                 }}
-                className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
+                className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-status-danger text-white"
               >
                 <X className="w-3 h-3 text-white" />
               </button>
@@ -237,19 +237,19 @@ export function MessageComposer({
 
       {/* Mention popover */}
       {mentionQuery !== null && mentionResults.length > 0 && (
-        <div className="absolute bottom-full left-4 right-4 mb-1 bg-white border border-clean-border rounded-xl shadow-xl overflow-hidden z-40">
-          <div className="px-3 py-1.5 text-[10px] font-semibold text-clean-muted uppercase tracking-wider flex items-center gap-1 bg-gray-50/50">
+        <div className="absolute bottom-full left-4 right-4 z-40 mb-1 overflow-hidden rounded-xl border border-clean-border bg-white shadow-pop">
+          <div className="flex items-center gap-1 bg-clean-surface-2 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-clean-muted">
             <AtSign className="w-3 h-3" /> Mention
           </div>
           {mentionResults.slice(0, 5).map((u) => (
             <button
               key={u.id}
               onClick={() => insertMention(u)}
-              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-clean-hover text-left transition-colors"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-clean-hover"
             >
               <Avatar src={mediaUrl(u.avatar_url)} name={u.display_name} size={6} />
-              <span className="text-sm text-clean-text font-medium">{u.display_name}</span>
-              {u.stats?.level ? <span className="ml-auto text-[10px] text-clean-muted font-mono">Lv {u.stats.level}</span> : null}
+              <span className="text-sm font-medium text-clean-text">{u.display_name}</span>
+              {u.stats?.level ? <span className="ml-auto font-mono text-[10px] text-clean-muted">Lv {u.stats.level}</span> : null}
             </button>
           ))}
         </div>
@@ -260,7 +260,7 @@ export function MessageComposer({
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="p-2.5 hover:bg-clean-hover rounded-lg transition-colors text-clean-muted hover:text-clean-text disabled:opacity-50"
+          className="rounded-lg p-2.5 text-clean-muted transition-colors hover:bg-clean-hover hover:text-clean-text disabled:opacity-50"
           title="Attach image or video"
         >
           <ImageIcon className="w-5 h-5" />
@@ -282,7 +282,7 @@ export function MessageComposer({
             onKeyDown={handleKeyPress}
             placeholder={placeholder}
             rows={1}
-            className="w-full px-4 py-3 bg-white border border-clean-border rounded-xl text-sm text-clean-text placeholder-clean-muted resize-none focus:border-clean-accent focus:ring-1 focus:ring-clean-accent focus:outline-none"
+            className="w-full resize-none rounded-xl border border-clean-border bg-white px-4 py-3 text-sm text-clean-text placeholder:text-clean-muted focus:border-clean-accent/50 focus:outline-none focus:ring-2 focus:ring-clean-accent/20"
             style={{ minHeight: '44px', maxHeight: '120px' }}
           />
         </div>
@@ -290,7 +290,7 @@ export function MessageComposer({
         <div className="relative">
           <button
             onClick={() => setPickerOpen((v) => !v)}
-            className="p-2.5 hover:bg-clean-hover rounded-lg transition-colors text-clean-muted hover:text-clean-text"
+            className="rounded-lg p-2.5 text-clean-muted transition-colors hover:bg-clean-hover hover:text-clean-text"
             title="Emoji"
           >
             <Smile className="w-5 h-5" />
@@ -311,10 +311,10 @@ export function MessageComposer({
           onClick={handleSend}
           disabled={(!value.trim() && pendingMedia.length === 0) || sending || uploading}
           className={cn(
-            'p-2.5 rounded-xl transition-all',
+            'rounded-xl p-2.5 transition-all',
             (value.trim() || pendingMedia.length > 0) && !sending && !uploading
-              ? 'bg-clean-accent hover:bg-clean-accent/90 text-white shadow-sm'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed',
+              ? 'bg-clean-accent text-white shadow-sm hover:bg-clean-accent-hover active:scale-95'
+              : 'cursor-not-allowed bg-gray-100 text-gray-400',
           )}
         >
           {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
@@ -323,4 +323,3 @@ export function MessageComposer({
     </div>
   )
 }
-

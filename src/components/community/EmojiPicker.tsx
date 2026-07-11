@@ -62,7 +62,7 @@ export function EmojiPicker({ open, onClose, onPick, align = 'right', direction 
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: direction === 'up' ? 6 : -6 }}
           className={cn(
-            'absolute z-40 w-72 bg-white border border-clean-border rounded-xl shadow-2xl overflow-hidden',
+            'absolute z-40 w-72 overflow-hidden rounded-xl border border-clean-border bg-white shadow-pop',
             align === 'right' ? 'right-0' : 'left-0',
             direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2',
           )}
