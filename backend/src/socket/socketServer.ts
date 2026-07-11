@@ -51,7 +51,7 @@ export const initSocketServer = (httpServer: HTTPServer): Server<DefaultEventsMa
       credentials: true,
       methods: ['GET', 'POST'],
     },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
   });
 
   // Authentication middleware
