@@ -1,5 +1,4 @@
-import apiClient from '@/lib/apiClient'
-import { setAuthToken } from '@/lib/apiClient'
+import apiClient, { setAuthToken, setRefreshToken } from '@/lib/apiClient'
 import type { User as FitnessUser } from '@/types/fitness'
 
 export interface RegisterDTO {
@@ -96,6 +95,7 @@ export const AuthRepository = {
     const authData = extractAuthResponse(response)
 
     setAuthToken(authData.accessToken)
+    setRefreshToken(authData.refreshToken)
     return authData
   },
 
@@ -107,17 +107,19 @@ export const AuthRepository = {
     const authData = extractAuthResponse(response)
 
     setAuthToken(authData.accessToken)
+    setRefreshToken(authData.refreshToken)
     return authData
   },
 
   /**
    * Refresh access token
    */
-  async refreshToken(): Promise<{ accessToken: string }> {
-    const response = await apiClient.post<{ data: { accessToken: string } }>('/api/auth/refresh')
+  async refreshToken(): Promise<{ accessToken: string; refreshToken?: string }> {
+    const response = await apiClient.post<{ data: { accessToken: string; refreshToken?: string } }>('/api/auth/refresh')
     const payload = response.data || response
 
     setAuthToken(payload.accessToken)
+    if (payload.refreshToken) setRefreshToken(payload.refreshToken)
     return payload
   },
 
@@ -129,6 +131,7 @@ export const AuthRepository = {
       await apiClient.post('/api/auth/logout')
     } finally {
       setAuthToken(null)
+      setRefreshToken(null)
     }
   },
 

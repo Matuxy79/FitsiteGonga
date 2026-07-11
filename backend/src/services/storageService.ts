@@ -7,8 +7,11 @@ import {
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import type { Readable } from 'stream';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const S3_BUCKET = process.env.S3_BUCKET || 'gongafit-uploads';
+const LOCAL_STORAGE_DIR = process.env.LOCAL_STORAGE_DIR || path.join(process.cwd(), 'uploads');
 
 export const isStorageConfigured = Boolean(
   process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY
@@ -23,6 +26,15 @@ const s3Client = new S3Client({
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
   },
 });
+
+/**
+ * Ensure the local uploads directory exists.
+ */
+function ensureLocalDir(): void {
+  if (!fs.existsSync(LOCAL_STORAGE_DIR)) {
+    fs.mkdirSync(LOCAL_STORAGE_DIR, { recursive: true });
+  }
+}
 
 // Memoized so bucket existence is checked/created once per process, not once per request.
 let bucketReadyPromise: Promise<void> | null = null;
@@ -68,7 +80,20 @@ export interface GetObjectStreamResult {
 }
 
 export const storageService = {
-  async uploadFile(key: string, body: Buffer, contentType: string): Promise<void> {
+  async uploadFile(key: string, body: Buffer, contentType: string): Promise<string | void> {
+    // Fall back to local disk when S3 credentials aren't configured
+    if (!isStorageConfigured) {
+      ensureLocalDir();
+      const filePath = path.join(LOCAL_STORAGE_DIR, key);
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, body);
+      console.log(`[storage] Saved locally: ${filePath}`);
+      return;
+    }
+
     await ensureBucketExists();
     await s3Client.send(
       new PutObjectCommand({

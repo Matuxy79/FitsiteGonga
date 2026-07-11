@@ -184,7 +184,8 @@ router.post('/login', loginLimiter, async (req, res) => {
  */
 router.post('/refresh', async (req, res) => {
   try {
-    const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+    // Accept refresh token from cookie (same-origin) or request body (cross-origin fallback)
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!refreshToken) {
       return res.status(401).json({ error: 'No refresh token provided' });
@@ -203,22 +204,34 @@ router.post('/refresh', async (req, res) => {
       return res.status(403).json({ error: 'This account has been disabled' });
     }
 
-    // Generate new access token
-    const accessToken = authService.generateAccessToken({
+    // Generate new tokens
+    const tokens = authService.generateTokens({
       userId: user.id,
       email: user.email,
       role: user.role,
       membership_tier: user.membership_tier,
     });
 
-    res.cookie('accessToken', accessToken, {
+    // Set httpOnly cookies (works for same-origin)
+    res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 15 * 60 * 1000,
     });
 
-    res.json({ accessToken });
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // Return both tokens in body (works for cross-origin where cookies may be blocked)
+    res.json({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    });
   } catch (error: any) {
     console.error('Refresh error:', error);
     res.status(401).json({ error: 'Invalid refresh token' });

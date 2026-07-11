@@ -22,20 +22,23 @@ export interface ApiError {
 }
 
 /**
- * Get auth token from cookie or localStorage
+ * Get access token from localStorage
  */
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
-  
-  // Try to get from cookie first (httpOnly cookies aren't accessible via JS)
-  // If using httpOnly cookies, backend handles it automatically
-  // For localStorage fallback (mobile clients):
-  const token = localStorage.getItem('accessToken');
-  return token;
+  return localStorage.getItem('accessToken');
 }
 
 /**
- * Set auth token in localStorage (fallback for mobile)
+ * Get refresh token from localStorage (cross-origin fallback when httpOnly cookie isn't sent)
+ */
+function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('refreshToken');
+}
+
+/**
+ * Set auth tokens in localStorage
  */
 export function setAuthToken(token: string | null): void {
   if (typeof window === 'undefined') return;
@@ -47,16 +50,37 @@ export function setAuthToken(token: string | null): void {
   }
 }
 
+/**
+ * Set refresh token in localStorage (cross-origin fallback)
+ */
+export function setRefreshToken(token: string | null): void {
+  if (typeof window === 'undefined') return;
+  
+  if (token) {
+    localStorage.setItem('refreshToken', token);
+  } else {
+    localStorage.removeItem('refreshToken');
+  }
+}
+
 let refreshPromise: Promise<boolean> | null = null;
 
 /**
- * Attempt to refresh the access token using the httpOnly refresh-token cookie.
+ * Attempt to refresh the access token.
+ * Sends the refresh token in the request body as a cross-origin fallback
+ * (httpOnly cookies may be blocked by third-party cookie policies).
  */
 async function refreshAccessToken(): Promise<boolean> {
   try {
+    const refreshToken = getRefreshToken();
+    const body: any = {};
+    if (refreshToken) body.refreshToken = refreshToken;
+
     const response = await fetch(`${API_URL}/api/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) return false;
@@ -65,6 +89,7 @@ async function refreshAccessToken(): Promise<boolean> {
     if (!data?.accessToken) return false;
 
     setAuthToken(data.accessToken);
+    if (data.refreshToken) setRefreshToken(data.refreshToken);
     return true;
   } catch {
     return false;
