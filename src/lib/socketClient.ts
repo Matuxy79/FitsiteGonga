@@ -37,7 +37,9 @@ export function initSocket(): Socket {
     auth: {
       token,
     },
-    transports: ['websocket', 'polling'],
+    // Start with polling (works through any reverse proxy), then upgrade to ws.
+    // Railway's proxy can reject a bare WebSocket upgrade handshake (HTTP 400).
+    transports: ['polling', 'websocket'],
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionAttempts: 5,

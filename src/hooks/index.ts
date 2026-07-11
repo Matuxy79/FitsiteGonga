@@ -618,7 +618,11 @@ export function usePresence(): { online: number; userIds: string[] } {
 // =============================================================================
 
 const RAW_API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
-const API_ORIGIN = RAW_API_ORIGIN.replace(/\/+$/, '')
+const API_ORIGIN_RAW = RAW_API_ORIGIN.replace(/\/+$/, '')
+// Ensure protocol prefix so XHR doesn't treat it as a relative path
+const API_ORIGIN = API_ORIGIN_RAW.startsWith('http') || API_ORIGIN_RAW.startsWith('/')
+  ? API_ORIGIN_RAW
+  : `https://${API_ORIGIN_RAW}`
 const API_BASE = API_ORIGIN.endsWith('/api') ? API_ORIGIN : `${API_ORIGIN}/api`
 
 export function useMediaUpload(maxBytes?: number) {
