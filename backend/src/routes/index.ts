@@ -66,6 +66,7 @@ export const initRoutes = (app: Express) => {
       };
       
       res.set('Cache-Control', 'private, max-age=3600');
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
       res.set('Content-Type', mimeTypes[ext] || 'application/octet-stream');
       res.set('Content-Length', String(stat.size));
       fs.createReadStream(filePath).pipe(res);
@@ -75,6 +76,7 @@ export const initRoutes = (app: Express) => {
     try {
       const { stream, contentType, contentLength } = await storageService.getObjectStream(key);
       res.set('Cache-Control', 'private, max-age=3600');
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
       if (contentType) res.set('Content-Type', contentType);
       if (contentLength) res.set('Content-Length', String(contentLength));
       stream.pipe(res);

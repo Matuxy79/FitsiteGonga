@@ -189,7 +189,20 @@ export function ChatPanel({
           </div>
         )}
 
-        {!feed.loading && chronological.length === 0 && (
+        {!feed.loading && feed.error && (
+          <div className="mx-auto my-6 max-w-sm rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-center">
+            <p className="text-sm text-red-700">{feed.error}</p>
+            <button
+              type="button"
+              onClick={feed.refresh}
+              className="mt-2 text-xs font-semibold text-clean-accent hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!feed.loading && !feed.error && chronological.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-clean-muted gap-2">
             <span className="text-3xl">💬</span>
             <p className="text-sm">No messages yet — start the conversation!</p>
@@ -320,4 +333,3 @@ function formatDateDivider(dateString: string): string {
   if (date.toDateString() === yesterday.toDateString()) return 'Yesterday'
   return date.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })
 }
-

@@ -1,4 +1,10 @@
-import apiClient, { setAuthToken, setRefreshToken } from '@/lib/apiClient'
+import apiClient, {
+  beginAuthTransition,
+  clearAuthTokens,
+  refreshAuthSession,
+  setAuthToken,
+  setRefreshToken,
+} from '@/lib/apiClient'
 import type { User as FitnessUser } from '@/types/fitness'
 
 export interface RegisterDTO {
@@ -91,47 +97,53 @@ export const AuthRepository = {
    * Register new user
    */
   async register(data: RegisterDTO): Promise<AuthResponse> {
-    const response = await apiClient.post<{ data: RawAuthResponse }>('/api/auth/register', data)
-    const authData = extractAuthResponse(response)
+    const finishAuthTransition = await beginAuthTransition()
+    try {
+      const response = await apiClient.post<{ data: RawAuthResponse }>('/api/auth/register', data)
+      const authData = extractAuthResponse(response)
 
-    setAuthToken(authData.accessToken)
-    setRefreshToken(authData.refreshToken)
-    return authData
+      setAuthToken(authData.accessToken)
+      setRefreshToken(authData.refreshToken)
+      return authData
+    } finally {
+      finishAuthTransition()
+    }
   },
 
   /**
    * Login user
    */
   async login(data: LoginDTO): Promise<AuthResponse> {
-    const response = await apiClient.post<{ data: RawAuthResponse }>('/api/auth/login', data)
-    const authData = extractAuthResponse(response)
+    const finishAuthTransition = await beginAuthTransition()
+    try {
+      const response = await apiClient.post<{ data: RawAuthResponse }>('/api/auth/login', data)
+      const authData = extractAuthResponse(response)
 
-    setAuthToken(authData.accessToken)
-    setRefreshToken(authData.refreshToken)
-    return authData
+      setAuthToken(authData.accessToken)
+      setRefreshToken(authData.refreshToken)
+      return authData
+    } finally {
+      finishAuthTransition()
+    }
   },
 
   /**
    * Refresh access token
    */
   async refreshToken(): Promise<{ accessToken: string; refreshToken?: string }> {
-    const response = await apiClient.post<{ data: { accessToken: string; refreshToken?: string } }>('/api/auth/refresh')
-    const payload = response.data || response
-
-    setAuthToken(payload.accessToken)
-    if (payload.refreshToken) setRefreshToken(payload.refreshToken)
-    return payload
+    return refreshAuthSession()
   },
 
   /**
    * Logout user
    */
   async logout(): Promise<void> {
+    const finishAuthTransition = await beginAuthTransition()
     try {
       await apiClient.post('/api/auth/logout')
     } finally {
-      setAuthToken(null)
-      setRefreshToken(null)
+      clearAuthTokens()
+      finishAuthTransition()
     }
   },
 

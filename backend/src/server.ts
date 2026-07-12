@@ -11,6 +11,7 @@ import { initSocketServer, setIO, SocketIOServer } from './socket/socketServer';
 import { initRoutes } from './routes';
 import { stripeWebhookHandler } from './routes/billingWebhook';
 import { bootstrapCommunity } from './services/communityBootstrap';
+import { corsOriginDelegate } from './utils/corsOrigins';
 
 const app = express();
 const httpServer = createServer(app);
@@ -22,15 +23,12 @@ if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true')
 }
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(compression({ level: 6, threshold: 1024 }));
 
-// CORS: solo project, small user base — reflect whatever origin made the
-// request (rather than maintaining an allow-list). A literal '*' can't be
-// used here since the app relies on httpOnly cookies (`credentials: true`),
-// and the CORS spec forbids a wildcard origin alongside credentials.
+// Credentialed requests are limited to configured/canonical frontend origins.
 app.use(cors({
-  origin: true,
+  origin: corsOriginDelegate,
   credentials: true,
 }));
 app.use(rateLimit({
@@ -109,4 +107,3 @@ process.on('SIGTERM', () => {
 });
 
 export { io };
-

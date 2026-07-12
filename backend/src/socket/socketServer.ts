@@ -3,6 +3,7 @@ import { Server as HTTPServer } from 'http';
 import { authService } from '../services/authService';
 import { prisma } from '../db/client';
 import { canReadChannel } from '../utils/entitlements';
+import { corsOriginDelegate } from '../utils/corsOrigins';
 
 export interface SocketData {
   user: {
@@ -27,7 +28,7 @@ function broadcastPresence(io: SocketIOServer) {
 export const initSocketServer = (httpServer: HTTPServer): Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData> => {
   const io = new Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>(httpServer, {
     cors: {
-      origin: true,
+      origin: corsOriginDelegate,
       credentials: true,
       methods: ['GET', 'POST'],
     },

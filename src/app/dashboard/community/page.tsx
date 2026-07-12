@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Hash, Radio, Trophy, Crown, Megaphone, Users, MessageSquare, MessageCircle, Menu, X, LogOut, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -55,6 +55,10 @@ function CommunityPageInner() {
   const { user, loading: authLoading, refreshUser } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const channelParam = searchParams.get('channel')
+  const squadParam = searchParams.get('squad')
+  const dmParam = searchParams.get('dm')
+  const requestedViewKey = `channel=${channelParam || ''}&squad=${squadParam || ''}&dm=${dmParam || ''}`
   const { toast } = useToast()
   const presence = usePresence()
 
@@ -65,6 +69,13 @@ function CommunityPageInner() {
   const [inviteCount, setInviteCount] = useState(0)
   const [view, setView] = useState<CommunityView | null>(null)
   const [dmPeer, setDmPeer] = useState<{ id: string; display_name: string; avatar_url: string | null } | null>(null)
+  const [sidebarLoading, setSidebarLoading] = useState(true)
+  const [sidebarError, setSidebarError] = useState<string | null>(null)
+  const [loadAttempt, setLoadAttempt] = useState(0)
+  const sidebarRequestRef = useRef(0)
+  const lastResolvedViewKeyRef = useRef<string | null>(null)
+  const dmPeerRequestRef = useRef(0)
+  const selectedDmPeerRef = useRef<string | null>(null)
 
   const [threadRoot, setThreadRoot] = useState<Message | null>(null)
   const [findSquadsOpen, setFindSquadsOpen] = useState(false)
@@ -89,21 +100,36 @@ function CommunityPageInner() {
 
   // ---- Data loading -----------------------------------------------------------
   const loadSidebarData = useCallback(async () => {
+    const requestId = ++sidebarRequestRef.current
+    setSidebarLoading(true)
+    setSidebarError(null)
+
+    // Start independent reads together, but let channels unblock the primary
+    // view without waiting for optional squad/DM metadata.
+    const optionalUpdates = Promise.allSettled([
+      CommunityRepository.getMySquads(),
+      CommunityRepository.getConversations(),
+      CommunityRepository.getSquadInvites(),
+    ]).then(([squadResult, conversationResult, inviteResult]) => {
+      if (requestId !== sidebarRequestRef.current) return
+      if (squadResult.status === 'fulfilled') setSquads(squadResult.value)
+      if (conversationResult.status === 'fulfilled') setConversations(conversationResult.value)
+      if (inviteResult.status === 'fulfilled') setInviteCount(inviteResult.value.length)
+    })
+
     try {
-      const [ch, sq, convs, invites] = await Promise.all([
-        CommunityRepository.getChannels(),
-        CommunityRepository.getMySquads(),
-        CommunityRepository.getConversations(),
-        CommunityRepository.getSquadInvites().catch(() => []),
-      ])
+      const ch = await CommunityRepository.getChannels()
+      if (requestId !== sidebarRequestRef.current) return []
       setChannels(ch)
-      setSquads(sq)
-      setConversations(convs)
-      setInviteCount(invites.length)
+      void optionalUpdates
       return ch
     } catch (error) {
+      if (requestId !== sidebarRequestRef.current) return []
       console.error('Failed to load community data:', error)
+      setSidebarError('Community channels could not be loaded. Please try again.')
       return []
+    } finally {
+      if (requestId === sidebarRequestRef.current) setSidebarLoading(false)
     }
   }, [])
 
@@ -119,35 +145,34 @@ function CommunityPageInner() {
     let cancelled = false
     ;(async () => {
       const ch = await loadSidebarData()
-      loadProfile()
       if (cancelled) return
+      if (ch.length > 0) loadProfile()
 
-      const channelParam = searchParams.get('channel')
-      const squadParam = searchParams.get('squad')
-      const dmParam = searchParams.get('dm')
+      lastResolvedViewKeyRef.current = requestedViewKey
 
       if (dmParam) {
         selectDm(dmParam)
       } else if (squadParam) {
-        setView({ type: 'squad', squadId: squadParam })
+        selectSquad(squadParam)
       } else {
         const target =
           (channelParam && ch.find((c) => c.slug === channelParam || c.id === channelParam)) ||
           ch.find((c) => c.is_default) ||
           ch[0]
         if (target && !target.locked) {
-          setView({ type: 'channel', channel: target })
+          selectChannel(target)
         } else if (target) {
           const fallback = ch.find((c) => !c.locked)
-          if (fallback) setView({ type: 'channel', channel: fallback })
+          if (fallback) selectChannel(fallback)
         }
       }
     })()
     return () => {
       cancelled = true
+      sidebarRequestRef.current += 1
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id])
+  }, [user?.id, loadAttempt])
 
   // Live sidebar refreshers + entitlement changes
   useEffect(() => {
@@ -209,12 +234,16 @@ function CommunityPageInner() {
 
   // ---- View switching -----------------------------------------------------------
   const selectChannel = (channel: Channel) => {
+    selectedDmPeerRef.current = null
+    dmPeerRequestRef.current += 1
     setThreadRoot(null)
     setMobileSidebar(false)
     setView({ type: 'channel', channel })
   }
 
   const selectSquad = (squadId: string) => {
+    selectedDmPeerRef.current = null
+    dmPeerRequestRef.current += 1
     setThreadRoot(null)
     setMobileSidebar(false)
     setView({ type: 'squad', squadId })
@@ -223,22 +252,57 @@ function CommunityPageInner() {
   }
 
   const selectDm = async (peerId: string) => {
+    selectedDmPeerRef.current = peerId
+    const requestId = ++dmPeerRequestRef.current
     setThreadRoot(null)
     setMobileSidebar(false)
     setView({ type: 'dm', peerId })
     const known = conversations.find((c) => c.peer.id === peerId)
     if (known) {
-      setDmPeer({ id: known.peer.id, display_name: known.peer.display_name, avatar_url: known.peer.avatar_url })
+      if (selectedDmPeerRef.current === peerId && requestId === dmPeerRequestRef.current) {
+        setDmPeer({ id: known.peer.id, display_name: known.peer.display_name, avatar_url: known.peer.avatar_url })
+      }
       setConversations((prev) => prev.map((c) => (c.peer.id === peerId ? { ...c, unreadCount: 0 } : c)))
     } else {
       try {
         const data = await CommunityRepository.getUserStats(peerId)
-        setDmPeer({ id: data.user.id, display_name: data.user.display_name, avatar_url: data.user.avatar_url })
+        if (selectedDmPeerRef.current === peerId && requestId === dmPeerRequestRef.current) {
+          setDmPeer({ id: data.user.id, display_name: data.user.display_name, avatar_url: data.user.avatar_url })
+        }
       } catch {
-        setDmPeer({ id: peerId, display_name: 'Member', avatar_url: null })
+        if (selectedDmPeerRef.current === peerId && requestId === dmPeerRequestRef.current) {
+          setDmPeer({ id: peerId, display_name: 'Member', avatar_url: null })
+        }
       }
     }
   }
+
+  // Resolve external/same-route query changes without refetching the sidebar.
+  // The key ref prevents the URL update produced by a local selection from
+  // immediately fighting that same selection.
+  useEffect(() => {
+    if (!user || channels.length === 0 || lastResolvedViewKeyRef.current === requestedViewKey) return
+    lastResolvedViewKeyRef.current = requestedViewKey
+
+    if (dmParam) {
+      void selectDm(dmParam)
+      return
+    }
+    if (squadParam) {
+      selectSquad(squadParam)
+      return
+    }
+
+    const target =
+      (channelParam && channels.find((channel) => channel.slug === channelParam || channel.id === channelParam)) ||
+      channels.find((channel) => channel.is_default) ||
+      channels[0]
+    if (!target) return
+    const readableTarget = target.locked ? channels.find((channel) => !channel.locked) : target
+    if (readableTarget) selectChannel(readableTarget)
+    // selectDm intentionally reads the latest conversation state when invoked.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, requestedViewKey, channelParam, squadParam, dmParam, channels])
 
   const onLockedChannel = (channel: Channel) => {
     setUpgradeFeature(`#${channel.name}`)
@@ -370,7 +434,22 @@ function CommunityPageInner() {
   } else {
     panel = (
       <div className="h-full flex items-center justify-center text-clean-muted bg-white">
-        <MessageSquare className="w-8 h-8 animate-pulse" />
+        {sidebarLoading ? (
+          <MessageSquare className="w-8 h-8 animate-pulse" />
+        ) : sidebarError ? (
+          <div className="max-w-sm px-6 text-center">
+            <p className="text-sm text-red-600">{sidebarError}</p>
+            <button
+              type="button"
+              onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+              className="mt-3 rounded-lg bg-clean-accent px-4 py-2 text-sm font-semibold text-white hover:bg-clean-accent/90"
+            >
+              Try again
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm">No community channels are available.</p>
+        )}
       </div>
     )
   }

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Socket } from 'socket.io-client'
 import { initSocket, getSocket } from '@/lib/socketClient'
 import { CommunityRepository, type SendMessageInput } from '@/repositories/CommunityRepository'
-import { API_URL } from '@/lib/apiClient'
+import { API_URL, AUTH_TOKEN_UPDATED_EVENT } from '@/lib/apiClient'
 
 // =============================================================================
 // MESSAGE TYPE + TRANSFORM
@@ -110,6 +110,7 @@ export interface TypingUser {
 export interface Feed {
   messages: Message[]
   loading: boolean
+  error: string | null
   hasMore: boolean
   sendMessage: (content: string, opts?: Omit<SendMessageInput, 'content'>) => Promise<Message>
   addReaction: (messageId: string, emoji: string) => Promise<void>
@@ -120,24 +121,43 @@ export interface Feed {
   connected: boolean
 }
 
-function useSocketInstance(): Socket | null {
+function useSocketInstance(enabled = true): Socket | null {
   const [socket, setSocket] = useState<Socket | null>(null)
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
-    if (!token) return
-    try {
-      setSocket(initSocket())
-    } catch {
+    if (!enabled) {
       setSocket(null)
+      return
     }
-  }, [])
+
+    const attachSocket = () => {
+      let token: string | null = null
+      try {
+        token = localStorage.getItem('accessToken')
+      } catch {
+        // Cookie-only sessions cannot authenticate the Socket.io handshake.
+      }
+      if (!token) return
+      try {
+        setSocket(initSocket())
+      } catch {
+        setSocket(null)
+      }
+    }
+
+    attachSocket()
+    window.addEventListener(AUTH_TOKEN_UPDATED_EVENT, attachSocket)
+    return () => window.removeEventListener(AUTH_TOKEN_UPDATED_EVENT, attachSocket)
+  }, [enabled])
   return socket
 }
 
 function useConnected(socket: Socket | null): boolean {
   const [connected, setConnected] = useState(socket?.connected ?? false)
   useEffect(() => {
-    if (!socket) return
+    if (!socket) {
+      setConnected(false)
+      return
+    }
     setConnected(socket.connected)
     const onConnect = () => setConnected(true)
     const onDisconnect = () => setConnected(false)
@@ -153,13 +173,21 @@ function useConnected(socket: Socket | null): boolean {
 
 function useTypingState(
   socket: Socket | null,
-  matches: (payload: any) => boolean,
+  scope: 'channel' | 'squad' | 'dm',
+  scopeId: string | null,
   currentUserId: string,
 ): TypingUser[] {
   const [typing, setTyping] = useState<Record<string, { displayName: string; expires: number }>>({})
 
   useEffect(() => {
-    if (!socket) return
+    setTyping({})
+    if (!socket || !scopeId) return
+
+    const matches = (payload: any) => {
+      if (scope === 'channel') return payload.channelId === scopeId
+      if (scope === 'squad') return payload.squadId === scopeId
+      return payload.dmUserId === scopeId
+    }
     const onTyping = (payload: any) => {
       if (!matches(payload) || payload.userId === currentUserId) return
       setTyping((prev) => ({
@@ -179,8 +207,7 @@ function useTypingState(
       socket.off('typing', onTyping)
       clearInterval(interval)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, currentUserId])
+  }, [socket, scope, scopeId, currentUserId])
 
   return Object.entries(typing).map(([userId, v]) => ({ userId, displayName: v.displayName }))
 }
@@ -196,17 +223,25 @@ export function useChannelFeed(channelId: string | null, currentUserId: string):
   const [messages, setMessages] = useState<Message[]>([])
   const [pinned, setPinned] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const cursorRef = useRef<string | null>(null)
-  const socket = useSocketInstance()
+  const loadRequestRef = useRef(0)
+  const pinnedRequestRef = useRef(0)
+  const channelScopeRef = useRef(channelId)
+  channelScopeRef.current = channelId
+  const socket = useSocketInstance(!!channelId)
   const connected = useConnected(socket)
   const lastTypingEmit = useRef(0)
 
   const loadMessages = useCallback(async (refresh = false) => {
     if (!channelId) return
+    const requestId = ++loadRequestRef.current
     try {
       setLoading(true)
+      setError(null)
       const data = await CommunityRepository.getChannelMessages(channelId, refresh ? undefined : cursorRef.current || undefined)
+      if (requestId !== loadRequestRef.current || channelScopeRef.current !== channelId) return
       const transformed = (data.messages || []).map(transformMessage)
       if (refresh) {
         setMessages(transformed)
@@ -219,23 +254,35 @@ export function useChannelFeed(channelId: string | null, currentUserId: string):
       cursorRef.current = data.nextCursor
       setHasMore(data.hasMore)
     } catch (err) {
+      if (requestId !== loadRequestRef.current || channelScopeRef.current !== channelId) return
       console.error('Failed to load channel feed:', err)
+      setError('Messages could not be loaded. Please try again.')
     } finally {
-      setLoading(false)
+      if (requestId === loadRequestRef.current && channelScopeRef.current === channelId) setLoading(false)
     }
   }, [channelId])
 
   const refreshPinned = useCallback(() => {
     if (!channelId) return
+    const requestId = ++pinnedRequestRef.current
     CommunityRepository.getPinnedMessages(channelId)
-      .then((data) => setPinned((data.messages || []).map(transformMessage)))
-      .catch(() => setPinned([]))
+      .then((data) => {
+        if (requestId === pinnedRequestRef.current && channelScopeRef.current === channelId) {
+          setPinned((data.messages || []).map(transformMessage))
+        }
+      })
+      .catch(() => {
+        if (requestId === pinnedRequestRef.current && channelScopeRef.current === channelId) setPinned([])
+      })
   }, [channelId])
 
   // Initial + channel-change load
   useEffect(() => {
+    loadRequestRef.current += 1
+    pinnedRequestRef.current += 1
     setMessages([])
     setPinned([])
+    setError(null)
     cursorRef.current = null
     setHasMore(true)
     if (channelId) {
@@ -307,7 +354,7 @@ export function useChannelFeed(channelId: string | null, currentUserId: string):
     }
   }, [socket, channelId, currentUserId])
 
-  const typingUsers = useTypingState(socket, (p) => p.channelId === channelId, currentUserId)
+  const typingUsers = useTypingState(socket, 'channel', channelId, currentUserId)
 
   const emitTyping = useCallback(() => {
     if (!socket?.connected || !channelId) return
@@ -336,6 +383,7 @@ export function useChannelFeed(channelId: string | null, currentUserId: string):
     pinned,
     refreshPinned,
     loading,
+    error,
     hasMore,
     sendMessage,
     addReaction,
@@ -359,30 +407,41 @@ export function useSquadFeed(squadId: string | null, currentUserId: string): Fee
   const [squad, setSquad] = useState<any | null>(null)
   const [membership, setMembership] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
-  const socket = useSocketInstance()
+  const [error, setError] = useState<string | null>(null)
+  const loadRequestRef = useRef(0)
+  const squadScopeRef = useRef(squadId)
+  squadScopeRef.current = squadId
+  const socket = useSocketInstance(!!squadId)
   const connected = useConnected(socket)
   const lastTypingEmit = useRef(0)
 
   const load = useCallback(async () => {
     if (!squadId) return
+    const requestId = ++loadRequestRef.current
     try {
       setLoading(true)
+      setError(null)
       const data = await CommunityRepository.getSquad(squadId)
+      if (requestId !== loadRequestRef.current || squadScopeRef.current !== squadId) return
       setSquad(data.squad)
       setMembership(data.membership)
       setMessages((data.messages || []).map(transformMessage))
       void CommunityRepository.markSquadSeen(squadId).catch(() => undefined)
     } catch (err) {
+      if (requestId !== loadRequestRef.current || squadScopeRef.current !== squadId) return
       console.error('Failed to load squad:', err)
+      setError('This squad could not be loaded. Please try again.')
     } finally {
-      setLoading(false)
+      if (requestId === loadRequestRef.current && squadScopeRef.current === squadId) setLoading(false)
     }
   }, [squadId])
 
   useEffect(() => {
+    loadRequestRef.current += 1
     setMessages([])
     setSquad(null)
     setMembership(null)
+    setError(null)
     if (squadId) load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [squadId])
@@ -436,7 +495,7 @@ export function useSquadFeed(squadId: string | null, currentUserId: string): Fee
     }
   }, [socket, squadId, currentUserId, load])
 
-  const typingUsers = useTypingState(socket, (p) => p.squadId === squadId, currentUserId)
+  const typingUsers = useTypingState(socket, 'squad', squadId, currentUserId)
 
   const emitTyping = useCallback(() => {
     if (!socket?.connected || !squadId) return
@@ -461,6 +520,7 @@ export function useSquadFeed(squadId: string | null, currentUserId: string): Fee
     squad,
     membership,
     loading,
+    error,
     hasMore: false,
     sendMessage,
     addReaction,
@@ -479,17 +539,24 @@ export function useSquadFeed(squadId: string | null, currentUserId: string): Fee
 export function useDirectFeed(peerId: string | null, currentUserId: string): Feed {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const cursorRef = useRef<string | null>(null)
-  const socket = useSocketInstance()
+  const loadRequestRef = useRef(0)
+  const peerScopeRef = useRef(peerId)
+  peerScopeRef.current = peerId
+  const socket = useSocketInstance(!!peerId)
   const connected = useConnected(socket)
   const lastTypingEmit = useRef(0)
 
   const load = useCallback(async (refresh = false) => {
     if (!peerId) return
+    const requestId = ++loadRequestRef.current
     try {
       setLoading(true)
+      setError(null)
       const data = await CommunityRepository.getDirectMessages(peerId, refresh ? undefined : cursorRef.current || undefined)
+      if (requestId !== loadRequestRef.current || peerScopeRef.current !== peerId) return
       const transformed = (data.messages || []).map(transformMessage)
       if (refresh) {
         setMessages(transformed)
@@ -503,14 +570,18 @@ export function useDirectFeed(peerId: string | null, currentUserId: string): Fee
       setHasMore(data.hasMore)
       void CommunityRepository.markConversationRead(peerId).catch(() => undefined)
     } catch (err) {
+      if (requestId !== loadRequestRef.current || peerScopeRef.current !== peerId) return
       console.error('Failed to load conversation:', err)
+      setError('This conversation could not be loaded. Please try again.')
     } finally {
-      setLoading(false)
+      if (requestId === loadRequestRef.current && peerScopeRef.current === peerId) setLoading(false)
     }
   }, [peerId])
 
   useEffect(() => {
+    loadRequestRef.current += 1
     setMessages([])
+    setError(null)
     cursorRef.current = null
     setHasMore(true)
     if (peerId) load(true)
@@ -558,7 +629,7 @@ export function useDirectFeed(peerId: string | null, currentUserId: string): Fee
     }
   }, [socket, peerId, currentUserId])
 
-  const typingUsers = useTypingState(socket, (p) => p.dmUserId === peerId, currentUserId)
+  const typingUsers = useTypingState(socket, 'dm', peerId, currentUserId)
 
   const emitTyping = useCallback(() => {
     if (!socket?.connected || !peerId) return
@@ -581,6 +652,7 @@ export function useDirectFeed(peerId: string | null, currentUserId: string): Fee
   return {
     messages,
     loading,
+    error,
     hasMore,
     sendMessage,
     addReaction,

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { AuthRepository, type User } from '@/repositories/AuthRepository';
-import { setAuthToken } from '@/lib/apiClient';
+import { AUTH_EXPIRED_EVENT, clearAuthTokens } from '@/lib/apiClient';
+import { disconnectSocket } from '@/lib/socketClient';
 
 interface UseAuthReturn {
   user: User | null;
@@ -38,6 +39,17 @@ export function useAuth(): UseAuthReturn {
     return () => window.removeEventListener('auth:changed', onAuthChanged);
   }, []);
 
+  useEffect(() => {
+    const onAuthExpired = () => {
+      disconnectSocket();
+      setUser(null);
+      setError(null);
+      setLoading(false);
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, onAuthExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onAuthExpired);
+  }, []);
+
   /**
    * Login user
    */
@@ -45,6 +57,7 @@ export function useAuth(): UseAuthReturn {
     try {
       setLoading(true);
       setError(null);
+      disconnectSocket();
       const response = await AuthRepository.login({ email, password });
       setUser(response.user);
     } catch (err: any) {
@@ -62,6 +75,7 @@ export function useAuth(): UseAuthReturn {
     try {
       setLoading(true);
       setError(null);
+      disconnectSocket();
       const response = await AuthRepository.register({ email, password, display_name: displayName });
       setUser(response.user);
     } catch (err: any) {
@@ -83,14 +97,15 @@ export function useAuth(): UseAuthReturn {
       console.error('Logout error:', err);
     } finally {
       setUser(null);
-      setAuthToken(null);
+      clearAuthTokens();
+      disconnectSocket();
     }
   };
 
   /**
    * Refresh current user data.
-   * On 401, attempt to refresh the access token once using the httpOnly
-   * refresh-token cookie. If that fails, clear the session.
+   * The API client already performs one shared refresh-and-retry on 401.
+   * A terminal refresh rejection emits auth:expired and clears the session.
    */
   const refreshUser = async (): Promise<void> => {
     try {
@@ -99,20 +114,14 @@ export function useAuth(): UseAuthReturn {
       setUser(user);
       setError(null);
     } catch (err: any) {
-      if (err.status === 401) {
-        try {
-          await AuthRepository.refreshToken();
-          const user = await AuthRepository.getCurrentUser();
-          setUser(user);
-          setError(null);
-          return;
-        } catch (refreshErr) {
-          // Refresh failed — fall through to clear session.
-        }
+      if (err.status === 401 || err.status === 403) {
+        clearAuthTokens();
+        disconnectSocket();
+        setUser(null);
+        setError(null);
+      } else {
+        setError(err.error || 'Unable to verify your session');
       }
-      // Not authenticated - clear user
-      setUser(null);
-      setError(null);
     } finally {
       setLoading(false);
     }
@@ -128,5 +137,3 @@ export function useAuth(): UseAuthReturn {
     refreshUser,
   };
 }
-
-

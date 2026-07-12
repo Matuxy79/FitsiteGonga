@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { userRepository } from '../repositories/userRepository';
 import { authService } from '../services/authService';
 import { authenticateJWT } from '../middleware/authMiddleware';
+import { refreshTokenCandidates, verifyRefreshTokenCandidates } from '../utils/authTokens';
 
 const router: Router = Router();
 
@@ -184,15 +185,20 @@ router.post('/login', loginLimiter, async (req, res) => {
  */
 router.post('/refresh', async (req, res) => {
   try {
-    // Accept refresh token from cookie (same-origin) or request body (cross-origin fallback)
-    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    // Prefer the explicit body token so a stale cross-site cookie cannot
+    // shadow a valid local-storage fallback token.
+    const refreshTokens = refreshTokenCandidates(req.body?.refreshToken, req.cookies?.refreshToken);
 
-    if (!refreshToken) {
+    if (refreshTokens.length === 0) {
       return res.status(401).json({ error: 'No refresh token provided' });
     }
 
-    // Verify refresh token
-    const { userId } = authService.verifyRefreshToken(refreshToken);
+    // Verify each distinct source so one stale cookie/body value cannot shadow
+    // a valid credential from the other source. Body order remains preferred.
+    const { userId } = verifyRefreshTokenCandidates(
+      refreshTokens,
+      (refreshToken) => authService.verifyRefreshToken(refreshToken),
+    );
 
     // Get user
     const user = await userRepository.findById(userId);
