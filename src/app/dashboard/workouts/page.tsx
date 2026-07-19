@@ -73,7 +73,7 @@ export default function WorkoutsPage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-              activeTab === tab.id ? 'bg-[#ff5d4f] text-white' : 'text-gray-500 hover:bg-gray-50'
+              activeTab === tab.id ? 'bg-clean-accent text-white' : 'text-gray-500 hover:bg-gray-50'
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -84,7 +84,7 @@ export default function WorkoutsPage() {
 
       {loading ? (
         <div className="min-h-[300px] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#ff5d4f]" />
+          <Loader2 className="w-8 h-8 animate-spin text-clean-accent" />
         </div>
       ) : (
         <>
@@ -265,19 +265,19 @@ function BuilderView({ templates, isPaid, onSaved }: { templates: WorkoutTemplat
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Workout name"
-          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
         />
         <input
           value={type}
           onChange={(e) => setType(e.target.value)}
           placeholder="Type (e.g. Push, Pull, Legs, HIIT)"
-          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
         />
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description (optional)"
-          className="md:col-span-2 px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30 min-h-[80px]"
+          className="md:col-span-2 px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30 min-h-[80px]"
         />
       </div>
 
@@ -339,7 +339,7 @@ function BuilderView({ templates, isPaid, onSaved }: { templates: WorkoutTemplat
             </div>
             <button
               onClick={() => addSet(exIndex)}
-              className="mt-3 text-xs font-bold text-[#ff5d4f] flex items-center gap-1"
+              className="mt-3 text-xs font-bold text-clean-accent flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" /> Add set
             </button>
@@ -357,7 +357,7 @@ function BuilderView({ templates, isPaid, onSaved }: { templates: WorkoutTemplat
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2.5 bg-[#ff5d4f] text-white rounded-xl text-sm font-bold hover:bg-[#e54d3f] disabled:opacity-50 flex items-center gap-2"
+          className="px-6 py-2.5 bg-clean-accent text-white rounded-xl text-sm font-bold hover:bg-clean-accent disabled:opacity-50 flex items-center gap-2"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Save template
@@ -517,7 +517,7 @@ function LogView({ templates, onLogged }: { templates: WorkoutTemplate[]; onLogg
             setSelectedTemplateId(e.target.value)
             if (e.target.value) loadTemplate(e.target.value)
           }}
-          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
         >
           <option value="">Freestyle workout</option>
           {templates.map((t) => (
@@ -530,13 +530,13 @@ function LogView({ templates, onLogged }: { templates: WorkoutTemplate[]; onLogg
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Workout name"
-          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
         />
         <input
           value={type}
           onChange={(e) => setType(e.target.value)}
           placeholder="Type"
-          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+          className="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
         />
         <div className="flex items-center gap-2 ml-auto">
           <div className="px-4 py-2 rounded-xl bg-gray-100 font-mono font-bold">{formatTime(timer)}</div>
@@ -598,7 +598,7 @@ function LogView({ templates, onLogged }: { templates: WorkoutTemplate[]; onLogg
       <button
         onClick={handleLog}
         disabled={saving}
-        className="px-6 py-2.5 bg-[#ff5d4f] text-white rounded-xl text-sm font-bold hover:bg-[#e54d3f] disabled:opacity-50 flex items-center gap-2"
+        className="px-6 py-2.5 bg-clean-accent text-white rounded-xl text-sm font-bold hover:bg-clean-accent disabled:opacity-50 flex items-center gap-2"
       >
         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Flame className="w-4 h-4" />}
         Log workout

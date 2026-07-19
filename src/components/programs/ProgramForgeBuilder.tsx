@@ -370,7 +370,7 @@ export function ProgramForgeBuilder({
             type="button"
             onClick={publishProgram}
             disabled={saving || validation.errors.length > 0}
-            className="inline-flex items-center gap-2 rounded-xl bg-clean-accent px-4 py-2.5 text-sm font-black text-white shadow-sm hover:bg-[#d83d31] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-clean-accent px-4 py-2.5 text-sm font-black text-white shadow-sm hover:bg-clean-accent disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
             Publish program

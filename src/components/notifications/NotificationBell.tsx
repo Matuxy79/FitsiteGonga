@@ -53,7 +53,7 @@ export function NotificationBell({ className }: { className?: string }) {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-[#E8453C] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-clean-accent text-white text-[10px] font-bold rounded-full flex items-center justify-center">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -72,7 +72,7 @@ export function NotificationBell({ className }: { className?: string }) {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="flex items-center gap-1 text-xs text-[#E8453C] hover:text-[#ff5d4f] font-semibold"
+                  className="flex items-center gap-1 text-xs text-clean-accent hover:text-clean-accent font-semibold"
                 >
                   <CheckCheck className="w-3.5 h-3.5" />
                   Mark all read
@@ -90,7 +90,7 @@ export function NotificationBell({ className }: { className?: string }) {
                     onClick={() => handleClick(n)}
                     className={cn(
                       'w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0',
-                      !n.read_at && 'bg-[#E8453C]/[0.04]',
+                      !n.read_at && 'bg-clean-accent/[0.04]',
                     )}
                   >
                     {n.actor ? (
@@ -105,7 +105,7 @@ export function NotificationBell({ className }: { className?: string }) {
                       {n.body && <p className="text-[11px] text-gray-500 truncate mt-0.5">{n.body}</p>}
                       <p className="text-[10px] text-gray-400 mt-0.5">{timeAgo(n.created_at)}</p>
                     </div>
-                    {!n.read_at && <span className="w-2 h-2 rounded-full bg-[#E8453C] mt-1.5 shrink-0" />}
+                    {!n.read_at && <span className="w-2 h-2 rounded-full bg-clean-accent mt-1.5 shrink-0" />}
                   </button>
                 ))
               )}

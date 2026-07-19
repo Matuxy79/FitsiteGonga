@@ -328,7 +328,7 @@ export function MessageBubble({
                 name="report-reason"
                 checked={reportReason === r.value}
                 onChange={() => setReportReason(r.value)}
-                className="accent-[#E8453C]"
+                className="accent-clean-accent"
               />
               {r.label}
             </label>

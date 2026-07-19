@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../db/client';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
+import { siteSettingRepository } from '../repositories/siteSettingRepository';
 import adminCommunityRoutes from './adminCommunityRoutes';
 
 const router: Router = Router();
@@ -324,6 +325,33 @@ router.put('/users/:id/status', async (req, res) => {
     }
     console.error('Admin update status error:', error);
     res.status(500).json({ error: 'Failed to update user status' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Site theme (admin-controlled)
+// ---------------------------------------------------------------------------
+
+const VALID_THEMES = ['cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const;
+const THEME_KEY = 'site_theme';
+
+const updateSiteThemeSchema = z.object({
+  theme: z.enum(VALID_THEMES),
+});
+
+router.put('/site/theme', async (req, res) => {
+  try {
+    const parsed = updateSiteThemeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.errors });
+    }
+
+    await siteSettingRepository.set(THEME_KEY, parsed.data.theme, req.user!.userId);
+
+    res.json({ data: { theme: parsed.data.theme } });
+  } catch (error) {
+    console.error('Admin update site theme error:', error);
+    res.status(500).json({ error: 'Failed to update site theme' });
   }
 });
 

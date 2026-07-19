@@ -26,14 +26,25 @@ module.exports = {
         'sol-cyan': '#2aa198',
         'sol-green': '#859900',
 
-        // New Clean UI Palette
-        'clean-bg': '#f5f5f7',     // Main body background
-        'clean-sidebar': '#ffffff',// Sidebar background
-        'clean-accent': '#E8453C', // Coral red for active items
-        'clean-text': '#1a1a1a',   // Dark text
-        'clean-muted': '#6b7280',  // Muted text / icons
-        'clean-border': '#e5e7eb', // Subtle borders
-        'clean-hover': '#f3f4f6',  // Hover states
+        // New Clean UI Palette (CSS variable-driven for theming)
+        'clean-bg': 'rgb(var(--clean-bg) / <alpha-value>)',
+        'clean-sidebar': 'rgb(var(--clean-sidebar) / <alpha-value>)',
+        'clean-accent': 'rgb(var(--clean-accent) / <alpha-value>)',
+        'clean-accent-soft': 'rgb(var(--clean-accent-soft) / <alpha-value>)',
+        'clean-text': 'rgb(var(--clean-text) / <alpha-value>)',
+        'clean-muted': 'rgb(var(--clean-muted) / <alpha-value>)',
+        'clean-border': 'rgb(var(--clean-border) / <alpha-value>)',
+        'clean-hover': 'rgb(var(--clean-hover) / <alpha-value>)',
+
+        // Public site-theme tokens (see src/lib/themes.ts + globals.css)
+        'gonga-bg': 'rgb(var(--gonga-bg) / <alpha-value>)',
+        'gonga-surface': 'rgb(var(--gonga-surface) / <alpha-value>)',
+        'gonga-surface-raised': 'rgb(var(--gonga-surface-raised) / <alpha-value>)',
+        'gonga-primary': 'rgb(var(--gonga-primary) / <alpha-value>)',
+        'gonga-secondary': 'rgb(var(--gonga-secondary) / <alpha-value>)',
+        'gonga-text': 'rgb(var(--gonga-text) / <alpha-value>)',
+        'gonga-muted': 'rgb(var(--gonga-muted) / <alpha-value>)',
+        'gonga-border': 'rgb(var(--gonga-border) / <alpha-value>)',
 
         // Legacy discord aliases mapped to solarized equivalents
         'discord-darkest': '#002b36',

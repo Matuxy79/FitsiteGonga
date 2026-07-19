@@ -900,6 +900,19 @@ model ConversationRead {
 }
 
 // =============================================================================
+// SITE SETTINGS (admin-controlled global configuration)
+// =============================================================================
+
+model SiteSetting {
+  key        String   @id
+  value      String
+  updated_by String?
+  updated_at DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// =============================================================================
 // ENUMS
 // =============================================================================
 

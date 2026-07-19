@@ -206,7 +206,7 @@ export default function ProgramsPage() {
         {isTrainer && (
           <button
             onClick={() => setShowCreate(true)}
-            className="px-4 py-2.5 bg-[#ff5d4f] text-white rounded-xl text-sm font-bold hover:bg-[#e54d3f] flex items-center gap-2"
+            className="px-4 py-2.5 bg-clean-accent text-white rounded-xl text-sm font-bold hover:bg-clean-accent flex items-center gap-2"
           >
             <Plus className="w-4 h-4" /> Program Forge
           </button>
@@ -215,7 +215,7 @@ export default function ProgramsPage() {
 
       {loading ? (
         <div className="min-h-[300px] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#ff5d4f]" />
+          <Loader2 className="w-8 h-8 animate-spin text-clean-accent" />
         </div>
       ) : (
         <>
@@ -266,9 +266,9 @@ export default function ProgramsPage() {
                   <button
                     key={i}
                     onClick={() => { setSelectedDate(key); setShowDayPanel(true); }}
-                    className={`min-h-[100px] rounded-xl border p-2 text-left hover:ring-2 hover:ring-[#ff5d4f]/30 transition-all ${
+                    className={`min-h-[100px] rounded-xl border p-2 text-left hover:ring-2 hover:ring-clean-accent/30 transition-all ${
                       isCurrentMonth ? 'bg-white border-gray-100' : 'bg-gray-50 border-transparent'
-                    } ${isToday ? 'ring-2 ring-[#ff5d4f]/30' : ''}`}
+                    } ${isToday ? 'ring-2 ring-clean-accent/30' : ''}`}
                   >
                     <p className={`text-sm font-bold mb-1 ${isCurrentMonth ? 'text-gray-900' : 'text-gray-300'}`}>
                       {day.getDate()}
@@ -288,7 +288,7 @@ export default function ProgramsPage() {
                                 ? 'bg-[#d7fb48]/40 text-gray-800' 
                                 : typeConfig 
                                   ? `${typeConfig.bgColor} ${typeConfig.textColor}`
-                                  : 'bg-[#ff5d4f]/10 text-[#ff5d4f]'
+                                  : 'bg-clean-accent/10 text-clean-accent'
                             }`}
                           >
                             {evt.title}
@@ -428,7 +428,7 @@ function ProgramCard({
       ) : isPaid ? (
         <button
           onClick={onPreview}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-clean-accent px-4 py-2.5 text-sm font-black text-white hover:bg-[#d83d31]"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-clean-accent px-4 py-2.5 text-sm font-black text-white hover:bg-clean-accent"
         >
           <Eye className="h-4 w-4" /> Preview plan
         </button>
@@ -598,14 +598,14 @@ function DayDetailPanel({ date, events, onClose, onComplete, onSkip, onDelete, o
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setShowAddTemplate(true)}
-                  className="py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 font-medium hover:border-[#ff5d4f] hover:text-[#ff5d4f] transition-colors flex items-center justify-center gap-2"
+                  className="py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 font-medium hover:border-clean-accent hover:text-clean-accent transition-colors flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   From Template
                 </button>
                 <button
                   onClick={() => setShowQuickBuilder(true)}
-                  className="py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 font-medium hover:border-[#ff5d4f] hover:text-[#ff5d4f] transition-colors flex items-center justify-center gap-2"
+                  className="py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 font-medium hover:border-clean-accent hover:text-clean-accent transition-colors flex items-center justify-center gap-2"
                 >
                   <Dumbbell className="w-4 h-4" />
                   Quick Create
@@ -632,7 +632,7 @@ function DayDetailPanel({ date, events, onClose, onComplete, onSkip, onDelete, o
                           key={template.id}
                           onClick={() => onAddWorkout(template.id)}
                           disabled={loading}
-                          className="w-full p-3 border border-gray-100 rounded-xl text-left hover:border-[#ff5d4f]/30 hover:bg-gray-50 transition-colors flex items-center gap-3 disabled:opacity-50"
+                          className="w-full p-3 border border-gray-100 rounded-xl text-left hover:border-clean-accent/30 hover:bg-gray-50 transition-colors flex items-center gap-3 disabled:opacity-50"
                         >
                           <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', typeConfig.bgColor)}>
                             <Icon className={cn('w-5 h-5', typeConfig.textColor)} />
@@ -704,7 +704,7 @@ function DayDetailPanel({ date, events, onClose, onComplete, onSkip, onDelete, o
                       }
                     }}
                     disabled={!quickName.trim() || loading}
-                    className="w-full py-2.5 bg-[#ff5d4f] text-white rounded-xl font-medium text-sm hover:bg-[#e54d3f] disabled:opacity-50"
+                    className="w-full py-2.5 bg-clean-accent text-white rounded-xl font-medium text-sm hover:bg-clean-accent disabled:opacity-50"
                   >
                     Create Workout
                   </button>

@@ -161,7 +161,7 @@ export function ProgramPreviewDrawer({
               type="button"
               onClick={onEnroll}
               disabled={enrolling}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-clean-accent px-4 py-3 text-sm font-black text-white hover:bg-[#d83d31] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-clean-accent px-4 py-3 text-sm font-black text-white hover:bg-clean-accent disabled:opacity-50"
             >
               {enrolling ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
               Enroll in program
