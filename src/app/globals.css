@@ -2,18 +2,215 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   Site themes. The default mirrors the backend's cyberpunk fallback.
+   --clean-* keeps the existing app themed; --gonga-* is the public token API.
+   ========================================================================== */
+
+:root,
+[data-theme="cyberpunk"] {
+  --clean-bg: 5 9 20;
+  --clean-sidebar: 10 19 33;
+  --clean-accent: 255 61 154;
+  --clean-accent-soft: 186 255 24;
+  --clean-text: 247 248 252;
+  --clean-muted: 145 160 183;
+  --clean-border: 48 65 87;
+  --clean-hover: 20 34 56;
+  --gonga-bg: 5 9 20;
+  --gonga-surface: 10 19 33;
+  --gonga-surface-raised: 16 28 45;
+  --gonga-primary: 255 61 154;
+  --gonga-secondary: 186 255 24;
+  --gonga-text: 247 248 252;
+  --gonga-muted: 145 160 183;
+  --gonga-border: 48 65 87;
+}
+
+[data-theme="retro"] {
+  --clean-bg: 5 5 8;
+  --clean-sidebar: 17 16 26;
+  --clean-accent: 248 216 74;
+  --clean-accent-soft: 155 92 255;
+  --clean-text: 255 249 220;
+  --clean-muted: 170 162 189;
+  --clean-border: 58 49 80;
+  --clean-hover: 34 29 51;
+  --gonga-bg: 5 5 8;
+  --gonga-surface: 17 16 26;
+  --gonga-surface-raised: 26 23 40;
+  --gonga-primary: 248 216 74;
+  --gonga-secondary: 155 92 255;
+  --gonga-text: 255 249 220;
+  --gonga-muted: 170 162 189;
+  --gonga-border: 58 49 80;
+}
+
+[data-theme="lava"] {
+  --clean-bg: 18 11 9;
+  --clean-sidebar: 28 25 23;
+  --clean-accent: 255 59 48;
+  --clean-accent-soft: 255 122 26;
+  --clean-text: 255 244 235;
+  --clean-muted: 185 156 139;
+  --clean-border: 83 49 34;
+  --clean-hover: 53 35 27;
+  --gonga-bg: 18 11 9;
+  --gonga-surface: 28 25 23;
+  --gonga-surface-raised: 41 32 27;
+  --gonga-primary: 255 59 48;
+  --gonga-secondary: 255 122 26;
+  --gonga-text: 255 244 235;
+  --gonga-muted: 185 156 139;
+  --gonga-border: 83 49 34;
+}
+
+[data-theme="mana"] {
+  --clean-bg: 13 11 43;
+  --clean-sidebar: 30 27 75;
+  --clean-accent: 34 211 238;
+  --clean-accent-soft: 168 85 247;
+  --clean-text: 238 252 255;
+  --clean-muted: 164 166 202;
+  --clean-border: 65 60 122;
+  --clean-hover: 48 43 105;
+  --gonga-bg: 13 11 43;
+  --gonga-surface: 30 27 75;
+  --gonga-surface-raised: 41 36 99;
+  --gonga-primary: 34 211 238;
+  --gonga-secondary: 168 85 247;
+  --gonga-text: 238 252 255;
+  --gonga-muted: 164 166 202;
+  --gonga-border: 65 60 122;
+}
+
+[data-theme="mythic"] {
+  --clean-bg: 8 7 6;
+  --clean-sidebar: 18 16 12;
+  --clean-accent: 244 197 66;
+  --clean-accent-soft: 255 159 28;
+  --clean-text: 255 249 232;
+  --clean-muted: 182 164 122;
+  --clean-border: 77 59 24;
+  --clean-hover: 42 33 18;
+  --gonga-bg: 8 7 6;
+  --gonga-surface: 18 16 12;
+  --gonga-surface-raised: 32 26 16;
+  --gonga-primary: 244 197 66;
+  --gonga-secondary: 255 159 28;
+  --gonga-text: 255 249 232;
+  --gonga-muted: 182 164 122;
+  --gonga-border: 77 59 24;
+}
+
+/*
+ * Compatibility bridge for legacy dashboard utilities that predate the
+ * theme tokens. This keeps existing cards, fields, muted copy, and borders
+ * readable while those surfaces are migrated to `clean-*` classes over time.
+ * The selectors are intentionally more specific than Tailwind's utilities.
+ */
+:root .bg-white {
+  background-color: rgb(var(--clean-sidebar));
+}
+
+:root .bg-white\/10 { background-color: rgb(var(--clean-sidebar) / 0.1); }
+:root .bg-white\/20 { background-color: rgb(var(--clean-sidebar) / 0.2); }
+:root .bg-white\/80 { background-color: rgb(var(--clean-sidebar) / 0.8); }
+:root .bg-white\/90 { background-color: rgb(var(--clean-sidebar) / 0.9); }
+:root .bg-white\/95 { background-color: rgb(var(--clean-sidebar) / 0.95); }
+
+:root .bg-gray-50,
+:root .bg-gray-50\/50,
+:root .bg-gray-100 {
+  background-color: rgb(var(--clean-hover));
+}
+
+:root .bg-gray-50\/50 { background-color: rgb(var(--clean-hover) / 0.5); }
+:root .bg-gray-200,
+:root .bg-gray-300 {
+  background-color: rgb(var(--clean-border));
+}
+
+:root .text-gray-900,
+:root .text-gray-800,
+:root .text-gray-700 {
+  color: rgb(var(--clean-text));
+}
+
+:root .text-gray-600,
+:root .text-gray-500,
+:root .text-gray-400,
+:root .text-gray-300 {
+  color: rgb(var(--clean-muted));
+}
+
+:root .border-gray-50,
+:root .border-gray-100,
+:root .border-gray-200,
+:root .border-gray-300 {
+  border-color: rgb(var(--clean-border));
+}
+
 @layer base {
   html {
     font-family: system-ui, sans-serif;
   }
 
   body {
-    background: #f5f5f7;
-    color: #1a1a1a;
+    background: rgb(var(--clean-bg));
+    color: rgb(var(--clean-text));
   }
 }
 
 @layer components {
+  .challenge-admin-shell {
+    --admin-pink: 255 61 138;
+    --admin-lime: 190 255 24;
+    --admin-danger: 255 48 75;
+    min-height: 100%;
+    color: rgb(var(--gonga-text));
+    background-color: rgb(var(--gonga-bg));
+    background-image:
+      linear-gradient(rgba(48, 65, 87, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(48, 65, 87, 0.06) 1px, transparent 1px),
+      radial-gradient(circle at 78% 8%, rgb(var(--gonga-primary) / 0.08), transparent 27rem);
+    background-size: 40px 40px, 40px 40px, auto;
+  }
+
+  .challenge-admin-display {
+    font-family: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", sans-serif;
+    font-stretch: condensed;
+    font-weight: 900;
+    letter-spacing: 0.025em;
+  }
+
+  .challenge-admin-panel {
+    position: relative;
+    border: 1px solid rgba(111, 128, 151, 0.52);
+    background: linear-gradient(145deg, rgba(16, 28, 45, 0.97), rgba(6, 14, 27, 0.97));
+    clip-path: polygon(13px 0, calc(100% - 13px) 0, 100% 13px, 100% calc(100% - 13px), calc(100% - 13px) 100%, 13px 100%, 0 calc(100% - 13px), 0 13px);
+  }
+
+  .challenge-admin-panel-pink {
+    border-color: rgba(255, 61, 138, 0.72);
+  }
+
+  .challenge-admin-scanlines {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.025) 3px,
+      rgba(255, 255, 255, 0.025) 4px
+    );
+  }
+
+  .challenge-admin-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+    --tw-ring-color: rgb(var(--gonga-secondary));
+    --tw-ring-offset-color: rgb(var(--gonga-bg));
+  }
+
   /* Solarized Light background patterns */
   .discord-bg {
     background: #fdf6e3;

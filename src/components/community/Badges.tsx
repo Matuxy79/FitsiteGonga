@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 export function FlairBadge({ role, membershipTier, className }: { role?: string; membershipTier?: string; className?: string }) {
   if (role === 'ADMIN') {
     return (
-      <span className={cn('px-1.5 py-0.5 bg-[#E8453C]/20 text-[#ff8a80] text-[10px] font-semibold rounded', className)}>
+      <span className={cn('px-1.5 py-0.5 bg-clean-accent/20 text-clean-accent-soft text-[10px] font-semibold rounded', className)}>
         ADMIN
       </span>
     )
@@ -57,7 +57,7 @@ export function Avatar({ src, name, size = 10, className }: { src?: string | nul
     <div
       style={{ width: px, height: px }}
       className={cn(
-        'rounded-full bg-gradient-to-br from-[#E8453C] to-[#ff8a80] flex items-center justify-center text-white font-bold shrink-0',
+        'rounded-full bg-gradient-to-br from-clean-accent to-clean-accent-soft flex items-center justify-center text-white font-bold shrink-0',
         px <= 32 ? 'text-xs' : 'text-sm',
         className,
       )}

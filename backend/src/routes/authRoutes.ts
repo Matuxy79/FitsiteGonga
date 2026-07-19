@@ -247,10 +247,22 @@ router.post('/refresh', async (req, res) => {
 /**
  * POST /api/auth/logout
  * Logout user (clear cookies)
+ *
+ * The clearing attributes must match the Set-Cookie attributes used at
+ * login/register/refresh: in production the frontend is cross-site with the
+ * API, so browsers reject deletion cookies that lack SameSite=None; Secure
+ * and the session silently survives logout.
  */
 router.post('/logout', (req, res) => {
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken');
+  const isProduction = process.env.NODE_ENV === 'production';
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    path: '/',
+  };
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
   res.json({ message: 'Logged out successfully' });
 });
 

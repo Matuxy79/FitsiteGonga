@@ -48,6 +48,7 @@ const bottomNavItems = [
   { label: 'Workouts', href: '/dashboard/workouts', icon: Dumbbell },
   { label: 'Programs', href: '/dashboard/programs', icon: CalendarDays },
   { label: 'Community', href: '/dashboard/community', icon: Users },
+  { label: 'Challenges', href: '/dashboard/challenges', icon: Trophy },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
@@ -73,8 +74,8 @@ const accountModeOptions = [
     label: 'Admin',
     description: 'Full platform access',
     icon: ShieldCheck,
-    badgeClass: 'bg-[#ff5d4f]/10 text-[#d83d31]',
-    iconClass: 'bg-[#ff5d4f]/10 text-[#d83d31]',
+    badgeClass: 'bg-clean-accent/10 text-clean-accent',
+    iconClass: 'bg-clean-accent/10 text-clean-accent',
   },
 ] as const
 
@@ -283,7 +284,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               aria-haspopup="menu"
               aria-expanded={isProfileMenuOpen}
               aria-label="Open account mode menu"
-              className={`group flex w-full cursor-pointer items-center gap-3 p-3 rounded-xl border border-clean-border bg-white shadow-sm hover:border-gray-300 hover:bg-clean-hover hover:shadow-md active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-clean-accent/25 transition-all ${
+              className={`group flex w-full cursor-pointer items-center gap-3 p-3 rounded-xl border border-clean-border bg-clean-sidebar shadow-sm hover:border-clean-muted/40 hover:bg-clean-hover hover:shadow-md active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-clean-accent/25 transition-all ${
                 isCollapsed ? 'justify-center' : ''
               } ${isProfileMenuOpen ? 'border-clean-accent/50 ring-2 ring-clean-accent/25' : ''}`}
             >
@@ -329,7 +330,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   transition={{ duration: 0.16, ease: 'easeOut' }}
                   className={`absolute z-50 mt-2 ${isCollapsed ? 'left-0 w-64' : 'left-0 right-0'}`}
                 >
-                  <div className="rounded-xl border border-clean-border bg-white shadow-xl shadow-gray-900/10 overflow-hidden">
+                  <div className="rounded-xl border border-clean-border bg-clean-sidebar shadow-xl shadow-black/20 overflow-hidden">
                     <div className="px-3 py-2.5 border-b border-clean-border">
                       <p className="text-xs font-bold uppercase tracking-wider text-clean-muted">Account mode</p>
                       <p className="text-xs text-clean-muted truncate mt-0.5">{user?.email}</p>
@@ -386,14 +387,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             value={pendingAdminCode}
                             onChange={(event) => setPendingAdminCode(event.target.value)}
                             placeholder="Enter code"
-                            className="w-full rounded-lg border border-clean-border bg-white py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-clean-accent/25 focus:border-clean-accent/50"
+                            className="w-full rounded-lg border border-clean-border bg-clean-sidebar py-2 pl-9 pr-3 text-sm text-clean-text placeholder:text-clean-muted focus:outline-none focus:ring-2 focus:ring-clean-accent/25 focus:border-clean-accent/50"
                             autoFocus
                           />
                         </div>
                         <button
                           type="submit"
                           disabled={!pendingAdminCode.trim() || switchingMode !== null}
-                          className="flex w-full items-center justify-center gap-2 rounded-lg bg-clean-accent px-3 py-2 text-xs font-bold text-white hover:bg-[#e54d3f] disabled:opacity-50 disabled:hover:bg-clean-accent"
+                          className="flex w-full items-center justify-center gap-2 rounded-lg bg-clean-accent px-3 py-2 text-xs font-bold text-white hover:bg-clean-accent disabled:opacity-50 disabled:hover:bg-clean-accent"
                         >
                           {switchingMode === 'ADMIN' && <Loader2 className="w-4 h-4 animate-spin" />}
                           Unlock Admin
@@ -498,7 +499,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content wrapper */}
       <div className={`flex-1 transition-all duration-300 ${mainMarginClass} flex flex-col min-h-screen pb-16 md:pb-0 bg-clean-bg`}>
         {/* Mobile Header */}
-        <header className="md:hidden sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-clean-border px-4 py-3 flex items-center justify-between shadow-sm">
+        <header className="md:hidden sticky top-0 z-20 bg-clean-sidebar/90 backdrop-blur-md border-b border-clean-border px-4 py-3 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-clean-accent flex items-center justify-center text-white font-bold text-sm">G</div>
             <h1 className="text-lg font-bold text-clean-text">{currentSectionName}</h1>
@@ -523,7 +524,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <input
                 type="text"
                 placeholder="Search..."
-                className="pl-9 pr-4 py-2 rounded-full bg-white border border-clean-border text-sm focus:outline-none focus:ring-2 focus:ring-clean-accent/30 focus:border-clean-accent/50 w-48 transition-all"
+                className="pl-9 pr-4 py-2 rounded-full bg-clean-sidebar border border-clean-border text-clean-text placeholder:text-clean-muted text-sm focus:outline-none focus:ring-2 focus:ring-clean-accent/30 focus:border-clean-accent/50 w-48 transition-all"
               />
             </div>
 
@@ -541,7 +542,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <AchievementToast />
 
       {/* Mobile Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-clean-border bottom-bar-safe z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-clean-sidebar border-t border-clean-border bottom-bar-safe z-30 shadow-[0_-4px_12px_rgba(0,0,0,0.22)]">
         <nav className="flex items-center justify-around px-2 pt-2 pb-1">
           {bottomNavItems.map((item) => {
             const isActive = isActiveRoute(item.href)

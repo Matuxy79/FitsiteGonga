@@ -211,7 +211,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#ff5d4f]" />
+        <Loader2 className="w-8 h-8 animate-spin text-clean-accent" />
       </div>
     )
   }
@@ -235,7 +235,7 @@ export default function SettingsPage() {
             {user?.avatar_url ? (
               <img src={mediaUrl(user.avatar_url) ?? undefined} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-[#ff5d4f] to-[#ff8a80] flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-full h-full bg-gradient-to-br from-clean-accent to-clean-accent-soft flex items-center justify-center text-white text-2xl font-bold">
                 {initials(user?.display_name || 'GF')}
               </div>
             )}
@@ -265,7 +265,7 @@ export default function SettingsPage() {
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
             />
           </div>
           <div>
@@ -273,7 +273,7 @@ export default function SettingsPage() {
             <select
               value={fitnessLevel}
               onChange={(e) => setFitnessLevel(e.target.value as any)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
             >
               <option value="BEGINNER">Beginner</option>
               <option value="INTERMEDIATE">Intermediate</option>
@@ -286,7 +286,7 @@ export default function SettingsPage() {
               value={goals}
               onChange={(e) => setGoals(e.target.value)}
               placeholder="e.g. Build strength, Lose weight"
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
             />
           </div>
         </div>
@@ -295,7 +295,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2.5 bg-[#ff5d4f] text-white rounded-xl font-bold hover:bg-[#e54d3f] disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-2.5 bg-clean-accent text-white rounded-xl font-bold hover:bg-clean-accent disabled:opacity-50 flex items-center gap-2"
           >
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
             {saving ? 'Saving...' : 'Save changes'}
@@ -323,14 +323,14 @@ export default function SettingsPage() {
                       transition={isCurrent ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : {}}
                       className={`relative w-11 h-11 rounded-full flex items-center justify-center border-2 ${
                         reached
-                          ? 'bg-[#ff5d4f] border-[#ff5d4f] text-white'
+                          ? 'bg-clean-accent border-clean-accent text-white'
                           : 'bg-gray-50 border-gray-200 text-gray-300'
                       }`}
                     >
                       <StepIcon className="w-5 h-5" />
                       {isCurrent && (
                         <motion.span
-                          className="absolute inset-0 rounded-full border-2 border-[#ff5d4f]"
+                          className="absolute inset-0 rounded-full border-2 border-clean-accent"
                           animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
                           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
                         />
@@ -341,7 +341,7 @@ export default function SettingsPage() {
                     </span>
                   </div>
                   {i < TIER_STEPS.length - 1 && (
-                    <div className={`h-0.5 flex-1 mx-2 rounded-full ${i < currentIndex ? 'bg-[#ff5d4f]' : 'bg-gray-100'}`} />
+                    <div className={`h-0.5 flex-1 mx-2 rounded-full ${i < currentIndex ? 'bg-clean-accent' : 'bg-gray-100'}`} />
                   )}
                 </div>
               )
@@ -356,7 +356,7 @@ export default function SettingsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.35 }}
-              className="flex items-center gap-4 text-sm font-semibold text-white bg-gradient-to-r from-[#ff5d4f] to-[#ff8a5c] px-5 py-4 rounded-2xl shadow-lg shadow-[#ff5d4f]/20"
+              className="flex items-center gap-4 text-sm font-semibold text-white bg-gradient-to-r from-clean-accent to-clean-accent-soft px-5 py-4 rounded-2xl shadow-lg shadow-clean-accent/20"
             >
               <motion.div
                 animate={{ rotate: [0, -10, 10, -6, 6, 0] }}
@@ -401,7 +401,7 @@ export default function SettingsPage() {
 
                 {billing?.stripeConfigured && user?.membership_tier === 'PAID' && (
                   <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-600">
-                    <CreditCard className="w-4 h-4 shrink-0 text-[#ff5d4f]" />
+                    <CreditCard className="w-4 h-4 shrink-0 text-clean-accent" />
                     <span>
                       {billing.cancel_at_period_end
                         ? `PRO ends ${billing.current_period_end ? new Date(billing.current_period_end).toLocaleDateString() : 'at period end'}`
@@ -412,7 +412,7 @@ export default function SettingsPage() {
                     <button
                       onClick={handleManageBilling}
                       disabled={billingBusy}
-                      className="ml-auto text-xs font-bold text-[#ff5d4f] hover:underline shrink-0 disabled:opacity-50"
+                      className="ml-auto text-xs font-bold text-clean-accent hover:underline shrink-0 disabled:opacity-50"
                     >
                       Manage billing
                     </button>
@@ -428,7 +428,7 @@ export default function SettingsPage() {
                         key={tier}
                         whileHover={{ scale: 1.02, y: -2 }}
                         className={`relative rounded-2xl border-2 p-5 overflow-hidden transition-colors ${
-                          isCurrentTier ? 'border-[#ff5d4f] bg-[#ff5d4f]/5' : 'border-gray-100'
+                          isCurrentTier ? 'border-clean-accent bg-clean-accent/5' : 'border-gray-100'
                         }`}
                       >
                         {isPaidTier && !isCurrentTier && (
@@ -442,7 +442,7 @@ export default function SettingsPage() {
                               initial={{ scale: 0, rotate: -15 }}
                               animate={{ scale: 1, rotate: -8 }}
                               exit={{ scale: 0 }}
-                              className="absolute top-3 right-3 text-[10px] font-bold text-white bg-[#ff5d4f] px-2 py-1 rounded-full"
+                              className="absolute top-3 right-3 text-[10px] font-bold text-white bg-clean-accent px-2 py-1 rounded-full"
                             >
                               CURRENT
                             </motion.span>
@@ -463,7 +463,7 @@ export default function SettingsPage() {
                         <ul className="space-y-1.5 mb-4">
                           {PLAN_FEATURES[tier].included.map((feature) => (
                             <li key={feature} className="flex items-center gap-2 text-xs text-gray-600">
-                              <Check className="w-3.5 h-3.5 text-[#ff5d4f] shrink-0" />
+                              <Check className="w-3.5 h-3.5 text-clean-accent shrink-0" />
                               {feature}
                             </li>
                           ))}
@@ -476,7 +476,7 @@ export default function SettingsPage() {
                         </ul>
 
                         {isCurrentTier ? (
-                          <span className="text-xs font-bold text-[#ff5d4f]">Current plan</span>
+                          <span className="text-xs font-bold text-clean-accent">Current plan</span>
                         ) : billing?.stripeConfigured ? (
                           isPaidTier ? (
                             <motion.button
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                               whileTap={{ scale: 0.96 }}
                               disabled={billingBusy}
                               onClick={handleStripeUpgrade}
-                              className="w-full text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-50 bg-[#ff5d4f] text-white hover:bg-[#e54d3f] flex items-center justify-center gap-1.5"
+                              className="w-full text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-50 bg-clean-accent text-white hover:bg-clean-accent flex items-center justify-center gap-1.5"
                             >
                               <CreditCard className="w-3.5 h-3.5" />
                               {billingBusy ? 'Redirecting…' : 'Upgrade with Stripe'}
@@ -508,7 +508,7 @@ export default function SettingsPage() {
                             onClick={() => handlePlanSwitch(tier)}
                             className={`w-full text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-50 ${
                               isPaidTier
-                                ? 'bg-[#ff5d4f] text-white hover:bg-[#e54d3f]'
+                                ? 'bg-clean-accent text-white hover:bg-clean-accent'
                                 : 'border border-gray-200 hover:bg-gray-50'
                             }`}
                           >
@@ -523,7 +523,7 @@ export default function SettingsPage() {
 
               <div className="pt-2 border-t border-gray-100">
                 <h2 className="font-bold text-lg mb-1 flex items-center gap-1.5">
-                  <KeyRound className="w-4 h-4 text-[#ff5d4f]" /> Redeem admin code
+                  <KeyRound className="w-4 h-4 text-clean-accent" /> Redeem admin code
                 </h2>
                 <p className="text-sm text-gray-500 mb-3">Got a secret code? Redeem it to unlock admin access.</p>
                 <form onSubmit={handleRedeemCode} className="flex gap-2">
@@ -532,7 +532,7 @@ export default function SettingsPage() {
                     onChange={(e) => setRedeemCodeInput(e.target.value)}
                     placeholder="Enter code"
                     aria-label="Admin code"
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#ff5d4f]/30"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
                   />
                   <motion.button
                     type="submit"

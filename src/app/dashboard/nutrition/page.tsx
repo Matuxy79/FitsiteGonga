@@ -64,7 +64,7 @@ export default function NutritionPage() {
         {isAdmin && (
           <button
             onClick={() => setShowForm(true)}
-            className="px-4 py-2.5 bg-[#ff5d4f] text-white rounded-xl text-sm font-bold hover:bg-[#e54d3f] flex items-center gap-2"
+            className="px-4 py-2.5 bg-clean-accent text-white rounded-xl text-sm font-bold hover:bg-clean-accent flex items-center gap-2"
           >
             <Plus className="w-4 h-4" /> Post meal
           </button>
@@ -73,7 +73,7 @@ export default function NutritionPage() {
 
       {loading ? (
         <div className="min-h-[300px] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#ff5d4f]" />
+          <Loader2 className="w-8 h-8 animate-spin text-clean-accent" />
         </div>
       ) : (
         <>
@@ -91,7 +91,7 @@ export default function NutritionPage() {
                 )}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold uppercase text-[#ff5d4f]">{meal.meal_type}</span>
+                    <span className="text-xs font-bold uppercase text-clean-accent">{meal.meal_type}</span>
                     <span className="text-xs text-gray-400">{new Date(meal.created_at).toLocaleDateString()}</span>
                   </div>
                   <h3 className="text-xl font-bold mb-2">{meal.name}</h3>
@@ -139,7 +139,7 @@ export default function NutritionPage() {
                   {m.image_url && (
                     <img src={mediaUrl(m.image_url) ?? undefined} alt={m.name} className="w-full h-32 object-cover rounded-xl mb-3" />
                   )}
-                  <span className="text-xs font-bold uppercase text-[#ff5d4f]">{m.meal_type}</span>
+                  <span className="text-xs font-bold uppercase text-clean-accent">{m.meal_type}</span>
                   <h3 className="font-bold mt-1">{m.name}</h3>
                   <p className="text-xs text-gray-500 line-clamp-2">{m.description}</p>
                 </div>
@@ -263,7 +263,7 @@ function MealForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => vo
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-2.5 bg-[#ff5d4f] text-white rounded-xl font-bold hover:bg-[#e54d3f] disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-2.5 bg-clean-accent text-white rounded-xl font-bold hover:bg-clean-accent disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           Post meal

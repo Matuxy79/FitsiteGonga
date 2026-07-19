@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ToastProvider } from '@/providers/ToastProvider'
+import { ThemeProvider } from '@/providers/ThemeProvider'
+import { getThemeInlineScript } from '@/lib/themes'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,11 +18,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: getThemeInlineScript() }} />
+      </head>
       <body className={inter.className}>
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

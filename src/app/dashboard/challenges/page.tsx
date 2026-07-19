@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Flame, Medal, Target, Bell, Lock, Users, Check, Sparkles } from 'lucide-react'
+import { Trophy, Flame, Medal, Target, Bell, Lock, Users, Check, Sparkles, ShieldCheck } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 // Mock data for avatars
 const mockAvatars = [
@@ -27,6 +29,7 @@ const itemVariants = {
 
 export default function ChallengesPage() {
   const [notified, setNotified] = useState(false)
+  const { user } = useAuth()
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-10">
@@ -36,15 +39,24 @@ export default function ChallengesPage() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-3xl p-8 md:p-12 border border-clean-border shadow-sm text-center relative overflow-hidden"
       >
+        {user?.role === 'ADMIN' ? (
+          <Link
+            href="/dashboard/challenges/admin"
+            className="absolute right-4 top-4 z-20 inline-flex items-center gap-1.5 rounded-lg border border-clean-accent/35 bg-clean-accent/10 px-3 py-2 text-xs font-bold text-clean-accent transition hover:bg-clean-accent/15 md:right-6 md:top-6"
+          >
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            Admin Control Center
+          </Link>
+        ) : null}
         {/* Decorative background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#ff5d4f]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-clean-accent/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 flex flex-col items-center">
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', delay: 0.2 }}
-            className="w-24 h-24 rounded-full bg-gradient-to-br from-[#ff5d4f] to-[#ff8e85] text-white flex items-center justify-center shadow-lg shadow-[#ff5d4f]/20 mb-6"
+            className="w-24 h-24 rounded-full bg-gradient-to-br from-clean-accent to-clean-accent-soft text-white flex items-center justify-center shadow-lg shadow-clean-accent/20 mb-6"
           >
             <Trophy className="w-12 h-12" />
           </motion.div>
@@ -62,7 +74,7 @@ export default function ChallengesPage() {
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
               notified 
                 ? 'bg-emerald-100 text-emerald-700 cursor-default'
-                : 'bg-clean-accent text-white hover:bg-[#e54d3f] hover:shadow-md active:scale-95'
+                : 'bg-clean-accent text-white hover:bg-clean-accent hover:shadow-md active:scale-95'
             }`}
           >
             <AnimatePresence mode="wait">
