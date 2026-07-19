@@ -1,11 +1,23 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { UserRepository } from '@/repositories/UserRepository'
 import { AuthRepository } from '@/repositories/AuthRepository'
 import { BillingRepository, type BillingStatus } from '@/repositories/BillingRepository'
-import { Camera, ShieldCheck, Crown, Users, Loader2, Check, Lock, Sparkles, KeyRound, CreditCard, AlertTriangle } from 'lucide-react'
+import {
+  ShieldCheck,
+  Crown,
+  Users,
+  Loader2,
+  Check,
+  Lock,
+  Sparkles,
+  KeyRound,
+  CreditCard,
+  AlertTriangle,
+  Pencil,
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/providers/ToastProvider'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
@@ -43,30 +55,15 @@ function initials(name: string) {
     .toUpperCase()
 }
 
-
 export default function SettingsPage() {
   const { user, loading, refreshUser } = useAuth()
   const { toast } = useToast()
-  const fileInput = useRef<HTMLInputElement>(null)
 
-  const [displayName, setDisplayName] = useState('')
-  const [fitnessLevel, setFitnessLevel] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('BEGINNER')
-  const [goals, setGoals] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
   const [switchingPlan, setSwitchingPlan] = useState(false)
   const [redeemCodeInput, setRedeemCodeInput] = useState('')
   const [redeeming, setRedeeming] = useState(false)
   const [billing, setBilling] = useState<BillingStatus | null>(null)
   const [billingBusy, setBillingBusy] = useState(false)
-
-  useEffect(() => {
-    if (user) {
-      setDisplayName(user.display_name || '')
-      setFitnessLevel(user.fitness_level || 'BEGINNER')
-      setGoals((user.goals || []).join(', '))
-    }
-  }, [user])
 
   const loadBilling = useCallback(() => {
     BillingRepository.getStatus().then(setBilling).catch(() => setBilling(null))
@@ -98,7 +95,6 @@ export default function SettingsPage() {
         const status = await BillingRepository.getStatus()
         setBilling(status)
         if (status.membership_tier === 'PAID') {
-          // Reissue the access token so JWT claims carry the new tier.
           await AuthRepository.refreshToken().catch(() => undefined)
           await refreshUser()
           window.dispatchEvent(new Event('auth:changed'))
@@ -139,51 +135,16 @@ export default function SettingsPage() {
   const tierLabel = user?.role === 'ADMIN' ? 'Admin' : user?.membership_tier === 'PAID' ? 'Paid' : 'Free'
   const TierIcon = user?.role === 'ADMIN' ? ShieldCheck : user?.membership_tier === 'PAID' ? Crown : Users
 
-  const handleAvatarClick = () => fileInput.current?.click()
-
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    try {
-      await UserRepository.uploadAvatar(file)
-      await refreshUser()
-      toast({ title: 'Avatar uploaded', variant: "success" })
-    } catch (err) {
-      toast(mapApiErrorToToast(err, { action: 'upload your avatar' }))
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await UserRepository.updateProfile({
-        display_name: displayName,
-        fitness_level: fitnessLevel,
-        goals: goals
-          .split(',')
-          .map((g) => g.trim())
-          .filter(Boolean),
-      })
-      await refreshUser()
-      toast({ title: 'Profile updated', variant: "success" })
-    } catch (err) {
-      toast(mapApiErrorToToast(err, { action: 'update your profile' }))
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const handlePlanSwitch = async (nextTier: 'FREE' | 'PAID') => {
     setSwitchingPlan(true)
     try {
       await UserRepository.updatePlan(nextTier)
       await refreshUser()
       window.dispatchEvent(new Event('auth:changed'))
-      toast({ title: `Switched to ${nextTier === 'PAID' ? 'Paid' : 'Free'} plan`, variant: 'success' })
+      toast({
+        title: `Switched to ${nextTier === 'PAID' ? 'Paid' : 'Free'} plan`,
+        variant: 'success',
+      })
     } catch (err) {
       toast(mapApiErrorToToast(err, { action: 'switch your plan' }))
     } finally {
@@ -219,89 +180,38 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-sm text-gray-500">Manage your profile, avatar, and account.</p>
+        <h1 className="text-2xl font-bold">Account Settings</h1>
+        <p className="text-sm text-gray-500">Manage your membership, billing, and access.</p>
       </div>
 
-      <form onSubmit={handleSave} className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-8">
-        {/* Avatar */}
-        <div className="flex items-center gap-6">
-          <button
-            type="button"
-            onClick={handleAvatarClick}
-            disabled={uploading}
-            className="relative w-24 h-24 rounded-full overflow-hidden group border-4 border-white shadow-lg disabled:opacity-60"
-          >
-            {user?.avatar_url ? (
-              <img src={mediaUrl(user.avatar_url) ?? undefined} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-clean-accent to-clean-accent-soft flex items-center justify-center text-white text-2xl font-bold">
-                {initials(user?.display_name || 'GF')}
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              {uploading ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Camera className="w-6 h-6 text-white" />}
-            </div>
-          </button>
-          <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-          <div>
-            <h2 className="font-bold text-lg">{user?.display_name || 'Athlete'}</h2>
-            <p className="text-sm text-gray-500">{user?.email}</p>
-            <button
-              type="button"
-              onClick={() => document.getElementById('membership-plan')?.scrollIntoView({ behavior: 'smooth' })}
-              className="flex items-center gap-2 mt-2 text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full w-fit hover:bg-gray-200 transition-colors cursor-pointer"
-            >
+      {/* Profile Quick Info */}
+      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+        {user?.avatar_url ? (
+          <img
+            src={mediaUrl(user.avatar_url) ?? undefined}
+            alt=""
+            className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow"
+          />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-clean-accent to-clean-accent-soft flex items-center justify-center text-white text-xl font-bold shadow shrink-0">
+            {initials(user?.display_name || 'GF')}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h2 className="font-bold text-lg truncate">{user?.display_name || 'Athlete'}</h2>
+          <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
               <TierIcon className="w-3.5 h-3.5" />
               {tierLabel}
-            </button>
+            </span>
+            <p className="text-xs text-gray-400">
+              Edit your profile via the sidebar{' '}
+              <Pencil className="w-3 h-3 inline text-clean-accent" />
+            </p>
           </div>
         </div>
-
-        {/* Form */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold mb-1.5">Display name</label>
-            <input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1.5">Fitness level</label>
-            <select
-              value={fitnessLevel}
-              onChange={(e) => setFitnessLevel(e.target.value as any)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
-            >
-              <option value="BEGINNER">Beginner</option>
-              <option value="INTERMEDIATE">Intermediate</option>
-              <option value="ADVANCED">Advanced</option>
-            </select>
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold mb-1.5">Goals</label>
-            <input
-              value={goals}
-              onChange={(e) => setGoals(e.target.value)}
-              placeholder="e.g. Build strength, Lose weight"
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-clean-accent/30"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-2.5 bg-clean-accent text-white rounded-xl font-bold hover:bg-clean-accent disabled:opacity-50 flex items-center gap-2"
-          >
-            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            {saving ? 'Saving...' : 'Save changes'}
-          </button>
-        </div>
-      </form>
+      </div>
 
       {/* Membership & Admin Access */}
       <div id="membership-plan" className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-8">
@@ -341,7 +251,11 @@ export default function SettingsPage() {
                     </span>
                   </div>
                   {i < TIER_STEPS.length - 1 && (
-                    <div className={`h-0.5 flex-1 mx-2 rounded-full ${i < currentIndex ? 'bg-clean-accent' : 'bg-gray-100'}`} />
+                    <div
+                      className={`h-0.5 flex-1 mx-2 rounded-full ${
+                        i < currentIndex ? 'bg-clean-accent' : 'bg-gray-100'
+                      }`}
+                    />
                   )}
                 </div>
               )
@@ -452,7 +366,9 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-2 font-bold mb-3">
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              isPaidTier ? 'bg-gradient-to-br from-amber-400 to-[#ff5d4f] text-white' : 'bg-gray-100 text-gray-500'
+                              isPaidTier
+                                ? 'bg-gradient-to-br from-amber-400 to-[#ff5d4f] text-white'
+                                : 'bg-gray-100 text-gray-500'
                             }`}
                           >
                             <TierCardIcon className="w-4 h-4" />
