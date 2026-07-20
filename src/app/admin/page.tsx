@@ -25,6 +25,7 @@ import { mapApiErrorToToast } from '@/lib/apiFeedback'
 import { AdminRepository, type AdminStats, type AdminUser, type AdminActivity } from '@/repositories/AdminRepository'
 import HomepagePeopleEditor from '@/components/admin/HomepagePeopleEditor'
 import CommunityModeration from '@/components/admin/CommunityModeration'
+import BusinessProfileEditor from '@/components/admin/BusinessProfileEditor'
 
 // ============================================
 // COMPONENTS
@@ -267,7 +268,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
   const [activity, setActivity] = useState<AdminActivity[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'community'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'community' | 'business'>('overview')
   
   // UI states
   const [loadingStats, setLoadingStats] = useState(true)
@@ -477,6 +478,7 @@ export default function AdminDashboard() {
             [
               ['overview', 'Overview'],
               ['community', 'Community'],
+              ['business', 'Business Profile'],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -492,6 +494,7 @@ export default function AdminDashboard() {
         </div>
 
         {activeTab === 'community' && <CommunityModeration />}
+        {activeTab === 'business' && <BusinessProfileEditor />}
 
         <div className={activeTab === 'overview' ? '' : 'hidden'}>
         {/* Stats Grid */}

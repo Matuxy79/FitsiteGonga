@@ -355,4 +355,29 @@ router.put('/site/theme', async (req, res) => {
   }
 });
 
+const businessProfileSchema = z.object({
+  name: z.string().min(1),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  hours: z.string().optional(),
+  mapsEmbedUrl: z.string().url().optional().or(z.literal('')),
+});
+
+router.put('/site/business-profile', async (req, res) => {
+  try {
+    const parsed = businessProfileSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Validation error', details: parsed.error.errors });
+    }
+
+    await siteSettingRepository.set('business_profile', JSON.stringify(parsed.data), req.user!.userId);
+
+    res.json({ data: parsed.data });
+  } catch (error) {
+    console.error('Admin update business profile error:', error);
+    res.status(500).json({ error: 'Failed to update business profile' });
+  }
+});
+
 export default router;

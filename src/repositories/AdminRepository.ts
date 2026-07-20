@@ -123,6 +123,17 @@ export const AdminRepository = {
   async getMutedUsers(): Promise<{ users: MutedUser[] }> {
     return apiClient.get('/api/admin/community/muted')
   },
+
+  async updateBusinessProfile(data: {
+    name: string
+    address?: string
+    phone?: string
+    email?: string
+    hours?: string
+    mapsEmbedUrl?: string
+  }): Promise<void> {
+    await apiClient.put('/api/admin/site/business-profile', data)
+  },
 }
 
 export interface CommunityReport {
