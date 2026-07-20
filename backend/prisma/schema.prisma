@@ -90,6 +90,7 @@ model User {
   notifications_acted     Notification[]  @relation("NotificationActor")
   stats                   UserStats?
   xp_events               XpEvent[]
+  body_measurements       BodyMeasurement[]
 
   @@index([email])
   @@index([role])
@@ -1103,4 +1104,25 @@ enum TrainerClientStatus {
   ACTIVE
   PAUSED
   ENDED
+}
+
+// =============================================================================
+// BODY METRICS
+// =============================================================================
+
+model BodyMeasurement {
+  id          String   @id @default(uuid())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  weight      Float?
+  body_fat    Float?
+  weight_unit String   @default("LBS") // or "KG"
+  notes       String?
+  
+  logged_at   DateTime @default(now())
+  created_at  DateTime @default(now())
+  
+  @@index([user_id, logged_at(sort: Desc)])
+  @@map("body_measurements")
 }
