@@ -17,6 +17,7 @@ import friendRoutes from './friendRoutes';
 import notificationRoutes from './notificationRoutes';
 import billingRoutes from './billingRoutes';
 import siteRoutes from './siteRoutes';
+import bodyMetricsRoutes from './bodyMetricsRoutes';
 import { storageService, isStorageConfigured } from '../services/storageService';
 
 export const initRoutes = (app: Express) => {
@@ -35,6 +36,7 @@ export const initRoutes = (app: Express) => {
   app.use('/api/notifications', notificationRoutes);
   app.use('/api/billing', billingRoutes);
   app.use('/api/site', siteRoutes);
+  app.use('/api/body-metrics', bodyMetricsRoutes);
   app.use('/api/messages/squads/:squadId/channels', channelRoutes);
 
   app.get('/api/media/*', async (req, res) => {
