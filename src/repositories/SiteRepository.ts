@@ -9,8 +9,12 @@ export interface BusinessProfile {
   mapsEmbedUrl?: string
 }
 
-function extractPayload<T>(response: any): T {
-  return (response?.data || response) as T
+function extractPayload<T>(response: unknown): T {
+  if (typeof response === 'object' && response !== null && 'data' in response) {
+    return (response as { data: T }).data
+  }
+
+  return response as T
 }
 
 export const SiteRepository = {
