@@ -20,12 +20,13 @@ import {
   X,
   Flame,
   Loader2,
+  Gamepad2,
 } from 'lucide-react'
 
 export default function WorkoutsPage() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [activeTab, setActiveTab] = useState<'library' | 'builder' | 'log' | 'history'>('library')
+  const [activeTab, setActiveTab] = useState<'library' | 'builder' | 'log' | 'history' | 'game'>('library')
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([])
   const [instances, setInstances] = useState<WorkoutInstance[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,6 +69,7 @@ export default function WorkoutsPage() {
           { id: 'builder', label: 'Builder', icon: Dumbbell },
           { id: 'log', label: 'Log', icon: ListTodo },
           { id: 'history', label: 'History', icon: Clock },
+          { id: 'game', label: 'Game', icon: Gamepad2 },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -92,6 +94,7 @@ export default function WorkoutsPage() {
           {activeTab === 'builder' && <BuilderView templates={templates} isPaid={isPaid} onSaved={refresh} />}
           {activeTab === 'log' && <LogView templates={templates} onLogged={refresh} />}
           {activeTab === 'history' && <HistoryView instances={instances} />}
+          {activeTab === 'game' && <GameView />}
         </>
       )}
     </div>
@@ -413,6 +416,34 @@ function ExercisePicker({ onSelect, onClose }: { onSelect: (ex: Exercise) => voi
           ))}
         </div>
       </div>
+    </div>
+  )
+}
+
+function GameView() {
+  const gameUrl = process.env.NEXT_PUBLIC_GODOT_GAME_URL || ''
+
+  if (!gameUrl) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+        <Gamepad2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-gray-900">Game Not Configured</h3>
+        <p className="text-sm text-gray-500 mt-2">
+          Set the <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">NEXT_PUBLIC_GODOT_GAME_URL</code> environment variable to point to your deployed Godot build.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col" style={{ minHeight: 'calc(100vh - 220px)' }}>
+      <iframe 
+        src={gameUrl} 
+        className="w-full flex-1" 
+        title="Godot Game Player"
+        allow="autoplay; fullscreen; xr-spatial-tracking"
+        allowFullScreen
+      />
     </div>
   )
 }

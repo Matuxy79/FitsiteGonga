@@ -1,6 +1,6 @@
 # GONGAFIT Verify — browser extension design
 
-Status: **ImprovMX selected and DNS-active; delivery test pending; extension not implemented**  
+Status: **ImprovMX selected and DNS-active; delivery test pending; extension not implemented**
 Date: **2026-07-19**
 
 ![GONGAFIT Verify side-panel concept](./designs/gbp-verification-companion-concept-v2.png)
