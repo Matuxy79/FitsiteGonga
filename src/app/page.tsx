@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -309,6 +310,7 @@ function GongaFitLandingInner() {
                 <span>Programs</span>
                 <span>Community</span>
                 <span>Progress</span>
+                <Link href="/contact" className="hover:text-[#dc322f] transition-colors">Contact</Link>
               </nav>
 
               <button

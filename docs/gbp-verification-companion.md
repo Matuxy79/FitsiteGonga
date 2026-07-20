@@ -1,6 +1,6 @@
 # GONGAFIT Verify — browser extension design
 
-Status: **concept ready for review; not implemented**  
+Status: **ImprovMX selected and DNS-active; delivery test pending; extension not implemented**  
 Date: **2026-07-19**
 
 ![GONGAFIT Verify side-panel concept](./designs/gbp-verification-companion-concept-v2.png)
@@ -13,19 +13,21 @@ The companion is a readiness checklist and launcher. It does not create a mailbo
 
 ## Current state
 
-A public DNS check on 2026-07-19 found:
+A follow-up public DNS check on 2026-07-19 found:
 
 - DNS is hosted by Amazon Route 53.
-- The domain publishes no MX records, so `admin@gongafitness.com` cannot currently receive mail.
-- No apex SPF or DMARC record is published.
+- ImprovMX is active with MX priority `10` at `mx1.improvmx.com` and priority `20` at `mx2.improvmx.com`.
+- The apex publishes `v=spf1 include:spf.improvmx.com ~all`.
+- The ImprovMX dashboard shows a catch-all (`*`) alias, so unmatched addresses including `admin@gongafitness.com` route to the configured destination inbox.
+- No DMARC record is published. DMARC should be added as later hardening but does not block inbound forwarding.
 - No DKIM record was found at common provider selectors. Provider-defined selector names mean public DNS cannot prove exhaustive absence.
 - `www.gongafitness.com` continues to point at Railway. Mail records can be added without changing that web record or the Route 53 nameservers.
 
-The mailbox must be configured and tested before asking Google to send a verification code.
+The remaining mail-readiness step is to send a message to `admin@gongafitness.com` from an unrelated account and confirm it reaches the configured destination inbox before asking Google to send a verification code.
 
 ## V1 workflow
 
-1. **Set up domain email outside the extension.** Choose one inbound provider, add its exact Route 53 records, create or forward `admin@gongafitness.com`, and test it from an unrelated sender.
+1. **Test the active ImprovMX forward.** Send to `admin@gongafitness.com` from an unrelated account and confirm delivery at the configured destination inbox.
 2. **Open GONGAFIT Verify.** The extension shows three states: Domain email, Browser helper, and Google verification.
 3. **Mark the mailbox ready after a successful test.** V1 stores this non-sensitive checklist state locally.
 4. **Continue in Google.** The extension opens the official Business Profile flow. The owner requests and enters the code directly in Google.
@@ -38,7 +40,7 @@ Google chooses which verification methods are available and may require more tha
 | Choice | Best for | Notes |
 |---|---|---|
 | Google Workspace | Permanent business mailbox | Recommended long-term option if Gongafit wants a real managed inbox. Verify the domain, add Google's generated MX/TXT/DKIM records, then add SPF and DMARC. |
-| ImprovMX | Fast receive-only forwarding | Forward `admin@` to an existing MFA-protected inbox. This is not a full sending mailbox unless a sending service is also configured. |
+| **ImprovMX — selected** | Fast receive-only forwarding | The domain and catch-all are active. Confirm delivery to `admin@` from an unrelated sender. This is not a full sending mailbox unless a sending service is also configured. |
 | Microsoft 365 | Outlook-based permanent mailbox | Use the Microsoft admin wizard's exact Route 53 records. |
 
 Use one inbound provider and one SPF policy. Do not mix providers' MX sets. Leave the Railway `www` CNAME and Route 53 nameservers unchanged.
@@ -140,3 +142,5 @@ The extension may generate a checklist and link/QR handoff. It must not accept a
 - [Chrome Side Panel API](https://developer.chrome.com/docs/extensions/reference/api/sidePanel)
 - [Google Workspace MX setup](https://support.google.com/a/answer/6156494)
 - [Route 53 record creation](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-creating.html)
+- [ImprovMX wildcard aliases](https://improvmx.com/guides/catchall-wildcard-aliases/)
+- [ImprovMX DNS configuration](https://improvmx.com/guides/generic-dns-configuration/)

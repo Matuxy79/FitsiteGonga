@@ -24,5 +24,22 @@ router.get('/theme', async (_req, res) => {
     res.json({ data: { theme: DEFAULT_THEME } });
   }
 });
+/**
+ * GET /api/site/business-profile
+ * Public endpoint — returns the business profile.
+ */
+router.get('/business-profile', async (_req, res) => {
+  try {
+    const value = await siteSettingRepository.get('business_profile');
+    if (value) {
+      res.json({ data: JSON.parse(value) });
+    } else {
+      res.json({ data: null });
+    }
+  } catch (error) {
+    console.error('Failed to get business profile:', error);
+    res.json({ data: null });
+  }
+});
 
 export default router;
