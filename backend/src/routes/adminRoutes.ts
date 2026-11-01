@@ -332,7 +332,7 @@ router.put('/users/:id/status', async (req, res) => {
 // Site theme (admin-controlled)
 // ---------------------------------------------------------------------------
 
-const VALID_THEMES = ['cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const;
+const VALID_THEMES = ['clean-light', 'cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const;
 const THEME_KEY = 'site_theme';
 
 const updateSiteThemeSchema = z.object({

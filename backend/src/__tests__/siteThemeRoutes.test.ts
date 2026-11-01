@@ -14,7 +14,7 @@ import { authService } from '../services/authService';
 import adminRoutes from '../routes/adminRoutes';
 import siteRoutes from '../routes/siteRoutes';
 
-const SUPPORTED_THEMES = ['cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const;
+const SUPPORTED_THEMES = ['clean-light', 'cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const;
 const getSetting = vi.mocked(siteSettingRepository.get);
 const setSetting = vi.mocked(siteSettingRepository.set);
 
@@ -93,13 +93,13 @@ describe('site theme routes', () => {
   });
 
   describe('GET /api/site/theme', () => {
-    it('returns cyberpunk when the setting is absent or stale', async () => {
+    it('returns clean-light when the setting is absent or stale', async () => {
       const unset = await request('GET', '/api/site/theme');
-      expect(unset).toEqual({ status: 200, body: { data: { theme: 'cyberpunk' } } });
+      expect(unset).toEqual({ status: 200, body: { data: { theme: 'clean-light' } } });
 
       getSetting.mockResolvedValueOnce('arena');
       const stale = await request('GET', '/api/site/theme');
-      expect(stale).toEqual({ status: 200, body: { data: { theme: 'cyberpunk' } } });
+      expect(stale).toEqual({ status: 200, body: { data: { theme: 'clean-light' } } });
     });
 
     it.each(SUPPORTED_THEMES)('returns the persisted %s theme', async (theme) => {
@@ -117,7 +117,7 @@ describe('site theme routes', () => {
 
       try {
         const response = await request('GET', '/api/site/theme');
-        expect(response).toEqual({ status: 200, body: { data: { theme: 'cyberpunk' } } });
+        expect(response).toEqual({ status: 200, body: { data: { theme: 'clean-light' } } });
       } finally {
         consoleError.mockRestore();
       }
@@ -149,7 +149,7 @@ describe('site theme routes', () => {
       expect(setSetting).toHaveBeenCalledWith('site_theme', theme, 'admin-user-id');
     });
 
-    it('rejects themes outside the five-id contract', async () => {
+    it('rejects themes outside the six-id contract', async () => {
       const response = await request('PUT', '/api/admin/site/theme', {
         body: { theme: 'arena' },
         token: accessToken('ADMIN'),

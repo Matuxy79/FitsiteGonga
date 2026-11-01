@@ -4,8 +4,8 @@ import { siteSettingRepository } from '../repositories/siteSettingRepository';
 const router: Router = Router();
 
 const THEME_KEY = 'site_theme';
-const VALID_THEMES = ['cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const;
-const DEFAULT_THEME = 'cyberpunk';
+const VALID_THEMES = ['clean-light', 'cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const;
+const DEFAULT_THEME = 'clean-light';
 
 /**
  * GET /api/site/theme

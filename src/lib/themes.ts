@@ -5,11 +5,11 @@
  * Keep it aligned with the backend site-theme whitelist.
  */
 
-export type ThemeId = 'cyberpunk' | 'retro' | 'lava' | 'mana' | 'mythic'
+export type ThemeId = 'clean-light' | 'cyberpunk' | 'retro' | 'lava' | 'mana' | 'mythic'
 
-export const THEME_IDS = ['cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const satisfies readonly ThemeId[]
+export const THEME_IDS = ['clean-light', 'cyberpunk', 'retro', 'lava', 'mana', 'mythic'] as const satisfies readonly ThemeId[]
 
-export const DEFAULT_THEME: ThemeId = 'cyberpunk'
+export const DEFAULT_THEME: ThemeId = 'clean-light'
 export const THEME_STORAGE_KEY = 'gonga-theme'
 
 export interface ThemeSwatches {
@@ -35,6 +35,25 @@ export interface ThemePreset {
 }
 
 export const THEMES: readonly ThemePreset[] = [
+  {
+    id: 'clean-light',
+    name: 'Clean Light',
+    mobileName: ['Clean', 'Light'],
+    tagline: 'Bright and focused, matching the public site.',
+    description: 'Airy white surfaces with a confident blue accent.',
+    assetPath: '/images/challenges/admin/themes/clean-light.png',
+    swatches: {
+      bg: '#ffffff',
+      surface: '#f8fafc',
+      surfaceRaised: '#f1f5f9',
+      text: '#0f172a',
+      muted: '#64748b',
+      border: '#e2e8f0',
+      hover: '#f1f5f9',
+      primary: '#2563eb',
+      secondary: '#059669',
+    },
+  },
   {
     id: 'cyberpunk',
     name: 'Cyberpunk Neon',
