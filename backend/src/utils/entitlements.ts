@@ -59,6 +59,9 @@ export function limitsFor(user: { role: string; membership_tier: string }): Tier
   return ENTITLEMENTS[effectiveTier(user)];
 }
 
+/** Fallback identity for unauthenticated (guest) reads: FREE tier, no post rights. */
+export const GUEST_TIER_USER = { role: 'CLIENT', membership_tier: 'FREE' } as const;
+
 export function canReadChannel(
   user: { role: string; membership_tier: string },
   channel: { required_tier: string },

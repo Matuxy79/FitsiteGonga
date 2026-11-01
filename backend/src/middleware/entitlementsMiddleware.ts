@@ -24,7 +24,10 @@ declare global {
 export const loadFreshTier = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      // Optional-auth reads (guest browsing) skip the tier refresh instead of
+      // failing; tier middleware on write routes still requires a user.
+      next();
+      return;
     }
 
     const user = await prisma.user.findUnique({

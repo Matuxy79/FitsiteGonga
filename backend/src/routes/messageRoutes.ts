@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import multer from 'multer';
 import { prisma } from '../db/client';
-import { authenticateJWT } from '../middleware/authMiddleware';
+import { authenticateJWT, optionalAuthJWT } from '../middleware/authMiddleware';
 import { loadFreshTier, rejectMuted } from '../middleware/entitlementsMiddleware';
 import { messageSendLimiter, uploadLimiter, reactionLimiter, reportLimiter } from '../middleware/rateLimiters';
 import { limitsFor } from '../utils/entitlements';
@@ -91,7 +91,7 @@ const deleteMessageSchema = z.object({
  * GET /api/messages/global
  * Get global feed messages with pagination
  */
-router.get('/global', authenticateJWT, async (req, res) => {
+router.get('/global', optionalAuthJWT, async (req, res) => {
   try {
     const { cursor, limit = '50' } = req.query;
     const limitNum = Math.min(parseInt(limit as string) || 50, 100);
@@ -138,7 +138,7 @@ router.get('/global', authenticateJWT, async (req, res) => {
       },
     });
 
-    const userId = req.user!.userId;
+    const userId = req.user?.userId ?? '';
     const transformed = messages.map((msg) => withReactionSummary(msg, userId));
 
     const nextCursor = messages.length === limitNum
@@ -307,7 +307,7 @@ router.post('/', authenticateJWT, loadFreshTier, rejectMuted, messageSendLimiter
  * GET /api/messages/:messageId/thread
  * Get a message thread (replies)
  */
-router.get('/:messageId/thread', authenticateJWT, async (req, res) => {
+router.get('/:messageId/thread', optionalAuthJWT, async (req, res) => {
   try {
     const parent = await prisma.message.findFirst({
       where: {
@@ -337,7 +337,7 @@ router.get('/:messageId/thread', authenticateJWT, async (req, res) => {
       },
     });
 
-    const userId = req.user!.userId;
+    const userId = req.user?.userId ?? '';
     res.json({
       parent: withReactionSummary(parent, userId),
       replies: replies.map((r) => withReactionSummary(r, userId)),

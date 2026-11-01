@@ -58,6 +58,40 @@ export const authenticateJWT = (
  * Middleware to require specific roles
  * Must be used after authenticateJWT
  */
+/**
+ * Middleware like authenticateJWT but optional: attaches req.user when a valid
+ * token is present and continues anonymously otherwise. Used on public
+ * read-only community endpoints so guests can browse without a session.
+ */
+export const optionalAuthJWT = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+    let token: string | undefined;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else {
+      // Fallback to cookie
+      token = req.cookies?.accessToken;
+    }
+
+    if (!token) {
+      next();
+      return;
+    }
+
+    req.user = authService.verifyAccessToken(token);
+    next();
+  } catch {
+    // Invalid or expired token — read anonymously instead of rejecting.
+    next();
+  }
+};
+
 export const requireRole = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db/client';
-import { authenticateJWT } from '../middleware/authMiddleware';
+import { authenticateJWT, optionalAuthJWT } from '../middleware/authMiddleware';
 import { loadFreshTier, rejectMuted } from '../middleware/entitlementsMiddleware';
 import { messageSendLimiter } from '../middleware/rateLimiters';
-import { canReadChannel, canPostChannel, limitsFor } from '../utils/entitlements';
+import { canReadChannel, canPostChannel, limitsFor, GUEST_TIER_USER } from '../utils/entitlements';
 import { levelProgress } from '../utils/leveling';
 import { senderSelect, withReactionSummary } from '../utils/messageTransforms';
 import { awardXp } from '../services/xpService';
@@ -34,7 +34,7 @@ const sendChannelMessageSchema = z.object({
  * GET /api/community/channels
  * Global (non-squad) channels with per-caller lock state.
  */
-router.get('/channels', authenticateJWT, loadFreshTier, async (req, res) => {
+router.get('/channels', optionalAuthJWT, loadFreshTier, async (req, res) => {
   try {
     const channels = await prisma.channel.findMany({
       where: { squad_id: null, is_active: true },
@@ -52,12 +52,12 @@ router.get('/channels', authenticateJWT, loadFreshTier, async (req, res) => {
       },
     });
 
-    const user = req.user!;
+    const user = req.user ?? null;
     res.json({
       channels: channels.map((ch) => ({
         ...ch,
-        locked: !canReadChannel(user, ch),
-        canPost: canPostChannel(user, ch),
+        locked: user ? !canReadChannel(user, ch) : !canReadChannel(GUEST_TIER_USER, ch),
+        canPost: user ? canPostChannel(user, ch) : false,
       })),
     });
   } catch (error) {
@@ -70,7 +70,7 @@ router.get('/channels', authenticateJWT, loadFreshTier, async (req, res) => {
  * GET /api/community/channels/:channelId/messages?cursor&limit&pinned
  * Paginated channel feed (or pinned list with ?pinned=1).
  */
-router.get('/channels/:channelId/messages', authenticateJWT, loadFreshTier, async (req, res) => {
+router.get('/channels/:channelId/messages', optionalAuthJWT, loadFreshTier, async (req, res) => {
   try {
     const channel = await prisma.channel.findFirst({
       where: { id: req.params.channelId, is_active: true },
@@ -78,15 +78,16 @@ router.get('/channels/:channelId/messages', authenticateJWT, loadFreshTier, asyn
     if (!channel) return res.status(404).json({ error: 'Channel not found' });
 
     if (channel.squad_id) {
+      if (!req.user) return res.status(403).json({ error: 'You are not a member of this squad' });
       const membership = await prisma.squadMember.findUnique({
-        where: { squad_id_user_id: { squad_id: channel.squad_id, user_id: req.user!.userId } },
+        where: { squad_id_user_id: { squad_id: channel.squad_id, user_id: req.user.userId } },
       });
       if (!membership) return res.status(403).json({ error: 'You are not a member of this squad' });
-    } else if (!canReadChannel(req.user!, channel)) {
+    } else if (!canReadChannel(req.user ?? GUEST_TIER_USER, channel)) {
       return res.status(403).json({ error: 'Upgrade to PRO to access this channel', code: 'TIER_LOCKED' });
     }
 
-    const userId = req.user!.userId;
+    const userId = req.user?.userId ?? '';
 
     if (req.query.pinned === '1') {
       const pinned = await prisma.message.findMany({
@@ -347,10 +348,10 @@ router.get('/me', authenticateJWT, async (req, res) => {
 /**
  * GET /api/community/leaderboard?period=week|all
  */
-router.get('/leaderboard', authenticateJWT, async (req, res) => {
+router.get('/leaderboard', optionalAuthJWT, async (req, res) => {
   try {
     const period = req.query.period === 'all' ? 'all' : 'week';
-    const userId = req.user!.userId;
+    const userId = req.user?.userId ?? '';
 
     const userSummarySelect = {
       id: true,
