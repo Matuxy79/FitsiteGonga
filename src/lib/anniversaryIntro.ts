@@ -2,7 +2,7 @@ import manifest from '@/data/anniversaryManifest.json'
 
 export const ANNIVERSARY_INTRO_SESSION_KEY = 'gongafit.anniversaryIntro.dismissed'
 
-export type AnniversarySlideType = 'title' | 'image' | 'video' | 'handoff'
+export type AnniversarySlideType = 'creators' | 'title' | 'image' | 'video' | 'handoff'
 
 export type AnniversaryChapter = 'bahamas' | 'wedding' | 'first' | 'handoff'
 
@@ -13,6 +13,7 @@ export type AnniversarySlide = {
   durationMs: number
   caption: string
   src?: string
+  subtitle?: string
 }
 
 export type AnniversaryManifest = {
@@ -37,7 +38,7 @@ export function markAnniversaryIntroDismissed(): void {
 export function chapterLabel(chapter: AnniversaryChapter): string {
   switch (chapter) {
     case 'bahamas':
-      return 'Bahamas mode'
+      return 'Our story'
     case 'wedding':
       return '2025 — Wedding'
     case 'first':

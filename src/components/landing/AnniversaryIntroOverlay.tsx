@@ -10,6 +10,12 @@ import {
   type AnniversarySlide,
 } from '@/lib/anniversaryIntro'
 
+const INTRO_ASSET_VERSION = '2'
+
+function assetUrl(src: string) {
+  return `${src}?v=${INTRO_ASSET_VERSION}`
+}
+
 type AnniversaryIntroOverlayProps = {
   onComplete: () => void
 }
@@ -208,6 +214,25 @@ function SlideVisual({ slide, priority, onVideoEnded, onVideoProgress }: SlideVi
     void video.play().catch(() => undefined)
   }, [slide.id, slide.type])
 
+  if (slide.type === 'creators' && slide.src) {
+    return (
+      <div className="relative h-full w-full">
+        <img src={assetUrl(slide.src)} alt="" className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center object-top" />
+        <div className="absolute inset-0 bg-gradient-to-t from-landing-overlay via-landing-overlay/55 to-landing-overlay/25" />
+        <div className="relative z-10 flex h-full flex-col justify-end px-8 pb-14 pt-24 text-left">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-landing-primary">GongaFit creators</p>
+          <h2 className="mt-3 text-4xl font-black leading-tight text-white sm:text-5xl">{slide.caption}</h2>
+          {slide.subtitle ? (
+            <p className="mt-3 text-sm font-semibold text-white/85 sm:text-base">{slide.subtitle}</p>
+          ) : null}
+          <p className="mt-8 max-w-xs text-sm font-medium leading-6 text-white/75">
+            Tap right to play our story — wedding, anniversaries, and Bahamas mode.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   if (slide.type === 'title') {
     return (
       <div className="flex h-full flex-col items-center justify-center bg-gradient-to-b from-landing-bg via-landing-surface to-landing-surface-raised px-8 text-center">
@@ -251,7 +276,7 @@ function SlideVisual({ slide, priority, onVideoEnded, onVideoProgress }: SlideVi
     return (
       <video
         ref={videoRef}
-        src={slide.src}
+        src={assetUrl(slide.src)}
         className="h-full w-full object-cover"
         autoPlay
         muted
@@ -269,9 +294,9 @@ function SlideVisual({ slide, priority, onVideoEnded, onVideoProgress }: SlideVi
   if (slide.src) {
     return (
       <img
-        src={slide.src}
+        src={assetUrl(slide.src)}
         alt=""
-        className="h-full w-full object-cover"
+        className="h-full w-full scale-[1.04] object-cover object-center"
         loading={priority ? 'eager' : 'lazy'}
         fetchPriority={priority ? 'high' : 'auto'}
       />

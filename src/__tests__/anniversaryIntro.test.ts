@@ -19,7 +19,8 @@ describe('anniversaryIntro', () => {
   })
 
   it('includes ordered story chapters ending with handoff', () => {
-    expect(ANNIVERSARY_SLIDES[0]?.type).toBe('title')
+    expect(ANNIVERSARY_SLIDES[0]?.type).toBe('creators')
+    expect(ANNIVERSARY_SLIDES[1]?.type).toBe('title')
     expect(ANNIVERSARY_SLIDES.at(-1)?.type).toBe('handoff')
     const bahamasImages = ANNIVERSARY_SLIDES.filter((slide) => slide.id.startsWith('bahamas-') && slide.type === 'image')
     expect(bahamasImages.length).toBeGreaterThanOrEqual(10)

@@ -2,6 +2,15 @@
   "version": 1,
   "slides": [
     {
+      "id": "creators-intro",
+      "type": "creators",
+      "chapter": "bahamas",
+      "durationMs": 7000,
+      "caption": "Mr & Mrs Mrisho",
+      "subtitle": "GongaFit creators \u00b7 @mrs_mrishom & @mr_mrisho07",
+      "src": "/assets/gongafit/anniversary/wedding-2025/01.jpg"
+    },
+    {
       "id": "bahamas-title",
       "type": "title",
       "chapter": "bahamas",
@@ -49,42 +58,18 @@
       "caption": "2025 \u2014 Our wedding"
     },
     {
+      "id": "wedding-06",
+      "type": "image",
+      "chapter": "wedding",
+      "src": "/assets/gongafit/anniversary/wedding-2025/06.jpg",
+      "durationMs": 4500,
+      "caption": "2025 \u2014 Our wedding"
+    },
+    {
       "id": "first-01",
       "type": "image",
       "chapter": "first",
       "src": "/assets/gongafit/anniversary/first-anniversary-2025/01.jpg",
-      "durationMs": 4500,
-      "caption": "First anniversary"
-    },
-    {
-      "id": "first-02",
-      "type": "image",
-      "chapter": "first",
-      "src": "/assets/gongafit/anniversary/first-anniversary-2025/02.jpg",
-      "durationMs": 4500,
-      "caption": "First anniversary"
-    },
-    {
-      "id": "first-03",
-      "type": "image",
-      "chapter": "first",
-      "src": "/assets/gongafit/anniversary/first-anniversary-2025/03.jpg",
-      "durationMs": 4500,
-      "caption": "First anniversary"
-    },
-    {
-      "id": "first-04",
-      "type": "image",
-      "chapter": "first",
-      "src": "/assets/gongafit/anniversary/first-anniversary-2025/04.jpg",
-      "durationMs": 4500,
-      "caption": "First anniversary"
-    },
-    {
-      "id": "first-05",
-      "type": "image",
-      "chapter": "first",
-      "src": "/assets/gongafit/anniversary/first-anniversary-2025/05.jpg",
       "durationMs": 4500,
       "caption": "First anniversary"
     },
@@ -165,14 +150,6 @@
       "type": "image",
       "chapter": "bahamas",
       "src": "/assets/gongafit/anniversary/bahamas-2026/10.jpg",
-      "durationMs": 4500,
-      "caption": "Second anniversary \u2014 Bahamas BS"
-    },
-    {
-      "id": "bahamas-11",
-      "type": "image",
-      "chapter": "bahamas",
-      "src": "/assets/gongafit/anniversary/bahamas-2026/11.jpg",
       "durationMs": 4500,
       "caption": "Second anniversary \u2014 Bahamas BS"
     },

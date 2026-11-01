@@ -31,12 +31,21 @@ def media_slides(folder: Path, chapter: str, caption: str, id_prefix: str) -> li
 def main() -> None:
     slides: list[dict] = [
         {
+            "id": "creators-intro",
+            "type": "creators",
+            "chapter": "bahamas",
+            "durationMs": 7000,
+            "caption": "Mr & Mrs Mrisho",
+            "subtitle": "GongaFit creators · @mrs_mrishom & @mr_mrisho07",
+            "src": "/assets/gongafit/anniversary/wedding-2025/01.jpg",
+        },
+        {
             "id": "bahamas-title",
             "type": "title",
             "chapter": "bahamas",
             "durationMs": 5500,
             "caption": "Bahamas mode",
-        }
+        },
     ]
     slides.extend(
         media_slides(PUBLIC / "wedding-2025", "wedding", "2025 — Our wedding", "wedding")
