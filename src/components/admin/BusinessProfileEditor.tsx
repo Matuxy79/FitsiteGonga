@@ -39,7 +39,7 @@ export default function BusinessProfileEditor() {
       toast({
         title: 'Profile Updated',
         message: 'The public business profile has been saved successfully.',
-        status: 'SUCCESS',
+        status: 'OK',
       })
     } catch (error) {
       console.error(error)

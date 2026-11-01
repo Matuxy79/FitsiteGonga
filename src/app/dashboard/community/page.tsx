@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Hash, Radio, Trophy, Crown, Megaphone, Users, MessageSquare, MessageCircle, Menu, X, LogOut, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { isGuestUser } from '@/lib/guestSession'
 import { useChannelFeed, useSquadFeed, useDirectFeed, usePresence, type Message } from '@/hooks'
 import { useToast } from '@/hooks/useToast'
 import { mapApiErrorToToast } from '@/lib/apiFeedback'
@@ -87,6 +88,8 @@ function CommunityPageInner() {
 
   const userId = user?.id ?? ''
   const isAdmin = user?.role === 'ADMIN'
+  const isGuest = isGuestUser(user)
+  const guestCannotPostReason = 'Guests can read along. Log in to send messages.'
   const limits = limitsFor(user)
 
   // ---- Feeds (all hooks always called; inactive ones get null ids) ----------
@@ -346,11 +349,13 @@ function CommunityPageInner() {
         pinned={channelFeed.pinned}
         currentUserId={userId}
         isAdmin={isAdmin}
-        canPost={channel.canPost}
+        canPost={!isGuest && channel.canPost}
         cannotPostReason={
-          channel.posting_policy === 'ADMIN_ONLY'
-            ? `Only admins can post in #${channel.name}`
-            : `Upgrade to PRO to post in #${channel.name}`
+          isGuest
+            ? guestCannotPostReason
+            : channel.posting_policy === 'ADMIN_ONLY'
+              ? `Only admins can post in #${channel.name}`
+              : `Upgrade to PRO to post in #${channel.name}`
         }
         composerPlaceholder={`Message #${channel.name}`}
         maxUploadBytes={limits.maxUploadBytes}
@@ -399,7 +404,8 @@ function CommunityPageInner() {
         currentUserId={userId}
         isAdmin={isAdmin}
         canModerate={canModerate}
-        canPost
+        canPost={!isGuest}
+        cannotPostReason={guestCannotPostReason}
         composerPlaceholder={`Message ${squadFeed.squad?.name ?? 'your squad'}`}
         maxUploadBytes={limits.maxUploadBytes}
         maxMediaPerMessage={limits.maxMediaPerMessage}
@@ -423,7 +429,8 @@ function CommunityPageInner() {
         feed={dmFeed}
         currentUserId={userId}
         isAdmin={isAdmin}
-        canPost
+        canPost={!isGuest}
+        cannotPostReason={guestCannotPostReason}
         composerPlaceholder={`Message ${dmPeer?.display_name ?? ''}`}
         maxUploadBytes={limits.maxUploadBytes}
         maxMediaPerMessage={limits.maxMediaPerMessage}
@@ -525,7 +532,7 @@ function CommunityPageInner() {
           maxUploadBytes={limits.maxUploadBytes}
           maxMediaPerMessage={limits.maxMediaPerMessage}
           onSendReply={activeSendReply}
-          canPost={view?.type !== 'channel' || view.channel.canPost}
+          canPost={!isGuest && (view?.type !== 'channel' || view.channel.canPost)}
         />
       </div>
 

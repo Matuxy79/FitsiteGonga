@@ -11,6 +11,8 @@ export interface User {
   email: string;
   display_name: string;
   avatar_url?: string;
+  /** Local-only guest session; guests can browse but cannot message. */
+  isGuest?: boolean;
   role: 'CLIENT' | 'TRAINER' | 'ADMIN';
   membership_tier: 'FREE' | 'PAID';
   subscription_status?: 'ACTIVE' | 'CANCELLED' | 'PAST_DUE' | 'EXPIRED';

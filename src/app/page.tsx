@@ -22,6 +22,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { getEmailSector, mapAuthErrorToToast, type FieldErrors } from '@/lib/authFeedback'
+import { normalizeGuestDisplayName } from '@/lib/guestSession'
 import {
   DEFAULT_HOMEPAGE_PEOPLE,
   HOMEPAGE_PEOPLE_EVENT,
@@ -90,7 +91,10 @@ function GongaFitLandingInner() {
   const [mode, setMode] = useState<AuthMode>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [codename, setCodename] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [guestName, setGuestName] = useState('')
+  const [guestError, setGuestError] = useState<string | null>(null)
+  const [showGuest, setShowGuest] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [capsLockOn, setCapsLockOn] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -101,7 +105,7 @@ function GongaFitLandingInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const handledReasonRef = useRef(false)
-  const { login, register, loading, user } = useAuth()
+  const { login, loginAsGuest, register, loading, user } = useAuth()
   const { toast } = useToast()
 
   const isLockedOut = cooldownSeconds !== null && cooldownSeconds > 0
@@ -204,10 +208,10 @@ function GongaFitLandingInner() {
     })
   }
 
-  const validateInputs = (): { ok: true; email: string; password: string; codename: string } | { ok: false } => {
+  const validateInputs = (): { ok: true; email: string; password: string; displayName: string } | { ok: false } => {
     const nextErrors: FieldErrors = {}
     const trimmedEmail = email.trim()
-    const trimmedCodename = codename.trim()
+    const trimmedDisplayName = displayName.trim()
 
     if (!trimmedEmail) nextErrors.email = 'Email is required'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) nextErrors.email = 'Enter a valid email address'
@@ -215,11 +219,11 @@ function GongaFitLandingInner() {
     if (!password) nextErrors.password = 'Password is required'
     else if (mode === 'signup' && password.length < 8) nextErrors.password = 'Password must be at least 8 characters'
 
-    if (mode === 'signup' && !trimmedCodename) nextErrors.codename = 'Codename is required'
+    if (mode === 'signup' && !trimmedDisplayName) nextErrors.displayName = 'Display name is required'
 
     setFieldErrors(nextErrors)
 
-    const firstError = nextErrors.email || nextErrors.password || nextErrors.codename
+    const firstError = nextErrors.email || nextErrors.password || nextErrors.displayName
     if (firstError) {
       toast({
         status: 'WARN',
@@ -230,7 +234,7 @@ function GongaFitLandingInner() {
       return { ok: false }
     }
 
-    return { ok: true, email: trimmedEmail, password, codename: trimmedCodename }
+    return { ok: true, email: trimmedEmail, password, displayName: trimmedDisplayName }
   }
 
   const handleSubmit = async () => {
@@ -249,7 +253,7 @@ function GongaFitLandingInner() {
           sector: 'AUTH',
         })
       } else {
-        await register(validated.email, validated.password, validated.codename)
+        await register(validated.email, validated.password, validated.displayName)
         toast({
           status: 'OK',
           title: 'ACCOUNT READY',
@@ -261,14 +265,40 @@ function GongaFitLandingInner() {
       router.push('/dashboard')
     } catch (error: any) {
       const mapped = mapAuthErrorToToast({ mode, email: validated.email, error })
-      if (mode === 'signup' && mapped.toast.title === 'OPERATIVE EXISTS') {
+      if (mode === 'signup' && mapped.toast.title === 'ACCOUNT EXISTS') {
         setMode('login')
-        setCodename('')
+        setDisplayName('')
         setCapsLockOn(false)
       }
       if (mapped.fieldErrors) setFieldErrors((prev) => ({ ...prev, ...mapped.fieldErrors }))
       if (mapped.retryAfterSeconds) setCooldownSeconds(mapped.retryAfterSeconds)
       toast(mapped.toast)
+    }
+  }
+
+  const handleGuestSubmit = () => {
+    if (submitDisabled) return
+    const validated = normalizeGuestDisplayName(guestName)
+    if (!validated.ok) {
+      setGuestError(validated.error)
+      toast({ status: 'WARN', title: 'PICK A USERNAME', message: validated.error, sector: 'AUTH' })
+      return
+    }
+    try {
+      setGuestError(null)
+      loginAsGuest(validated.displayName)
+      toast({
+        status: 'OK',
+        title: 'GUEST PASS',
+        message: `Exploring as ${validated.displayName}. Messaging is disabled.`,
+        sector: 'AUTH',
+      })
+      setRedirecting(true)
+      router.push('/dashboard')
+    } catch (error: any) {
+      const message = error?.message || 'Could not start a guest session.'
+      setGuestError(message)
+      toast({ status: 'ERROR', title: 'GUEST FAILED', message, sector: 'AUTH' })
     }
   }
 
@@ -416,8 +446,8 @@ function GongaFitLandingInner() {
                 setEmail={setEmail}
                 password={password}
                 setPassword={setPassword}
-                codename={codename}
-                setCodename={setCodename}
+                displayName={displayName}
+                setDisplayName={setDisplayName}
                 fieldErrors={fieldErrors}
                 clearFieldError={clearFieldError}
                 capsLockOn={capsLockOn}
@@ -431,6 +461,13 @@ function GongaFitLandingInner() {
                 loading={loading}
                 handleSubmit={handleSubmit}
                 handleEnterSubmit={handleEnterSubmit}
+                guestName={guestName}
+                setGuestName={setGuestName}
+                guestError={guestError}
+                setGuestError={setGuestError}
+                showGuest={showGuest}
+                onToggleGuest={() => setShowGuest((prev) => !prev)}
+                onGuestSubmit={handleGuestSubmit}
               />
 
               <div className="lg:hidden">
@@ -573,8 +610,8 @@ type AuthPanelProps = {
   setEmail: (value: string) => void
   password: string
   setPassword: (value: string) => void
-  codename: string
-  setCodename: (value: string) => void
+  displayName: string
+  setDisplayName: (value: string) => void
   fieldErrors: FieldErrors
   clearFieldError: (field: keyof FieldErrors) => void
   capsLockOn: boolean
@@ -587,6 +624,13 @@ type AuthPanelProps = {
   cooldownSeconds: number | null
   loading: boolean
   handleSubmit: () => void
+  guestName: string
+  setGuestName: (value: string) => void
+  guestError: string | null
+  setGuestError: (value: string | null) => void
+  showGuest: boolean
+  onToggleGuest: () => void
+  onGuestSubmit: () => void
   handleEnterSubmit: (event: KeyboardEvent<HTMLInputElement>) => void
 }
 
@@ -597,8 +641,8 @@ function AuthPanel({
   setEmail,
   password,
   setPassword,
-  codename,
-  setCodename,
+  displayName,
+  setDisplayName,
   fieldErrors,
   clearFieldError,
   capsLockOn,
@@ -612,6 +656,13 @@ function AuthPanel({
   loading,
   handleSubmit,
   handleEnterSubmit,
+  guestName,
+  setGuestName,
+  guestError,
+  setGuestError,
+  showGuest,
+  onToggleGuest,
+  onGuestSubmit,
 }: AuthPanelProps) {
   return (
     <motion.aside
@@ -717,25 +768,25 @@ function AuthPanel({
               Display name
               <span
                 className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-landing-bg px-4 ${
-                  fieldErrors.codename ? 'border-landing-brand' : 'border-landing-border'
+                  fieldErrors.displayName ? 'border-landing-brand' : 'border-landing-border'
                 }`}
               >
                 <Users className="h-5 w-5 text-landing-muted" />
                 <input
-                  value={codename}
+                  value={displayName}
                   onChange={(event) => {
-                    setCodename(event.target.value)
-                    clearFieldError('codename')
+                    setDisplayName(event.target.value)
+                    clearFieldError('displayName')
                   }}
                   onKeyDown={handleEnterSubmit}
                   type="text"
                   autoComplete="nickname"
-                  aria-invalid={fieldErrors.codename ? true : undefined}
+                  aria-invalid={fieldErrors.displayName ? true : undefined}
                   placeholder="Your name"
                   className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-landing-text outline-none placeholder:text-landing-muted"
                 />
               </span>
-              {fieldErrors.codename && <p className="mt-2 text-xs font-bold text-landing-brand">{fieldErrors.codename}</p>}
+              {fieldErrors.displayName && <p className="mt-2 text-xs font-bold text-landing-brand">{fieldErrors.displayName}</p>}
             </motion.label>
           )}
         </AnimatePresence>
@@ -747,7 +798,7 @@ function AuthPanel({
           whileHover={{ scale: submitDisabled ? 1 : 1.02 }}
           whileTap={{ scale: submitDisabled ? 1 : 0.98 }}
           layout
-          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-landing-brand text-base font-black text-white shadow-[0_14px_28px_rgba(220,50,47,0.32)] transition-colors hover:bg-landing-brand/90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-landing-primary text-base font-black text-white shadow-[0_14px_28px_rgba(37,99,235,0.28)] transition-colors hover:bg-landing-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {redirecting
             ? 'Opening...'
@@ -767,13 +818,74 @@ function AuthPanel({
             type="button"
             onClick={() => {
               setMode(mode === 'login' ? 'signup' : 'login')
-              setCodename('')
+              setDisplayName('')
             }}
-            className="font-black text-landing-brand transition hover:text-landing-brand"
+            className="font-black text-landing-primary transition hover:text-landing-primary/80"
           >
             {mode === 'login' ? 'Sign up' : 'Log in'}
           </button>
         </div>
+
+        <div className="flex items-center gap-3 pt-1">
+          <span className="h-px flex-1 bg-landing-border" />
+          <span className="text-xs font-black uppercase tracking-[0.18em] text-landing-muted">or</span>
+          <span className="h-px flex-1 bg-landing-border" />
+        </div>
+
+        <button
+          type="button"
+          onClick={onToggleGuest}
+          className="flex h-14 w-full items-center justify-center gap-3 rounded-full border border-landing-border bg-landing-bg text-base font-black text-landing-text transition hover:-translate-y-0.5 hover:border-landing-primary hover:text-landing-primary"
+          aria-expanded={showGuest}
+        >
+          <Users className="h-5 w-5 text-landing-muted" />
+          Continue as guest
+        </button>
+
+        {showGuest ? (
+          <div className="space-y-3 rounded-2xl border border-landing-border bg-landing-bg p-4">
+            <label className="block text-sm font-black text-landing-text">
+              Username
+              <span
+                className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-landing-surface px-4 ${
+                  guestError ? 'border-landing-brand' : 'border-landing-border'
+                }`}
+              >
+                <Users className="h-5 w-5 text-landing-muted" />
+                <input
+                  value={guestName}
+                  onChange={(event) => {
+                    setGuestName(event.target.value)
+                    if (guestError) setGuestError(null)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') onGuestSubmit()
+                  }}
+                  type="text"
+                  autoComplete="nickname"
+                  maxLength={24}
+                  placeholder="Pick a username"
+                  aria-label="Guest username"
+                  aria-invalid={guestError ? true : undefined}
+                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-landing-text outline-none placeholder:text-landing-muted"
+                />
+              </span>
+            </label>
+            {guestError ? <p className="text-xs font-bold text-landing-brand">{guestError}</p> : null}
+            <button
+              type="button"
+              onClick={onGuestSubmit}
+              disabled={submitDisabled}
+              className="flex h-12 w-full items-center justify-center gap-3 rounded-full bg-landing-success text-base font-black text-white transition hover:-translate-y-0.5 hover:bg-landing-success/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {redirecting ? 'Opening...' : loading ? 'Working...' : 'Explore as guest'}
+              <ArrowRight className="h-5 w-5" />
+            </button>
+            <p className="text-xs font-medium leading-5 text-landing-muted">
+              Guests can explore workouts, programs and progress. Messaging is disabled.
+            </p>
+          </div>
+        ) : null}
       </div>
     </motion.aside>
   )

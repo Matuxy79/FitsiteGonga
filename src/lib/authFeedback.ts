@@ -2,7 +2,7 @@ import type { TerminalNotification } from '@/providers/ToastProvider'
 import { isApiError, mapApiErrorToToast, getRetryAfterSeconds as getRetryAfterSecondsShared } from '@/lib/apiFeedback'
 
 export type AuthMode = 'login' | 'signup'
-type AuthField = 'email' | 'password' | 'codename' | 'general'
+type AuthField = 'email' | 'password' | 'displayName' | 'general'
 export type FieldErrors = Partial<Record<AuthField, string>>
 
 export function getEmailSector(email: string): string {
@@ -27,14 +27,14 @@ function extractFieldErrors(details: unknown): FieldErrors {
 
     if (field === 'email') result.email ||= message
     if (field === 'password') result.password ||= message
-    if (field === 'display_name') result.codename ||= message
+    if (field === 'display_name') result.displayName ||= message
   }
 
   return result
 }
 
 function firstFieldError(fieldErrors: FieldErrors): string | undefined {
-  return fieldErrors.email || fieldErrors.password || fieldErrors.codename
+  return fieldErrors.email || fieldErrors.password || fieldErrors.displayName
 }
 
 const getRetryAfterSeconds = getRetryAfterSecondsShared
@@ -93,7 +93,7 @@ export function mapAuthErrorToToast(params: {
     return {
       toast: {
         status: 'WARN',
-        title: 'OPERATIVE EXISTS',
+        title: 'ACCOUNT EXISTS',
         message: 'This email is already registered. Switch to login to proceed.',
         sector,
       },

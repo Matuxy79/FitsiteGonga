@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AuthRepository, type User } from '@/repositories/AuthRepository';
 import { AUTH_EXPIRED_EVENT, clearAuthTokens } from '@/lib/apiClient';
+import { clearGuestSession, createGuestProfile, readGuestSession, saveGuestSession, toGuestUser } from '@/lib/guestSession';
 import { disconnectSocket } from '@/lib/socketClient';
 
 interface UseAuthReturn {
@@ -10,6 +11,7 @@ interface UseAuthReturn {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginAsGuest: (displayName: string) => void;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -42,7 +44,8 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     const onAuthExpired = () => {
       disconnectSocket();
-      setUser(null);
+      const guest = readGuestSession();
+      setUser(guest ? toGuestUser(guest) : null);
       setError(null);
       setLoading(false);
     };
@@ -62,6 +65,26 @@ export function useAuth(): UseAuthReturn {
       setUser(response.user);
     } catch (err: any) {
       setError(err.error || 'Failed to login');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Start a local guest session (no backend account).
+   * Guests can browse everything but cannot send community messages.
+   */
+  const loginAsGuest = (displayName: string): void => {
+    setLoading(true);
+    setError(null);
+    disconnectSocket();
+    try {
+      const profile = createGuestProfile(displayName);
+      saveGuestSession(profile);
+      setUser(toGuestUser(profile));
+    } catch (err: any) {
+      setError(err.message || 'Failed to start guest session');
       throw err;
     } finally {
       setLoading(false);
@@ -98,6 +121,7 @@ export function useAuth(): UseAuthReturn {
     } finally {
       setUser(null);
       clearAuthTokens();
+      clearGuestSession();
       disconnectSocket();
     }
   };
@@ -106,6 +130,8 @@ export function useAuth(): UseAuthReturn {
    * Refresh current user data.
    * The API client already performs one shared refresh-and-retry on 401.
    * A terminal refresh rejection emits auth:expired and clears the session.
+   * When no backend session exists but a guest session is stored, the guest
+   * session is restored so guests stay browsable across reloads.
    */
   const refreshUser = async (): Promise<void> => {
     try {
@@ -117,7 +143,8 @@ export function useAuth(): UseAuthReturn {
       if (err.status === 401 || err.status === 403) {
         clearAuthTokens();
         disconnectSocket();
-        setUser(null);
+        const guest = readGuestSession();
+        setUser(guest ? toGuestUser(guest) : null);
         setError(null);
       } else {
         setError(err.error || 'Unable to verify your session');
@@ -132,6 +159,7 @@ export function useAuth(): UseAuthReturn {
     loading,
     error,
     login,
+    loginAsGuest,
     register,
     logout,
     refreshUser,
