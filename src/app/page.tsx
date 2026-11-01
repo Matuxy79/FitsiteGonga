@@ -28,6 +28,8 @@ import {
   type HomepagePerson,
   readHomepagePeople,
 } from '@/lib/gongafitHomepage'
+import { shouldShowAnniversaryIntro } from '@/lib/anniversaryIntro'
+import { AnniversaryIntroOverlay } from '@/components/landing/AnniversaryIntroOverlay'
 
 type AuthMode = 'login' | 'signup'
 
@@ -84,6 +86,7 @@ export default function GongaFitLanding() {
 }
 
 function GongaFitLandingInner() {
+  const [showIntro, setShowIntro] = useState<boolean | null>(null)
   const [mode, setMode] = useState<AuthMode>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -103,6 +106,10 @@ function GongaFitLandingInner() {
 
   const isLockedOut = cooldownSeconds !== null && cooldownSeconds > 0
   const currentSlide = trainerSlides[activeSlide]
+
+  useEffect(() => {
+    setShowIntro(shouldShowAnniversaryIntro())
+  }, [])
 
   useEffect(() => {
     setPeople(readHomepagePeople())
@@ -267,6 +274,19 @@ function GongaFitLandingInner() {
 
   const handleEnterSubmit = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') handleSubmit()
+  }
+
+  if (showIntro !== false) {
+    return (
+      <>
+        <AnimatePresence>
+          {showIntro ? (
+            <AnniversaryIntroOverlay key="anniversary-intro" onComplete={() => setShowIntro(false)} />
+          ) : null}
+        </AnimatePresence>
+        {!showIntro ? <div className="min-h-screen bg-[#fdf6e3]" aria-hidden /> : null}
+      </>
+    )
   }
 
   return (

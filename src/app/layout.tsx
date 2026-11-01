@@ -8,8 +8,8 @@ import { getThemeInlineScript } from '@/lib/themes'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FitSite MVP - Auth Flow',
-  description: 'Single-page auth flow for FitSite MVP',
+  title: 'GongaFit — Find your fun fit',
+  description: 'Train with coaches, friends, and goals that feel good at GongaFitness.',
 }
 
 export default function RootLayout({

@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "slides": [
+    {
+      "id": "bahamas-title",
+      "type": "title",
+      "chapter": "bahamas",
+      "durationMs": 5500,
+      "caption": "Bahamas mode"
+    },
+    {
+      "id": "wedding-01",
+      "type": "image",
+      "chapter": "wedding",
+      "src": "/assets/gongafit/anniversary/wedding-2025/01.png",
+      "durationMs": 4500,
+      "caption": "2025 \u2014 Our wedding"
+    },
+    {
+      "id": "wedding-02",
+      "type": "image",
+      "chapter": "wedding",
+      "src": "/assets/gongafit/anniversary/wedding-2025/02.png",
+      "durationMs": 4500,
+      "caption": "2025 \u2014 Our wedding"
+    },
+    {
+      "id": "wedding-03",
+      "type": "image",
+      "chapter": "wedding",
+      "src": "/assets/gongafit/anniversary/wedding-2025/03.png",
+      "durationMs": 4500,
+      "caption": "2025 \u2014 Our wedding"
+    },
+    {
+      "id": "wedding-04",
+      "type": "image",
+      "chapter": "wedding",
+      "src": "/assets/gongafit/anniversary/wedding-2025/04.png",
+      "durationMs": 4500,
+      "caption": "2025 \u2014 Our wedding"
+    },
+    {
+      "id": "first-01",
+      "type": "image",
+      "chapter": "first",
+      "src": "/assets/gongafit/anniversary/first-anniversary-2025/01.png",
+      "durationMs": 4500,
+      "caption": "First anniversary"
+    },
+    {
+      "id": "first-02",
+      "type": "image",
+      "chapter": "first",
+      "src": "/assets/gongafit/anniversary/first-anniversary-2025/02.png",
+      "durationMs": 4500,
+      "caption": "First anniversary"
+    },
+    {
+      "id": "first-03",
+      "type": "image",
+      "chapter": "first",
+      "src": "/assets/gongafit/anniversary/first-anniversary-2025/03.png",
+      "durationMs": 4500,
+      "caption": "First anniversary"
+    },
+    {
+      "id": "bahamas-01",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/01.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-02",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/02.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-03",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/03.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-04",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/04.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-05",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/05.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-06",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/06.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-07",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/07.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-08",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/08.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-09",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/09.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-10",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/10.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "bahamas-11",
+      "type": "image",
+      "chapter": "bahamas",
+      "src": "/assets/gongafit/anniversary/bahamas-2026/11.jpg",
+      "durationMs": 4500,
+      "caption": "Second anniversary \u2014 Bahamas BS"
+    },
+    {
+      "id": "handoff",
+      "type": "handoff",
+      "chapter": "handoff",
+      "durationMs": 4000,
+      "caption": "Welcome to GongaFit"
+    }
+  ]
+}
