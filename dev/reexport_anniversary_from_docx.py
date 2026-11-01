@@ -1,4 +1,4 @@
-"""Re-export anniversary folders from docx originals with improved crops."""
+"""Regenerate anniversary media from stable sources without re-cropping outputs."""
 from __future__ import annotations
 
 import json
@@ -10,11 +10,20 @@ from PIL import Image, ImageEnhance
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCX = ROOT / "dev" / "anniverssary mode.docx"
+SOURCE_MEDIA = ROOT / "dev" / "source_media"
 PUBLIC = ROOT / "public" / "assets" / "gongafit" / "anniversary"
 
 CROPS = {
     "story_screenshot": {"left": 0.045, "top": 0.025, "right": 0.045, "bottom": 0.195},
-    "center_capture": {"left": 0.02, "top": 0.155, "right": 0.02, "bottom": 0.185},
+}
+
+BAHAMAS_SOURCE = ROOT / "dev" / "source_media" / "bahamas-2026"
+BAHAMAS_TRIMS: dict[str, tuple[float, float, float, float]] = {
+    # These two captures have gray letterbox panels above and below the photo.
+    "04.jpg": (0, 120 / 578, 1, 489 / 578),
+    "07.jpg": (0, 120 / 578, 1, 489 / 578),
+    # This capture has narrow gray gutters at both sides.
+    "05.jpg": (15 / 476, 0, 461 / 476, 1),
 }
 
 FOLDER_MAP: dict[str, tuple[str, list[str]]] = {
@@ -50,13 +59,31 @@ def enhance_and_save(img: Image.Image, dest: Path) -> None:
     contrast.save(dest, format="JPEG", quality=96, optimize=True, subsampling=0)
 
 
+def export_user_sources(folder: str) -> list[str] | None:
+    source_dir = SOURCE_MEDIA / folder
+    sources = sorted(source_dir.glob("*.jpg")) if source_dir.exists() else []
+    if not sources:
+        return None
+
+    out_dir = PUBLIC / folder
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for path in sources:
+        shutil.copy2(path, out_dir / path.name)
+    return [path.name for path in sources]
+
+
 def export_docx_folder(folder: str, profile_name: str, media_names: list[str]) -> list[str]:
+    user_sources = export_user_sources(folder)
+    if user_sources is not None:
+        return user_sources
+
     profile = CROPS[profile_name]
     out_dir = PUBLIC / folder
-    if out_dir.exists():
-        for old in out_dir.glob("*"):
-            if old.is_file():
-                old.unlink()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    expected_names = {f"{index:02d}.jpg" for index in range(1, len(media_names) + 1)}
+    for old in out_dir.glob("*.jpg"):
+        if old.name not in expected_names and old.stat().st_size == 0:
+            old.unlink()
     saved: list[str] = []
 
     with zipfile.ZipFile(DOCX) as zf:
@@ -71,15 +98,44 @@ def export_docx_folder(folder: str, profile_name: str, media_names: list[str]) -
     return saved
 
 
-def clean_bahamas_captures() -> list[str]:
+def export_bahamas_sources() -> list[str]:
     out_dir = PUBLIC / "bahamas-2026"
-    profile = CROPS["center_capture"]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if not BAHAMAS_SOURCE.exists():
+        raise FileNotFoundError(
+            f"Stable Bahamas sources not found at {BAHAMAS_SOURCE}. "
+            "Restore source media there before regenerating assets."
+        )
+
     saved: list[str] = []
-    for path in sorted(out_dir.glob("*.jpg")):
+    for path in sorted(BAHAMAS_SOURCE.glob("*.jpg")):
+        dest = out_dir / path.name
+        crop = BAHAMAS_TRIMS.get(path.name)
+        with Image.open(path) as source:
+            source_size = source.size
+        if crop is None or source_size != (476, 578):
+            shutil.copy2(path, dest)
+            saved.append(dest.name)
+            continue
+
         with Image.open(path) as img:
-            cropped = img.crop(crop_box(img.size, profile))
-            enhance_and_save(cropped, path)
-            saved.append(path.name)
+            width, height = img.size
+            box = (
+                int(width * crop[0]),
+                int(height * crop[1]),
+                int(width * crop[2]),
+                int(height * crop[3]),
+            )
+            cropped = img.crop(box)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            cropped.convert("RGB").save(
+                dest,
+                format="JPEG",
+                quality=98,
+                optimize=True,
+                subsampling=0,
+            )
+        saved.append(dest.name)
     return saved
 
 
@@ -87,7 +143,7 @@ def main() -> None:
     result: dict[str, list[str]] = {}
     for folder, (profile, names) in FOLDER_MAP.items():
         result[folder] = export_docx_folder(folder, profile, names)
-    result["bahamas-2026"] = clean_bahamas_captures()
+    result["bahamas-2026"] = export_bahamas_sources()
     print(json.dumps(result, indent=2))
 
 

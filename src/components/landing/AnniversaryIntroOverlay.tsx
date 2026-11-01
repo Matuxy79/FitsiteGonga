@@ -10,7 +10,7 @@ import {
   type AnniversarySlide,
 } from '@/lib/anniversaryIntro'
 
-const INTRO_ASSET_VERSION = '2'
+const INTRO_ASSET_VERSION = '3'
 
 function assetUrl(src: string) {
   return `${src}?v=${INTRO_ASSET_VERSION}`
@@ -105,11 +105,11 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-landing-overlay text-landing-text"
+      className="fixed inset-0 z-[100] h-[100dvh] w-screen overflow-hidden bg-black text-landing-text"
       role="dialog"
       aria-label="Anniversary intro"
     >
-      <div className="relative h-full w-full max-w-lg overflow-hidden bg-landing-bg sm:max-w-md md:max-w-lg lg:max-w-xl">
+      <div className="relative h-full w-full overflow-hidden bg-black">
         <div className="absolute inset-x-0 top-0 z-30 flex gap-1 px-3 pb-2 pt-3">
           {slides.map((item, slideIndex) => (
             <div key={item.id} className="h-1 flex-1 overflow-hidden rounded-full bg-landing-border/80">
@@ -131,7 +131,7 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
         <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-4 pt-8">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-landing-primary">{chapter}</p>
-            <p className="text-sm font-semibold text-landing-text/90">{slide.caption}</p>
+            <p className="text-sm font-semibold text-white/90">{slide.caption}</p>
           </div>
           <button
             type="button"
@@ -216,10 +216,22 @@ function SlideVisual({ slide, priority, onVideoEnded, onVideoProgress }: SlideVi
 
   if (slide.type === 'creators' && slide.src) {
     return (
-      <div className="relative h-full w-full">
-        <img src={assetUrl(slide.src)} alt="" className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center object-top" />
-        <div className="absolute inset-0 bg-gradient-to-t from-landing-overlay via-landing-overlay/55 to-landing-overlay/25" />
-        <div className="relative z-10 flex h-full flex-col justify-end px-8 pb-14 pt-24 text-left">
+      <div className="relative h-full w-full overflow-hidden bg-black">
+        <img
+          src={assetUrl(slide.src)}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-80 blur-2xl brightness-110"
+        />
+        <div className="absolute inset-0 bg-black/10" />
+        <img
+          src={assetUrl(slide.src)}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover sm:object-contain"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-landing-overlay via-landing-overlay/20 to-landing-overlay/5" />
+        <div className="relative z-10 flex h-full flex-col justify-end px-8 pb-14 pt-24 text-left sm:px-12">
           <p className="text-xs font-black uppercase tracking-[0.28em] text-landing-primary">GongaFit creators</p>
           <h2 className="mt-3 text-4xl font-black leading-tight text-white sm:text-5xl">{slide.caption}</h2>
           {slide.subtitle ? (
@@ -293,13 +305,24 @@ function SlideVisual({ slide, priority, onVideoEnded, onVideoProgress }: SlideVi
 
   if (slide.src) {
     return (
-      <img
-        src={assetUrl(slide.src)}
-        alt=""
-        className="h-full w-full scale-[1.04] object-cover object-center"
-        loading={priority ? 'eager' : 'lazy'}
-        fetchPriority={priority ? 'high' : 'auto'}
-      />
+      <div className="relative h-full w-full overflow-hidden bg-black">
+        <img
+          src={assetUrl(slide.src)}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-80 blur-2xl brightness-110"
+          loading={priority ? 'eager' : 'lazy'}
+        />
+        <div className="absolute inset-0 bg-black/10" />
+        <img
+          src={assetUrl(slide.src)}
+          alt=""
+          className="relative z-10 h-full w-full object-cover sm:object-contain"
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'auto'}
+        />
+        <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-b from-black/45 via-transparent to-black/10" />
+      </div>
     )
   }
 
