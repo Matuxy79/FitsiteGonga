@@ -7,6 +7,35 @@
    --clean-* keeps the existing app themed; --gonga-* is the public token API.
    ========================================================================== */
 
+/* Public landing + anniversary intro (system light/dark, not dashboard game themes) */
+:root {
+  --landing-bg: 255 255 255;
+  --landing-surface: 248 250 252;
+  --landing-surface-raised: 241 245 249;
+  --landing-text: 15 23 42;
+  --landing-muted: 100 116 139;
+  --landing-border: 226 232 240;
+  --landing-brand: 220 38 38;
+  --landing-primary: 37 99 235;
+  --landing-success: 5 150 105;
+  --landing-overlay: 15 23 42;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --landing-bg: 10 18 38;
+    --landing-surface: 15 28 52;
+    --landing-surface-raised: 22 40 72;
+    --landing-text: 241 245 249;
+    --landing-muted: 148 163 184;
+    --landing-border: 30 58 95;
+    --landing-brand: 248 113 113;
+    --landing-primary: 96 165 250;
+    --landing-success: 52 211 153;
+    --landing-overlay: 2 6 23;
+  }
+}
+
 :root,
 [data-theme="cyberpunk"] {
   --clean-bg: 5 9 20;
@@ -154,6 +183,7 @@
 @layer base {
   html {
     font-family: system-ui, sans-serif;
+    color-scheme: light dark;
   }
 
   body {

@@ -12,7 +12,7 @@
       "id": "wedding-01",
       "type": "image",
       "chapter": "wedding",
-      "src": "/assets/gongafit/anniversary/wedding-2025/01.png",
+      "src": "/assets/gongafit/anniversary/wedding-2025/01.jpg",
       "durationMs": 4500,
       "caption": "2025 \u2014 Our wedding"
     },
@@ -20,7 +20,7 @@
       "id": "wedding-02",
       "type": "image",
       "chapter": "wedding",
-      "src": "/assets/gongafit/anniversary/wedding-2025/02.png",
+      "src": "/assets/gongafit/anniversary/wedding-2025/02.jpg",
       "durationMs": 4500,
       "caption": "2025 \u2014 Our wedding"
     },
@@ -28,7 +28,7 @@
       "id": "wedding-03",
       "type": "image",
       "chapter": "wedding",
-      "src": "/assets/gongafit/anniversary/wedding-2025/03.png",
+      "src": "/assets/gongafit/anniversary/wedding-2025/03.jpg",
       "durationMs": 4500,
       "caption": "2025 \u2014 Our wedding"
     },
@@ -36,7 +36,15 @@
       "id": "wedding-04",
       "type": "image",
       "chapter": "wedding",
-      "src": "/assets/gongafit/anniversary/wedding-2025/04.png",
+      "src": "/assets/gongafit/anniversary/wedding-2025/04.jpg",
+      "durationMs": 4500,
+      "caption": "2025 \u2014 Our wedding"
+    },
+    {
+      "id": "wedding-05",
+      "type": "image",
+      "chapter": "wedding",
+      "src": "/assets/gongafit/anniversary/wedding-2025/05.jpg",
       "durationMs": 4500,
       "caption": "2025 \u2014 Our wedding"
     },
@@ -44,7 +52,7 @@
       "id": "first-01",
       "type": "image",
       "chapter": "first",
-      "src": "/assets/gongafit/anniversary/first-anniversary-2025/01.png",
+      "src": "/assets/gongafit/anniversary/first-anniversary-2025/01.jpg",
       "durationMs": 4500,
       "caption": "First anniversary"
     },
@@ -52,7 +60,7 @@
       "id": "first-02",
       "type": "image",
       "chapter": "first",
-      "src": "/assets/gongafit/anniversary/first-anniversary-2025/02.png",
+      "src": "/assets/gongafit/anniversary/first-anniversary-2025/02.jpg",
       "durationMs": 4500,
       "caption": "First anniversary"
     },
@@ -60,7 +68,23 @@
       "id": "first-03",
       "type": "image",
       "chapter": "first",
-      "src": "/assets/gongafit/anniversary/first-anniversary-2025/03.png",
+      "src": "/assets/gongafit/anniversary/first-anniversary-2025/03.jpg",
+      "durationMs": 4500,
+      "caption": "First anniversary"
+    },
+    {
+      "id": "first-04",
+      "type": "image",
+      "chapter": "first",
+      "src": "/assets/gongafit/anniversary/first-anniversary-2025/04.jpg",
+      "durationMs": 4500,
+      "caption": "First anniversary"
+    },
+    {
+      "id": "first-05",
+      "type": "image",
+      "chapter": "first",
+      "src": "/assets/gongafit/anniversary/first-anniversary-2025/05.jpg",
       "durationMs": 4500,
       "caption": "First anniversary"
     },

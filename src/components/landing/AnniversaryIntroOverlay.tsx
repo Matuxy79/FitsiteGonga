@@ -25,6 +25,7 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
 
   const slide = slides[index]
   const isLast = index >= slides.length - 1
+  const isTimedSlide = slide.type !== 'video'
 
   const finish = useCallback(() => {
     markAnniversaryIntroDismissed()
@@ -48,7 +49,7 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
   }, [])
 
   useEffect(() => {
-    if (paused) return
+    if (paused || !isTimedSlide) return
 
     startedAtRef.current = performance.now() - elapsedRef.current
 
@@ -72,7 +73,7 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
     }
-  }, [goNext, index, paused, slide.durationMs])
+  }, [goNext, index, isTimedSlide, paused, slide.durationMs])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -98,16 +99,16 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#120f0c] text-[#fdf6e3]"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-landing-overlay text-landing-text"
       role="dialog"
       aria-label="Anniversary intro"
     >
-      <div className="relative h-full w-full max-w-lg overflow-hidden sm:max-w-md md:max-w-lg lg:max-w-xl">
+      <div className="relative h-full w-full max-w-lg overflow-hidden bg-landing-bg sm:max-w-md md:max-w-lg lg:max-w-xl">
         <div className="absolute inset-x-0 top-0 z-30 flex gap-1 px-3 pb-2 pt-3">
           {slides.map((item, slideIndex) => (
-            <div key={item.id} className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+            <div key={item.id} className="h-1 flex-1 overflow-hidden rounded-full bg-landing-border/80">
               <div
-                className="h-full rounded-full bg-[#fdf6e3] transition-[width] duration-75 ease-linear"
+                className="h-full rounded-full bg-landing-primary transition-[width] duration-75 ease-linear"
                 style={{
                   width:
                     slideIndex < index
@@ -123,13 +124,13 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
 
         <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-4 pt-8">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#c4a882]">{chapter}</p>
-            <p className="text-sm font-semibold text-[#fdf6e3]/90">{slide.caption}</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-landing-primary">{chapter}</p>
+            <p className="text-sm font-semibold text-landing-text/90">{slide.caption}</p>
           </div>
           <button
             type="button"
             onClick={finish}
-            className="inline-flex items-center gap-1 rounded-full border border-white/25 bg-black/35 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-[#fdf6e3] backdrop-blur transition hover:bg-black/50"
+            className="inline-flex items-center gap-1 rounded-full border border-landing-border bg-landing-surface/90 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-landing-text backdrop-blur transition hover:bg-landing-surface-raised"
           >
             Skip
             <X className="h-3.5 w-3.5" />
@@ -145,7 +146,12 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
             transition={{ duration: 0.35, ease: 'easeOut' }}
             className="absolute inset-0"
           >
-            <SlideVisual slide={slide} priority={index === 0} />
+            <SlideVisual
+              slide={slide}
+              priority={index === 0}
+              onVideoEnded={goNext}
+              onVideoProgress={setProgress}
+            />
           </motion.div>
         </AnimatePresence>
 
@@ -173,7 +179,7 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
             <button
               type="button"
               onClick={finish}
-              className="inline-flex h-12 items-center gap-2 rounded-full bg-[#dc322f] px-6 text-sm font-black text-white shadow-[0_14px_28px_rgba(220,50,47,0.35)] transition hover:bg-[#cb4b16]"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-landing-brand px-6 text-sm font-black text-white shadow-[0_14px_28px_rgba(220,38,38,0.35)] transition hover:bg-landing-brand/90"
             >
               Enter site
               <ArrowRight className="h-4 w-4" />
@@ -185,24 +191,40 @@ export function AnniversaryIntroOverlay({ onComplete }: AnniversaryIntroOverlayP
   )
 }
 
-function SlideVisual({ slide, priority }: { slide: AnniversarySlide; priority: boolean }) {
+type SlideVisualProps = {
+  slide: AnniversarySlide
+  priority: boolean
+  onVideoEnded: () => void
+  onVideoProgress: (value: number) => void
+}
+
+function SlideVisual({ slide, priority, onVideoEnded, onVideoProgress }: SlideVisualProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    if (slide.type !== 'video' || !videoRef.current) return
+    const video = videoRef.current
+    video.currentTime = 0
+    void video.play().catch(() => undefined)
+  }, [slide.id, slide.type])
+
   if (slide.type === 'title') {
     return (
-      <div className="flex h-full flex-col items-center justify-center bg-gradient-to-b from-[#c4a882] via-[#a88962] to-[#7a6348] px-8 text-center">
-        <p className="text-xs font-black uppercase tracking-[0.35em] text-[#fdf6e3]/80">Bahamas BS</p>
+      <div className="flex h-full flex-col items-center justify-center bg-gradient-to-b from-landing-bg via-landing-surface to-landing-surface-raised px-8 text-center">
+        <p className="text-xs font-black uppercase tracking-[0.35em] text-landing-muted">Bahamas BS</p>
         <div className="mt-10 space-y-5">
-          <div className="rounded-md border border-[#5c4a32]/40 bg-[#d9c4a8]/90 px-6 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
-            <p className="font-serif text-2xl font-semibold tracking-wide text-[#3b2f22] sm:text-3xl">
+          <div className="rounded-xl border border-landing-border bg-landing-bg px-6 py-4 shadow-sm">
+            <p className="font-serif text-2xl font-semibold tracking-wide text-landing-text sm:text-3xl">
               I Just Want To Live Happily
             </p>
           </div>
-          <div className="ml-8 rounded-md border border-[#5c4a32]/40 bg-[#d9c4a8]/90 px-6 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
-            <p className="font-serif text-xl font-semibold tracking-wide text-[#3b2f22] sm:text-2xl">
+          <div className="ml-8 rounded-xl border border-landing-border bg-landing-bg px-6 py-4 shadow-sm">
+            <p className="font-serif text-xl font-semibold tracking-wide text-landing-text sm:text-2xl">
               Ever After, Now And Then
             </p>
           </div>
         </div>
-        <p className="mt-12 max-w-xs text-sm font-medium leading-6 text-[#fdf6e3]/85">
+        <p className="mt-12 max-w-xs text-sm font-medium leading-6 text-landing-muted">
           Tap right to play our story. Skip anytime.
         </p>
       </div>
@@ -211,14 +233,14 @@ function SlideVisual({ slide, priority }: { slide: AnniversarySlide; priority: b
 
   if (slide.type === 'handoff') {
     return (
-      <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-[#fdf6e3] via-[#eee8d5] to-[#c4a882] px-8 text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#dc322f] text-3xl font-black text-white shadow-[0_12px_24px_rgba(220,50,47,0.35)]">
+      <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-landing-bg via-landing-surface to-landing-surface-raised px-8 text-center">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-landing-brand text-3xl font-black text-white shadow-lg">
           G
         </span>
-        <h2 className="mt-6 text-4xl font-black text-[#002b36]">
-          Gonga<span className="text-[#dc322f]">Fit</span>
+        <h2 className="mt-6 text-4xl font-black text-landing-text">
+          Gonga<span className="text-landing-brand">Fit</span>
         </h2>
-        <p className="mt-3 max-w-sm text-base font-medium leading-7 text-[#586e75]">
+        <p className="mt-3 max-w-sm text-base font-medium leading-7 text-landing-muted">
           Find your fun fit — coaches, community, and goals that feel good.
         </p>
       </div>
@@ -228,11 +250,18 @@ function SlideVisual({ slide, priority }: { slide: AnniversarySlide; priority: b
   if (slide.type === 'video' && slide.src) {
     return (
       <video
+        ref={videoRef}
         src={slide.src}
         className="h-full w-full object-cover"
         autoPlay
         muted
         playsInline
+        onTimeUpdate={(event) => {
+          const video = event.currentTarget
+          if (!video.duration || !Number.isFinite(video.duration)) return
+          onVideoProgress(video.currentTime / video.duration)
+        }}
+        onEnded={onVideoEnded}
       />
     )
   }
@@ -249,5 +278,5 @@ function SlideVisual({ slide, priority }: { slide: AnniversarySlide; priority: b
     )
   }
 
-  return <div className="h-full w-full bg-[#120f0c]" />
+  return <div className="h-full w-full bg-landing-surface" />
 }

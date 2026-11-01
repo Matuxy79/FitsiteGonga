@@ -79,7 +79,7 @@ const toolHighlights = [
 
 export default function GongaFitLanding() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#fdf6e3]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-landing-bg" />}>
       <GongaFitLandingInner />
     </Suspense>
   )
@@ -284,16 +284,16 @@ function GongaFitLandingInner() {
             <AnniversaryIntroOverlay key="anniversary-intro" onComplete={() => setShowIntro(false)} />
           ) : null}
         </AnimatePresence>
-        {!showIntro ? <div className="min-h-screen bg-[#fdf6e3]" aria-hidden /> : null}
+        {!showIntro ? <div className="min-h-screen bg-landing-bg" aria-hidden /> : null}
       </>
     )
   }
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#fdf6e3] text-[#002b36] selection:bg-[#b58900] selection:text-[#fdf6e3]">
+    <div className="min-h-screen overflow-hidden bg-landing-bg text-landing-text selection:bg-landing-primary selection:text-white">
       <main className="min-h-screen p-3 sm:p-5 lg:p-7">
-        <section className="relative min-h-[calc(100vh-1.5rem)] overflow-hidden rounded-[28px] border border-[#eee8d5]/80 bg-[#fdf6e3] shadow-[0_24px_80px_rgba(0,43,54,0.18)] sm:min-h-[calc(100vh-2.5rem)] lg:min-h-[calc(100vh-3.5rem)]">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#fdf6e3] via-[#eee8d5] to-[#eee8d5]" />
+        <section className="relative min-h-[calc(100vh-1.5rem)] overflow-hidden rounded-[28px] border border-landing-border/80 bg-landing-bg shadow-[0_24px_80px_rgba(15,23,42,0.12)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:min-h-[calc(100vh-2.5rem)] lg:min-h-[calc(100vh-3.5rem)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-landing-bg via-landing-surface to-landing-surface" />
           <AnimatePresence mode="wait">
             <motion.img
               key={currentSlide.imageUrl}
@@ -306,8 +306,8 @@ function GongaFitLandingInner() {
               className="absolute bottom-0 right-0 top-0 hidden h-full w-[68%] object-cover object-center lg:block"
             />
           </AnimatePresence>
-          <div className="absolute inset-0 hidden bg-gradient-to-r from-[#fdf6e3] via-[#fdf6e3]/90 to-[#fdf6e3]/16 lg:block" />
-          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#eee8d5] to-transparent" />
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-landing-bg via-landing-bg/90 to-landing-bg/16 lg:block" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-landing-surface to-transparent" />
 
           <div className="relative z-10 flex min-h-[calc(100vh-1.5rem)] flex-col sm:min-h-[calc(100vh-2.5rem)] lg:min-h-[calc(100vh-3.5rem)]">
             <header className="flex items-center justify-between gap-4 px-5 py-5 sm:px-8 lg:px-10">
@@ -317,26 +317,26 @@ function GongaFitLandingInner() {
                 aria-label="GongaFit home"
                 onClick={() => router.push('/')}
               >
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#dc322f] text-3xl font-black text-white shadow-[0_10px_20px_rgba(220,50,47,0.28)]">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-landing-brand text-3xl font-black text-white shadow-[0_10px_20px_rgba(220,50,47,0.28)]">
                   G
                 </span>
-                <span className="text-2xl font-black text-[#002b36]">
-                  Gonga<span className="text-[#dc322f]">Fit</span>
+                <span className="text-2xl font-black text-landing-text">
+                  Gonga<span className="text-landing-brand">Fit</span>
                 </span>
               </button>
 
-              <nav className="hidden items-center gap-8 text-sm font-black text-[#002b36] lg:flex">
+              <nav className="hidden items-center gap-8 text-sm font-black text-landing-text lg:flex">
                 <span>Workouts</span>
                 <span>Programs</span>
                 <span>Community</span>
                 <span>Progress</span>
-                <Link href="/contact" className="hover:text-[#dc322f] transition-colors">Contact</Link>
+                <Link href="/contact" className="hover:text-landing-brand transition-colors">Contact</Link>
               </nav>
 
               <button
                 type="button"
                 onClick={() => setMode('signup')}
-                className="hidden items-center gap-2 rounded-full bg-[#859900] px-5 py-3 text-sm font-black text-[#002b36] shadow-[0_12px_24px_rgba(133,153,0,0.22)] transition hover:-translate-y-0.5 hover:bg-[#859900] sm:inline-flex"
+                className="hidden items-center gap-2 rounded-full bg-landing-success px-5 py-3 text-sm font-black text-landing-text shadow-[0_12px_24px_rgba(133,153,0,0.22)] transition hover:-translate-y-0.5 hover:bg-landing-success sm:inline-flex"
               >
                 Start training
                 <ChevronRight className="h-4 w-4" />
@@ -349,15 +349,15 @@ function GongaFitLandingInner() {
                   initial={{ opacity: 1, y: 0 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.55, ease: 'easeOut' }}
-                  className="max-w-3xl text-5xl font-black leading-[0.96] text-[#002b36] sm:text-7xl lg:text-8xl"
+                  className="max-w-3xl text-5xl font-black leading-[0.96] text-landing-text sm:text-7xl lg:text-8xl"
                 >
-                  Find your <span className="text-[#dc322f]">fun</span> fit
+                  Find your <span className="text-landing-brand">fun</span> fit
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 1, y: 0 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.55, delay: 0.08, ease: 'easeOut' }}
-                  className="mt-4 max-w-xl text-lg font-medium leading-7 text-[#586e75] sm:mt-6 sm:text-xl sm:leading-8"
+                  className="mt-4 max-w-xl text-lg font-medium leading-7 text-landing-muted sm:mt-6 sm:text-xl sm:leading-8"
                 >
                   Move with coaches, friends, and goals that feel good.
                 </motion.p>
@@ -371,7 +371,7 @@ function GongaFitLandingInner() {
                   <button
                     type="button"
                     onClick={() => setMode('signup')}
-                    className="inline-flex h-14 items-center gap-3 rounded-full bg-[#dc322f] px-6 text-base font-black text-white shadow-[0_16px_30px_rgba(220,50,47,0.3)] transition hover:-translate-y-0.5 hover:bg-[#cb4b16]"
+                    className="inline-flex h-14 items-center gap-3 rounded-full bg-landing-brand px-6 text-base font-black text-white shadow-[0_16px_30px_rgba(220,50,47,0.3)] transition hover:-translate-y-0.5 hover:bg-landing-brand/90"
                   >
                     Start training
                     <ArrowRight className="h-5 w-5" />
@@ -379,7 +379,7 @@ function GongaFitLandingInner() {
                   <button
                     type="button"
                     onClick={() => setMode('login')}
-                    className="inline-flex h-14 items-center rounded-full border border-[#93a1a1] bg-[#eee8d5]/90 px-6 text-base font-black text-[#002b36] shadow-[0_10px_24px_rgba(0,43,54,0.10)] transition hover:-translate-y-0.5 hover:border-[#dc322f]"
+                    className="inline-flex h-14 items-center rounded-full border border-landing-border bg-landing-surface/90 px-6 text-base font-black text-landing-text shadow-[0_10px_24px_rgba(0,43,54,0.10)] transition hover:-translate-y-0.5 hover:border-landing-brand"
                   >
                     Log in
                   </button>
@@ -395,7 +395,7 @@ function GongaFitLandingInner() {
                   {workoutChips.map(({ label, Icon, color, bg }) => (
                     <span
                       key={label}
-                      className="inline-flex items-center gap-2 rounded-full border border-[#eee8d5] bg-[#eee8d5]/90 px-4 py-3 text-sm font-black text-[#002b36] shadow-[0_10px_20px_rgba(0,43,54,0.10)]"
+                      className="inline-flex items-center gap-2 rounded-full border border-landing-border bg-landing-surface/90 px-4 py-3 text-sm font-black text-landing-text shadow-[0_10px_20px_rgba(0,43,54,0.10)]"
                     >
                       <span
                         className="flex h-8 w-8 items-center justify-center rounded-full"
@@ -448,7 +448,7 @@ function GongaFitLandingInner() {
                   {workoutChips.map(({ label, Icon, color, bg }) => (
                     <span
                       key={label}
-                      className="inline-flex items-center gap-2 rounded-full border border-[#eee8d5] bg-[#eee8d5]/90 px-4 py-3 text-sm font-black text-[#002b36] shadow-[0_10px_20px_rgba(0,43,54,0.10)]"
+                      className="inline-flex items-center gap-2 rounded-full border border-landing-border bg-landing-surface/90 px-4 py-3 text-sm font-black text-landing-text shadow-[0_10px_20px_rgba(0,43,54,0.10)]"
                     >
                       <span
                         className="flex h-8 w-8 items-center justify-center rounded-full"
@@ -470,26 +470,26 @@ function GongaFitLandingInner() {
                   type="button"
                   onClick={() => setActiveSlide(index)}
                   className={`h-2 rounded-full transition-all ${
-                    index === activeSlide ? 'w-8 bg-[#dc322f]' : 'w-2 bg-[#eee8d5]/80 hover:bg-[#eee8d5]'
+                    index === activeSlide ? 'w-8 bg-landing-brand' : 'w-2 bg-landing-surface/80 hover:bg-landing-surface'
                   }`}
                   aria-label={`Show ${item.title}`}
                 />
               ))}
             </div>
 
-            <div className="relative z-10 mx-5 mb-5 rounded-[28px] bg-[#eee8d5]/92 px-6 py-6 shadow-[0_18px_44px_rgba(0,43,54,0.12)] sm:mx-8 lg:mx-10">
+            <div className="relative z-10 mx-5 mb-5 rounded-[28px] bg-landing-surface/92 px-6 py-6 shadow-[0_18px_44px_rgba(0,43,54,0.12)] sm:mx-8 lg:mx-10">
               <div className="grid gap-5 lg:grid-cols-[1.2fr_repeat(3,1fr)] lg:items-center">
-                <h2 className="text-3xl font-black leading-tight text-[#002b36]">
+                <h2 className="text-3xl font-black leading-tight text-landing-text">
                   All the tools to reach your goals
                 </h2>
                 {toolHighlights.map(({ title, body, Icon, color }) => (
                   <div key={title} className="flex items-center gap-4">
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-[#002b36]" style={{ backgroundColor: color }}>
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-landing-text" style={{ backgroundColor: color }}>
                       <Icon className="h-6 w-6" />
                     </span>
                     <div>
-                      <p className="font-black text-[#002b36]">{title}</p>
-                      <p className="text-sm font-medium leading-5 text-[#657b83]">{body}</p>
+                      <p className="font-black text-landing-text">{title}</p>
+                      <p className="text-sm font-medium leading-5 text-landing-muted">{body}</p>
                     </div>
                   </div>
                 ))}
@@ -504,13 +504,13 @@ function GongaFitLandingInner() {
 
 function PersonCard({ person }: { person: HomepagePerson }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-[#eee8d5] shadow-[0_14px_30px_rgba(0,43,54,0.18)]">
-      <div className="h-28 bg-[#fdf6e3] sm:h-32 lg:h-24" style={{ backgroundColor: person.accent }}>
+    <div className="overflow-hidden rounded-2xl bg-landing-surface shadow-[0_14px_30px_rgba(0,43,54,0.18)]">
+      <div className="h-28 bg-landing-bg sm:h-32 lg:h-24" style={{ backgroundColor: person.accent }}>
         <img src={person.imageUrl} alt="" className="h-full w-full object-cover object-top" />
       </div>
       <div className="min-h-[72px] px-2 py-3 text-center sm:px-3">
-        <p className="text-sm font-black leading-tight text-[#002b36] sm:text-base lg:text-lg">{person.name}</p>
-        <p className="mt-1 text-[11px] font-bold leading-tight text-[#657b83] sm:text-xs">{person.role}</p>
+        <p className="text-sm font-black leading-tight text-landing-text sm:text-base lg:text-lg">{person.name}</p>
+        <p className="mt-1 text-[11px] font-bold leading-tight text-landing-muted sm:text-xs">{person.role}</p>
       </div>
     </div>
   )
@@ -530,7 +530,7 @@ function TrainerSlideshow({
   const slide = trainerSlides[activeSlide]
 
   return (
-    <div className={`overflow-hidden rounded-[24px] bg-[#eee8d5]/92 shadow-[0_18px_44px_rgba(0,43,54,0.18)] backdrop-blur ${className}`}>
+    <div className={`overflow-hidden rounded-[24px] bg-landing-surface/92 shadow-[0_18px_44px_rgba(0,43,54,0.18)] backdrop-blur ${className}`}>
       <div className={compact ? 'h-40' : 'h-56 sm:h-64'}>
         <AnimatePresence mode="wait">
           <motion.img
@@ -546,8 +546,8 @@ function TrainerSlideshow({
         </AnimatePresence>
       </div>
       <div className="p-4">
-        <p className="text-base font-black text-[#002b36]">{slide.title}</p>
-        {!compact && <p className="mt-1 text-sm font-medium leading-5 text-[#657b83]">{slide.body}</p>}
+        <p className="text-base font-black text-landing-text">{slide.title}</p>
+        {!compact && <p className="mt-1 text-sm font-medium leading-5 text-landing-muted">{slide.body}</p>}
         <div className="mt-3 flex gap-2">
           {trainerSlides.map((item, index) => (
             <button
@@ -555,7 +555,7 @@ function TrainerSlideshow({
               type="button"
               onClick={() => setActiveSlide(index)}
               className={`h-2 rounded-full transition-all ${
-                index === activeSlide ? 'w-7 bg-[#dc322f]' : 'w-2 bg-[#93a1a1] hover:bg-[#657b83]'
+                index === activeSlide ? 'w-7 bg-landing-brand' : 'w-2 bg-landing-border hover:bg-landing-muted'
               }`}
               aria-label={`Show ${item.title}`}
             />
@@ -618,12 +618,12 @@ function AuthPanel({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, delay: 0.1, ease: 'easeOut' }}
-      className="rounded-[30px] border border-[#eee8d5] bg-[#eee8d5]/95 p-6 shadow-[0_24px_70px_rgba(0,43,54,0.18)] backdrop-blur md:p-8"
+      className="rounded-[30px] border border-landing-border bg-landing-surface/95 p-6 shadow-[0_24px_70px_rgba(0,43,54,0.18)] backdrop-blur md:p-8"
     >
       <div className="mb-7 flex items-center justify-between gap-5">
         <div>
-          <h2 className="text-4xl font-black text-[#002b36]">{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
-          <p className="mt-2 text-base font-medium text-[#657b83]">
+          <h2 className="text-4xl font-black text-landing-text">{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
+          <p className="mt-2 text-base font-medium text-landing-muted">
             {mode === 'login' ? "Welcome back. Let's get you moving." : 'Create your GongaFit account.'}
           </p>
         </div>
@@ -632,19 +632,19 @@ function AuthPanel({
 
       <div className="space-y-4">
         {fieldErrors.general && (
-          <div className="rounded-2xl bg-[#dc322f]/10 border border-[#dc322f] p-4 text-sm font-bold text-[#cb4b16] shadow-sm">
+          <div className="rounded-2xl bg-landing-brand/10 border border-landing-brand p-4 text-sm font-bold text-landing-brand shadow-sm">
             {fieldErrors.general}
           </div>
         )}
         
-        <label className="block text-sm font-black text-[#002b36]">
+        <label className="block text-sm font-black text-landing-text">
           Email
           <span
-            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-[#fdf6e3] px-4 ${
-              fieldErrors.email ? 'border-[#dc322f]' : 'border-[#93a1a1]'
+            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-landing-bg px-4 ${
+              fieldErrors.email ? 'border-landing-brand' : 'border-landing-border'
             }`}
           >
-            <Mail className="h-5 w-5 text-[#657b83]" />
+            <Mail className="h-5 w-5 text-landing-muted" />
             <input
               value={email}
               onChange={(event) => {
@@ -656,20 +656,20 @@ function AuthPanel({
               autoComplete="email"
               aria-invalid={fieldErrors.email ? true : undefined}
               placeholder="you@example.com"
-              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#002b36] outline-none placeholder:text-[#93a1a1]"
+              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-landing-text outline-none placeholder:text-landing-muted"
             />
           </span>
         </label>
-        {fieldErrors.email && <p className="-mt-2 text-xs font-bold text-[#dc322f]">{fieldErrors.email}</p>}
+        {fieldErrors.email && <p className="-mt-2 text-xs font-bold text-landing-brand">{fieldErrors.email}</p>}
 
-        <label className="block text-sm font-black text-[#002b36]">
+        <label className="block text-sm font-black text-landing-text">
           Password
           <span
-            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-[#fdf6e3] px-4 ${
-              fieldErrors.password ? 'border-[#dc322f]' : 'border-[#93a1a1]'
+            className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-landing-bg px-4 ${
+              fieldErrors.password ? 'border-landing-brand' : 'border-landing-border'
             }`}
           >
-            <LockKeyhole className="h-5 w-5 text-[#657b83]" />
+            <LockKeyhole className="h-5 w-5 text-landing-muted" />
             <input
               value={password}
               onChange={(event) => {
@@ -684,12 +684,12 @@ function AuthPanel({
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               aria-invalid={fieldErrors.password ? true : undefined}
               placeholder="Enter your password"
-              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#002b36] outline-none placeholder:text-[#93a1a1]"
+              className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-landing-text outline-none placeholder:text-landing-muted"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-[#657b83] transition hover:text-[#002b36]"
+              className="text-landing-muted transition hover:text-landing-text"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -700,8 +700,8 @@ function AuthPanel({
         {(fieldErrors.password || capsLockOn) && (
           <div className="-mt-2 flex items-start justify-between gap-3">
             <div>
-              {fieldErrors.password && <p className="text-xs font-bold text-[#dc322f]">{fieldErrors.password}</p>}
-              {capsLockOn && <p className="text-xs font-bold text-[#b58900]">Caps lock is on</p>}
+              {fieldErrors.password && <p className="text-xs font-bold text-landing-brand">{fieldErrors.password}</p>}
+              {capsLockOn && <p className="text-xs font-bold text-landing-primary">Caps lock is on</p>}
             </div>
           </div>
         )}
@@ -712,15 +712,15 @@ function AuthPanel({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="block overflow-hidden text-sm font-black text-[#002b36]"
+              className="block overflow-hidden text-sm font-black text-landing-text"
             >
               Display name
               <span
-                className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-[#fdf6e3] px-4 ${
-                  fieldErrors.codename ? 'border-[#dc322f]' : 'border-[#93a1a1]'
+                className={`mt-2 flex h-12 items-center gap-3 rounded-2xl border bg-landing-bg px-4 ${
+                  fieldErrors.codename ? 'border-landing-brand' : 'border-landing-border'
                 }`}
               >
-                <Users className="h-5 w-5 text-[#657b83]" />
+                <Users className="h-5 w-5 text-landing-muted" />
                 <input
                   value={codename}
                   onChange={(event) => {
@@ -732,10 +732,10 @@ function AuthPanel({
                   autoComplete="nickname"
                   aria-invalid={fieldErrors.codename ? true : undefined}
                   placeholder="Your name"
-                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#002b36] outline-none placeholder:text-[#93a1a1]"
+                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-landing-text outline-none placeholder:text-landing-muted"
                 />
               </span>
-              {fieldErrors.codename && <p className="mt-2 text-xs font-bold text-[#dc322f]">{fieldErrors.codename}</p>}
+              {fieldErrors.codename && <p className="mt-2 text-xs font-bold text-landing-brand">{fieldErrors.codename}</p>}
             </motion.label>
           )}
         </AnimatePresence>
@@ -747,7 +747,7 @@ function AuthPanel({
           whileHover={{ scale: submitDisabled ? 1 : 1.02 }}
           whileTap={{ scale: submitDisabled ? 1 : 0.98 }}
           layout
-          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#dc322f] text-base font-black text-white shadow-[0_14px_28px_rgba(220,50,47,0.32)] transition-colors hover:bg-[#cb4b16] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-full bg-landing-brand text-base font-black text-white shadow-[0_14px_28px_rgba(220,50,47,0.32)] transition-colors hover:bg-landing-brand/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {redirecting
             ? 'Opening...'
@@ -761,7 +761,7 @@ function AuthPanel({
           {submitDisabled ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
         </motion.button>
 
-        <div className="flex items-center justify-center gap-2 pt-2 text-sm font-semibold text-[#657b83]">
+        <div className="flex items-center justify-center gap-2 pt-2 text-sm font-semibold text-landing-muted">
           <span>{mode === 'login' ? 'New here?' : 'Already moving?'}</span>
           <button
             type="button"
@@ -769,7 +769,7 @@ function AuthPanel({
               setMode(mode === 'login' ? 'signup' : 'login')
               setCodename('')
             }}
-            className="font-black text-[#dc322f] transition hover:text-[#cb4b16]"
+            className="font-black text-landing-brand transition hover:text-landing-brand"
           >
             {mode === 'login' ? 'Sign up' : 'Log in'}
           </button>

@@ -46,6 +46,17 @@ module.exports = {
         'gonga-muted': 'rgb(var(--gonga-muted) / <alpha-value>)',
         'gonga-border': 'rgb(var(--gonga-border) / <alpha-value>)',
 
+        'landing-bg': 'rgb(var(--landing-bg) / <alpha-value>)',
+        'landing-surface': 'rgb(var(--landing-surface) / <alpha-value>)',
+        'landing-surface-raised': 'rgb(var(--landing-surface-raised) / <alpha-value>)',
+        'landing-text': 'rgb(var(--landing-text) / <alpha-value>)',
+        'landing-muted': 'rgb(var(--landing-muted) / <alpha-value>)',
+        'landing-border': 'rgb(var(--landing-border) / <alpha-value>)',
+        'landing-brand': 'rgb(var(--landing-brand) / <alpha-value>)',
+        'landing-primary': 'rgb(var(--landing-primary) / <alpha-value>)',
+        'landing-success': 'rgb(var(--landing-success) / <alpha-value>)',
+        'landing-overlay': 'rgb(var(--landing-overlay) / <alpha-value>)',
+
         // Legacy discord aliases mapped to solarized equivalents
         'discord-darkest': '#002b36',
         'discord-darker': '#073642',
